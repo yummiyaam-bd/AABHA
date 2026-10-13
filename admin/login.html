@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AABHA Secure Admin Login</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #0b0f19; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: #1f2937; padding: 40px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; border: 1px solid #374151; }
+        h2 { color: #fff; margin-bottom: 25px; font-weight: 600; letter-spacing: 0.5px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; background: #111827; border: 1px solid #4b5563; border-radius: 8px; color: #fff; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: #3b82f6; }
+        button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #2563eb; }
+        .error-msg { color: #ef4444; font-size: 13px; margin-bottom: 15px; display: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>🔒 AABHA Admin Gate</h2>
+        <div id="error" class="error-msg">ভুল ইমেইল অথবা পাসওয়ার্ড!</div>
+        <input type="email" id="email" placeholder="অ্যাডমিন ইমেইল লিখুন" required>
+        <input type="password" id="password" placeholder="সিক্রেট পাসওয়ার্ড লিখুন" required>
+        <button onclick="loginAdmin()">প্রবেশ করুন</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://supabase.co";
+        const SUPABASE_KEY = "sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loginAdmin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error');
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                errorDiv.style.display = 'block';
+                errorDiv.innerText = "⛔ লগইন ব্যর্থ: " + error.message;
+            } else {
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>
