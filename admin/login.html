@@ -6,10 +6,10 @@
     <title>AABHA Secure Admin Login</title>
     <script src="https://jsdelivr.net"></script>
     <style>
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #0b0f19; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0b0f19; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .login-card { background: #1f2937; padding: 40px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; border: 1px solid #374151; }
-        h2 { color: #fff; margin-bottom: 25px; font-weight: 600; letter-spacing: 0.5px; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; background: #111827; border: 1px solid #4b5563; border-radius: 8px; color: #fff; box-sizing: border-box; outline: none; transition: 0.3s; }
+        h2 { color: #fff; margin-bottom: 25px; font-weight: 600; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; background: #111827; border: 1px solid #4b5563; border-radius: 8px; color: #fff; box-sizing: border-box; outline: none; }
         input:focus { border-color: #3b82f6; }
         button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         button:hover { background: #2563eb; }
@@ -20,7 +20,7 @@
 
     <div class="login-card">
         <h2>🔒 AABHA Admin Gate</h2>
-        <div id="error" class="error-msg">ভুল ইমেইল অথবা পাসওয়ার্ড!</div>
+        <div id="error" class="error-msg">⛔ লগইন ব্যর্থ হয়েছে!</div>
         <input type="email" id="email" placeholder="অ্যাডমিন ইমেইল লিখুন" required>
         <input type="password" id="password" placeholder="সিক্রেট পাসওয়ার্ড লিখুন" required>
         <button onclick="loginAdmin()">প্রবেশ করুন</button>
@@ -35,14 +35,19 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('error');
+            errorDiv.style.display = 'none';
 
+            // সুপাবেস অথেন্টিকেশন রান করা
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
             if (error) {
                 errorDiv.style.display = 'block';
-                errorDiv.innerText = "⛔ লগইন ব্যর্থ: " + error.message;
+                errorDiv.innerText = "⛔ ভুল ইমেইল বা পাসওয়ার্ড! আবার চেষ্টা করুন।";
             } else {
-                window.location.href = "index.html";
+                // সেশন সফল হলে টোকেন লোকাল স্টোরেজে সেভ করে রিডাইরেক্ট করা
+                localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
+                alert("🎉 লগইন সফল! ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে...");
+                window.location.replace("index.html");
             }
         }
     </script>
