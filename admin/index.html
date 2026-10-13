@@ -119,6 +119,22 @@ function setText(id,v){document.getElementById(id).innerText=v;}
 async function checkSecurityGateway(){
   const {data:{user}} = await supabaseClient.auth.getUser();
   if(!user){window.location.replace("login.html");return;}
+
+  const {data:profile} = await supabaseClient
+    .from('profiles').select('role').eq('id',user.id).maybeSingle();
+
+  if(!profile || profile.role!=='admin'){
+    await supabaseClient.auth.signOut();
+    alert("⛔ আপনার অ্যাডমিন অনুমতি নেই!");
+    window.location.replace("login.html");
+    return;
+  }
+
+  setText('admin-email-display',`👤 ${user.email}`);
+  loadDashboardData();
+}
+  const {data:{user}} = await supabaseClient.auth.getUser();
+  if(!user){window.location.replace("login.html");return;}
   setText('admin-email-display',`👤 ${user.email}`);
   loadDashboardData();
 }
