@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AABHA Luxury - Admin Dashboard</title>
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-dark: #0b0f19;
@@ -54,8 +54,8 @@
             <h1>Dashboard Control Panel</h1>
             <div id="admin-email-display" style="color: var(--text-muted); font-size: 14px;"></div>
         </div>
-        
-        <div id="low-stock-alert" class="alert-bar">⚠️ স্টক এলার্ট: কিছু লাক্সারি কালেকশনের স্টক ফুরিয়ে আসছে!</div>
+
+        <div id="low-stock-alert" class="alert-bar">⚠️ স্টক এলার্ট: কিছু লাক্সারি কালেকশনের স্টক ফুরিয়ে আসছে!</div>
 
         <div class="grid-cards">
             <div class="stat-card">
@@ -81,7 +81,7 @@
                         <th>ফোন নম্বর</th>
                         <th>মোট বিল</th>
                         <th>পেমেন্ট মেথড</th>
-                        <th>অগ্রিম ফি (৳১২ো)</th>
+                        <th>অগ্রিম ফি</th>
                         <th>লাইভ স্ট্যাটাস</th>
                     </tr>
                 </thead>
@@ -94,32 +94,93 @@
         </div>
     </div>
 
-    <script src="admin.js"></script>
 <script>
-    // সেশন ভেরিফিকেশন কোড
-    const SUPABASE_URL = "https://supabase.co";
+    const SUPABASE_URL = "https://xjwuozdfuflfoqiuucik.supabase.co";
     const SUPABASE_KEY = "sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    async function checkDirectAccess() {
-        const { data: { user } } = await sb.auth.getUser();
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function esc(text) {
+        return String(text ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    async function checkSecurityGateway() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) {
-            // যদি সেশন না থাকে তবে কিক আউট করে লগইন পেজে পাঠাবে
             window.location.replace("login.html");
-        } else {
-            document.getElementById('admin-email-display').innerText = `👤 Active: ${user.email}`;
-            // ডেমো জিরো ডেটা ক্লিয়ার করে রিয়েল কাউন্ট দেখানো
-            document.getElementById('total-orders').innerText = "0 টি";
+            return;
+        }
+        document.getElementById('admin-email-display').innerText = `👤 Active: ${user.email}`;
+        loadDashboardData();
+    }
+
+    async function loadDashboardData() {
+        const tbody = document.getElementById('order-table-body');
+
+        const { data: orders, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#fca5a5; padding:20px;">ডেটা লোড হয়নি: ${esc(error.message)}</td></tr>`;
+            return;
+        }
+
+        if (!orders || orders.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#9ca3af; padding:20px;">কোনো কাস্টমার এখনো অর্ডার করেনি।</td></tr>`;
             document.getElementById('total-sales').innerText = "৳0";
+            document.getElementById('total-orders').innerText = "0 টি";
+        } else {
+            let totalSales = 0;
+            let rows = '';
+            orders.forEach(order => {
+                if (order.status === 'Delivered') {
+                    totalSales += Number(order.total_amount || 0);
+                }
+                const statuses = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+                const options = statuses.map(s =>
+                    `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`
+                ).join('');
+                rows += `
+                    <tr>
+                        <td><strong>${esc(order.customer_name) || 'Anonymous'}</strong></td>
+                        <td>${esc(order.phone) || 'N/A'}</td>
+                        <td>৳${esc(order.total_amount || 0)}</td>
+                        <td><span style="background: rgba(59,130,246,0.2); color:#60a5fa; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${order.payment_method ? esc(order.payment_method.toUpperCase()) : 'COD'}</span></td>
+                        <td>${order.delivery_charge_paid ? '✅ paid' : '❌ pending'}</td>
+                        <td><select onchange="updateOrderStatus('${esc(order.id)}', this.value)">${options}</select></td>
+                    </tr>`;
+            });
+            tbody.innerHTML = rows;
+            document.getElementById('total-sales').innerText = `৳${totalSales}`;
+            document.getElementById('total-orders').innerText = `${orders.length} টি`;
+        }
+
+        const { data: lowStock } = await supabaseClient
+            .from('products')
+            .select('*')
+            .lt('stock_count', 4);
+
+        if (lowStock && lowStock.length > 0) {
+            document.getElementById('low-stock-alert').style.display = 'block';
+            document.getElementById('low-stock-count').innerText = `${lowStock.length} টি`;
         }
     }
-    window.addEventListener('DOMContentLoaded', checkDirectAccess);
-    
+
+    async function updateOrderStatus(orderId, newStatus) {
+        await supabaseClient.from('orders').update({ status: newStatus }).eq('id', orderId);
+        loadDashboardData();
+    }
+
     function logoutAdmin() {
-        sb.auth.signOut().then(() => {
+        supabaseClient.auth.signOut().then(() => {
             window.location.replace("login.html");
         });
     }
+
+    window.addEventListener('DOMContentLoaded', checkSecurityGateway);
 </script>
 </body>
 </html>
