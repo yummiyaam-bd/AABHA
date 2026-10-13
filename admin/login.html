@@ -21,7 +21,6 @@
 
     <div class="login-card">
         <h2>🔒 AABHA Admin Gate</h2>
-        <!-- লাল রঙের ভুলের নোটিশ বক্স -->
         <div id="error-display-box" class="error-msg">ভুল ইমেইল অথবা পাসওয়ার্ড!</div>
         
         <input type="email" id="admin-email-input" placeholder="অ্যাডমিন ইমেইল লিখুন" required>
@@ -30,17 +29,17 @@
     </div>
 
     <script>
-        // আপনার ১০০% সঠিক সুপাবেস ইউআরএল এবং এনন কী
+        // প্রথমে সুপাবেস কানেকশন ইনিশিয়েলাইজ করা (যাতে এরর না আসে)
         const LOGIN_URL = "https://supabase.co";
         const LOGIN_KEY = "sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
         const sbInstance = supabase.createClient(LOGIN_URL, LOGIN_KEY);
 
+        // এবার লগইন ফাংশন রান করা
         async function executeAdminLogin() {
             const emailValue = document.getElementById('admin-email-input').value;
             const passwordValue = document.getElementById('admin-pass-input').value;
             const errorBox = document.getElementById('error-display-box');
             
-            // শুরুতেই নোটিশ হাইড করা
             errorBox.style.display = 'none';
 
             if(!emailValue || !passwordValue) {
@@ -50,7 +49,6 @@
             }
 
             try {
-                // সুপাবেস অথেন্টিকেশন সেশন রান করা
                 const { data, error } = await sbInstance.auth.signInWithPassword({ 
                     email: emailValue, 
                     password: passwordValue 
