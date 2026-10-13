@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AABHA Secure Admin Login</title>
     <!-- সরাসরি সুপাবেস লাইব্রেরি লিংক -->
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: #0b0f19; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .login-card { background: #1f2937; padding: 40px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; border: 1px solid #374151; }
@@ -21,16 +21,16 @@
 
     <div class="login-card">
         <h2>🔒 AABHA Admin Gate</h2>
-        <div id="error-display-box" class="error-msg">ভুল ইমেইল অথবা পাসওয়ার্ড!</div>
+        <div id="error-display-box" class="error-msg">ভুল ইমেইল অথবা পাসওয়ার্ড!</div>
         
         <input type="email" id="admin-email-input" placeholder="অ্যাডমিন ইমেইল লিখুন" required>
-        <input type="password" id="admin-pass-input" placeholder="সিক্রেট পাসওয়ার্ড লিখুন" required>
+        <input type="password" id="admin-pass-input" placeholder="সিক্রেট পাসওয়ার্ড লিখুন" required>
         <button onclick="executeAdminLogin()">প্রবেশ করুন</button>
     </div>
 
     <script>
         // প্রথমে সুপাবেস কানেকশন ইনিশিয়েলাইজ করা (যাতে এরর না আসে)
-        const LOGIN_URL = "https://supabase.co";
+        const LOGIN_URL = "https://xjwuozdfuflfoqiuucik.supabase.co";
         const LOGIN_KEY = "sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
         const sbInstance = supabase.createClient(LOGIN_URL, LOGIN_KEY);
 
@@ -44,7 +44,7 @@
 
             if(!emailValue || !passwordValue) {
                 errorBox.style.display = 'block';
-                errorBox.innerText = "⚠️ দয়া করে ইমেইল এবং পাসওয়ার্ড দুটিই লিখুন!";
+                errorBox.innerText = "⚠️ দয়া করে ইমেইল এবং পাসওয়ার্ড দুটিই লিখুন!";
                 return;
             }
 
@@ -56,14 +56,14 @@
 
                 if (error) {
                     errorBox.style.display = 'block';
-                    errorBox.innerText = "⛔ ভুল ইমেইল বা পাসওয়ার্ড! আবার চেষ্টা করুন।";
+                    errorBox.innerText = "⛔ ভুল ইমেইল বা পাসওয়ার্ড! আবার চেষ্টা করুন।";
                 } else if (data && data.user) {
-                    alert("🎉 লগইন সফল! প্রিমিয়াম ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে...");
+                    alert("🎉 লগইন সফল! প্রিমিয়াম ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে...");
                     window.location.replace("index.html");
                 }
             } catch (err) {
                 errorBox.style.display = 'block';
-                errorBox.innerText = "🚨 কানেকশনে সমস্যা হয়েছে: " + err.message;
+                errorBox.innerText = "🚨 কানেকশনে সমস্যা হয়েছে: " + err.message;
             }
         }
     </script>
