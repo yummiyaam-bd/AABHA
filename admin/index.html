@@ -120,10 +120,9 @@ async function checkSecurityGateway(){
   const {data:{user}} = await supabaseClient.auth.getUser();
   if(!user){window.location.replace("login.html");return;}
 
-  const {data:profile} = await supabaseClient
-    .from('user_profiles').select('is_admin').eq('id',user.id).maybeSingle();
+  const {data:isAdmin,error:adminErr} = await supabaseClient.rpc('is_admin');
 
-  if(!profile || profile.is_admin !== true){
+  if(adminErr || isAdmin !== true){
     await supabaseClient.auth.signOut();
     alert("⛔ আপনার অ্যাডমিন অনুমতি নেই!");
     window.location.replace("login.html");
