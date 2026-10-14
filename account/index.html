@@ -17,6 +17,7 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:var(--sans);line-hei
 header{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
 .logo{font:700 1.5rem var(--serif);letter-spacing:.28em;color:var(--ac);text-decoration:none}
 .hr{display:flex;gap:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
 h2{font:600 1.6rem var(--serif);margin:0 0 10px}
 .btn{border:0;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;padding:12px 22px;border-radius:40px;font:800 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-block}
 .btn.g{background:var(--gl);border:1px solid var(--gb);color:var(--ink)}
@@ -53,10 +54,14 @@ input:focus{border-color:var(--ac)}
 
 <section id="login" class="glass card" hidden>
   <h2 data-i="loginT">Log in to your account</h2>
-  <p class="mut" data-i="loginS">Enter your email and we will send you a secure login link. No password needed.</p>
+  <p class="mut" data-i="loginS">Enter your email and password. New here? Tap Create account.</p>
   <form id="lf">
     <input id="em" type="email" required autocomplete="email" data-ph="email" placeholder="Your email">
-    <button class="btn" id="snd" type="submit" data-i="send">Send login link</button>
+    <input id="pw" type="password" required minlength="6" autocomplete="current-password" data-ph="pass" placeholder="Password (at least 6 characters)">
+    <div class="row">
+      <button class="btn" id="bl" type="submit" data-i="loginBtn">Log in</button>
+      <button class="btn g" id="bs" type="button" data-i="signup">Create account</button>
+    </div>
   </form>
   <p id="lm" style="margin-top:12px"></p>
 </section>
@@ -86,8 +91,8 @@ const sb=(CFG.SUPABASE_URL&&CFG.SUPABASE_ANON_KEY&&window.supabase)?supabase.cre
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let LANG='en';try{LANG=localStorage.getItem('aa_lang')||'en'}catch(e){}
 const T={
-en:{loginT:'Log in to your account',loginS:'Enter your email and we will send you a secure login link. No password needed.',send:'Send login link',email:'Your email',sent:'Link sent! Check your email and tap it to log in.',badEmail:'Please enter a valid email.',fail:'Could not send the link. Please wait a minute and try again.',signout:'Sign out',back:'Back to shop',msgs:'Messages',noMsgs:'No messages yet.',markRead:'Mark all read',orders:'My Orders',noOrders:'No orders yet. Your first order unlocks a 10% gift card!',details:'My details',name:'Your name',phone:'Phone number',save:'Save',saved:'Saved!',eta:'Expected delivery',total:'Total',courier:'Courier',trackNo:'Tracking no.',recv:'✓ I received my order',recvd:'✓ You confirmed receipt. Thank you!',loy:'Loyalty',orderedN:'orders',gift:'Gift card',card:'Loyalty card',next10:'off your next order',unlock:'Place your first order to unlock a 10% gift card and 2 stars.',freeHave:'🎁 You have a free item on your next order!',freeIn:'more orders to earn a free item',noCfg:'The site is not connected yet (config.js is missing).',order:'Order',pending:'Order placed',confirmed:'Confirmed',processing:'Preparing',shipped:'On the way',delivered:'Delivered',cancelled:'Cancelled',err:'Could not load your data. Please refresh.'},
-bn:{loginT:'আপনার অ্যাকাউন্টে লগইন করুন',loginS:'ইমেইল দিন, আমরা একটি নিরাপদ লগইন লিংক পাঠাব। পাসওয়ার্ড লাগবে না।',send:'লগইন লিংক পাঠান',email:'আপনার ইমেইল',sent:'লিংক পাঠানো হয়েছে! ইমেইল দেখে লিংকে চাপ দিয়ে লগইন করুন।',badEmail:'সঠিক ইমেইল দিন।',fail:'লিংক পাঠানো যায়নি। এক মিনিট পর আবার চেষ্টা করুন।',signout:'সাইন আউট',back:'শপে ফিরুন',msgs:'মেসেজ',noMsgs:'এখনো কোনো মেসেজ নেই।',markRead:'সব পড়া হয়েছে',orders:'আমার অর্ডার',noOrders:'এখনো কোনো অর্ডার নেই। প্রথম অর্ডারেই পাবেন ১০% গিফট কার্ড!',details:'আমার তথ্য',name:'আপনার নাম',phone:'ফোন নম্বর',save:'সেভ করুন',saved:'সেভ হয়েছে!',eta:'আনুমানিক ডেলিভারি',total:'মোট',courier:'কুরিয়ার',trackNo:'ট্র্যাকিং নম্বর',recv:'✓ আমি পণ্য পেয়েছি',recvd:'✓ আপনি পণ্য পাওয়ার কথা নিশ্চিত করেছেন। ধন্যবাদ!',loy:'লয়্যালটি',orderedN:'টি অর্ডার',gift:'গিফট কার্ড',card:'লয়্যালটি কার্ড',next10:'ছাড় আপনার পরের অর্ডারে',unlock:'প্রথম অর্ডার করলেই পাবেন ১০% গিফট কার্ড ও ২ স্টার।',freeHave:'🎁 আপনার পরের অর্ডারে একটি পণ্য ফ্রি!',freeIn:'টি অর্ডার করলেই একটি ফ্রি পণ্য',noCfg:'সাইট এখনো সংযুক্ত হয়নি (config.js নেই)।',order:'অর্ডার',pending:'অর্ডার গৃহীত',confirmed:'কনফার্ম হয়েছে',processing:'প্রস্তুত হচ্ছে',shipped:'পথে আছে',delivered:'পৌঁছে গেছে',cancelled:'বাতিল',err:'তথ্য লোড হয়নি। রিফ্রেশ করুন।'}};
+en:{loginT:'Log in to your account',loginS:'Enter your email and password. New here? Tap Create account.',loginBtn:'Log in',signup:'Create account',email:'Your email',pass:'Password (at least 6 characters)',badEmail:'Please enter a valid email.',badPass:'Password must be at least 6 characters.',wrong:'Wrong email or password.',exists:'This email may already have an account. Please tap Log in.',confirmOn:'Account created, but email confirmation is still ON in Supabase. Please turn it off.',fail:'Something went wrong. Please try again.',signout:'Sign out',back:'Back to shop',msgs:'Messages',noMsgs:'No messages yet.',markRead:'Mark all read',orders:'My Orders',noOrders:'No orders yet. Your first order unlocks a 10% gift card!',details:'My details',name:'Your name',phone:'Phone number',save:'Save',saved:'Saved!',eta:'Expected delivery',total:'Total',courier:'Courier',trackNo:'Tracking no.',recv:'✓ I received my order',recvd:'✓ You confirmed receipt. Thank you!',loy:'Loyalty',orderedN:'orders',gift:'Gift card',card:'Loyalty card',next10:'off your next order',unlock:'Place your first order to unlock a 10% gift card and 2 stars.',freeHave:'🎁 You have a free item on your next order!',freeIn:'more orders to earn a free item',noCfg:'The site is not connected yet (config.js is missing).',order:'Order',pending:'Order placed',confirmed:'Confirmed',processing:'Preparing',shipped:'On the way',delivered:'Delivered',cancelled:'Cancelled',err:'Could not load your data. Please refresh.'},
+bn:{loginT:'আপনার অ্যাকাউন্টে লগইন করুন',loginS:'ইমেইল আর পাসওয়ার্ড দিন। নতুন হলে "অ্যাকাউন্ট খুলুন" চাপুন।',loginBtn:'লগইন',signup:'অ্যাকাউন্ট খুলুন',email:'আপনার ইমেইল',pass:'পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)',badEmail:'সঠিক ইমেইল দিন।',badPass:'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।',wrong:'ইমেইল বা পাসওয়ার্ড ভুল।',exists:'এই ইমেইলে হয়তো আগেই অ্যাকাউন্ট আছে। "লগইন" চাপুন।',confirmOn:'অ্যাকাউন্ট খোলা হয়েছে, কিন্তু Supabase-এ ইমেইল কনফার্মেশন এখনো চালু। সেটা বন্ধ করুন।',fail:'কিছু একটা ভুল হয়েছে। আবার চেষ্টা করুন।',signout:'সাইন আউট',back:'শপে ফিরুন',msgs:'মেসেজ',noMsgs:'এখনো কোনো মেসেজ নেই।',markRead:'সব পড়া হয়েছে',orders:'আমার অর্ডার',noOrders:'এখনো কোনো অর্ডার নেই। প্রথম অর্ডারেই পাবেন ১০% গিফট কার্ড!',details:'আমার তথ্য',name:'আপনার নাম',phone:'ফোন নম্বর',save:'সেভ করুন',saved:'সেভ হয়েছে!',eta:'আনুমানিক ডেলিভারি',total:'মোট',courier:'কুরিয়ার',trackNo:'ট্র্যাকিং নম্বর',recv:'✓ আমি পণ্য পেয়েছি',recvd:'✓ আপনি পণ্য পাওয়ার কথা নিশ্চিত করেছেন। ধন্যবাদ!',loy:'লয়্যালটি',orderedN:'টি অর্ডার',gift:'গিফট কার্ড',card:'লয়্যালটি কার্ড',next10:'ছাড় আপনার পরের অর্ডারে',unlock:'প্রথম অর্ডার করলেই পাবেন ১০% গিফট কার্ড ও ২ স্টার।',freeHave:'🎁 আপনার পরের অর্ডারে একটি পণ্য ফ্রি!',freeIn:'টি অর্ডার করলেই একটি ফ্রি পণ্য',noCfg:'সাইট এখনো সংযুক্ত হয়নি (config.js নেই)।',order:'অর্ডার',pending:'অর্ডার গৃহীত',confirmed:'কনফার্ম হয়েছে',processing:'প্রস্তুত হচ্ছে',shipped:'পথে আছে',delivered:'পৌঁছে গেছে',cancelled:'বাতিল',err:'তথ্য লোড হয়নি। রিফ্রেশ করুন।'}};
 const t=k=>(T[LANG]&&T[LANG][k])||T.en[k]||k;
 const fm=n=>TK+Number(n||0).toLocaleString('en-US');
 const dt=x=>x?new Date(x).toLocaleString(LANG==='bn'?'bn-BD':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
@@ -170,7 +175,6 @@ function onSess(s){
   SESS=s;$('#login').hidden=!!s;$('#app').hidden=!s;$('#so').hidden=!s;
   if(!s){CACHE=null;filled=false;return}
   if(new URLSearchParams(location.search).get('next')==='checkout'){location.replace('../');return}
-  if(location.hash.indexOf('access_token')>-1)history.replaceState(null,'',location.pathname+location.search);
   loadAll();
 }
 
@@ -178,16 +182,35 @@ S();
 $('#lg').onclick=()=>{LANG=LANG==='bn'?'en':'bn';try{localStorage.setItem('aa_lang',LANG)}catch(e){}S();paint()};
 if(!sb){$('#err').textContent=t('noCfg');$('#err').hidden=false;return}
 
-$('#lf').onsubmit=async e=>{
-  e.preventDefault();
-  const em=$('#em').value.trim(),m=$('#lm'),b=$('#snd');
+async function doAuth(signup){
+  const em=$('#em').value.trim(),pw=$('#pw').value,m=$('#lm');
+  m.className='';m.textContent='';
   if(!/^\S+@\S+\.\S+$/.test(em)){m.className='er';m.textContent=t('badEmail');return}
-  b.disabled=true;
-  const nx=new URLSearchParams(location.search).get('next');
-  const r=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname+(nx?'?next='+encodeURIComponent(nx):''),shouldCreateUser:true}});
-  b.disabled=false;
-  m.className=r.error?'er':'ok';m.textContent=r.error?t('fail'):t('sent');
-};
+  if(pw.length<6){m.className='er';m.textContent=t('badPass');return}
+  $('#bl').disabled=true;$('#bs').disabled=true;
+  let err=null;
+  try{
+    if(signup){
+      const r=await sb.auth.signUp({email:em,password:pw});
+      if(r.error){err=r.error}
+      else if(!(r.data&&r.data.session)){
+        const r2=await sb.auth.signInWithPassword({email:em,password:pw});
+        if(r2.error){m.className='er';m.textContent=/confirm/i.test(r2.error.message)?t('confirmOn'):t('exists');$('#bl').disabled=false;$('#bs').disabled=false;return}
+      }
+    }else{
+      const r=await sb.auth.signInWithPassword({email:em,password:pw});
+      if(r.error)err=r.error;
+    }
+  }catch(e){err=e}
+  $('#bl').disabled=false;$('#bs').disabled=false;
+  if(err){
+    const msg=String(err.message||'');
+    m.className='er';
+    m.textContent=/already|registered/i.test(msg)?t('exists'):/invalid|credentials/i.test(msg)?t('wrong'):/confirm/i.test(msg)?t('confirmOn'):t('fail');
+  }
+}
+$('#lf').onsubmit=e=>{e.preventDefault();doAuth(false)};
+$('#bs').onclick=()=>doAuth(true);
 $('#so').onclick=async()=>{await sb.auth.signOut();onSess(null)};
 $('#ords').onclick=async e=>{
   const b=e.target.closest('[data-recv]');if(!b)return;b.disabled=true;
