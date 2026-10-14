@@ -17,11 +17,12 @@ body{margin:0;font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg);colo
 .nav a.active,.nav a:hover{background:var(--acc);color:#fff}
 .btn-logout{background:#ef4444;color:#fff;border:0;padding:11px;border-radius:8px;font-weight:700;cursor:pointer;width:100%}
 .main{margin-left:240px}
-.topbar{background:linear-gradient(90deg,#1e3a8a,#2563eb);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:14px}
+.topbar{background:linear-gradient(90deg,#1e3a8a,#2563eb);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
 .topbar h1{font-size:20px;margin:0;flex:1}
 .menu-btn{display:none;background:rgba(255,255,255,.15);border:0;color:#fff;font-size:22px;border-radius:8px;padding:4px 12px;cursor:pointer}
 .mail{font-size:13px;opacity:.9}
-.btn-ref{background:rgba(255,255,255,.2);border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
+.btn-ref,.bell{background:rgba(255,255,255,.2);border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;text-decoration:none;font-size:14px}
+.badge{background:#ef4444;color:#fff;border-radius:999px;font-size:11px;padding:2px 7px;margin-left:4px}
 .content{padding:24px}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
 .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:14px}
@@ -32,14 +33,19 @@ body{margin:0;font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg);colo
 .row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
 .box{background:var(--card);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}
 .row .box{margin-bottom:0}
-.box h2{font-size:16px;margin:0;padding:16px 18px;border-bottom:1px solid var(--line)}
+.box h2{font-size:16px;margin:0;padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.box h2 button{font-size:12px;padding:6px 10px;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer}
 .chart-wrap{position:relative;height:260px;padding:14px}
 .scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:620px}
+table{width:100%;border-collapse:collapse;min-width:700px}
 th{background:#f8fafc;color:var(--muted);font-size:13px;text-align:left;padding:12px 16px}
-td{padding:12px 16px;border-top:1px solid var(--line);font-size:14px}
+td{padding:12px 16px;border-top:1px solid var(--line);font-size:14px;vertical-align:top}
 select{padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1}
 .tag{background:#dbeafe;color:#1d4ed8;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600}
+.flag{background:#fee2e2;color:#b91c1c;padding:2px 6px;border-radius:6px;font-size:11px;font-weight:600;margin:0 4px 4px 0;display:inline-block}
+.muted{color:var(--muted);font-size:12px;margin-top:2px}
+.notif-item{padding:12px 18px;border-top:1px solid var(--line);font-size:14px}
+.notif-item.unread{background:#eff6ff}
 .empty{text-align:center;color:var(--muted);padding:24px}
 @media(max-width:900px){
 .sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}
@@ -56,6 +62,7 @@ select{padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1}
   <div class="nav">
     <a href="#top" class="active" onclick="closeMenu()">📊 Dashboard</a>
     <a href="#orders-section" onclick="closeMenu()">🛒 Orders</a>
+    <a href="#notif-section" onclick="closeMenu()">🔔 Notifications</a>
     <a href="#stock-section" onclick="closeMenu()">⚠️ Low Stock</a>
   </div>
   <button class="btn-logout" onclick="logoutAdmin()">🔒 Sign Out</button>
@@ -66,6 +73,7 @@ select{padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1}
     <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
     <h1>Dashboard</h1>
     <span class="mail" id="admin-email-display"></span>
+    <a class="bell" href="#notif-section">🔔<span class="badge" id="notif-count">0</span></a>
     <button class="btn-ref" onclick="loadDashboardData()">🔄</button>
   </div>
 
@@ -86,10 +94,15 @@ select{padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1}
       <h2>রিয়েল-টাইম অর্ডার ট্র্যাকিং</h2>
       <div class="scroll">
         <table>
-          <thead><tr><th>ক্রেতার নাম</th><th>ফোন নম্বর</th><th>মোট বিল</th><th>পেমেন্ট মেথড</th><th>অগ্রিম ফি</th><th>লাইভ স্ট্যাটাস</th></tr></thead>
+          <thead><tr><th>অর্ডার</th><th>ক্রেতা</th><th>মোট বিল</th><th>পেমেন্ট</th><th>সতর্কতা</th><th>স্ট্যাটাস</th></tr></thead>
           <tbody id="order-table-body"><tr><td colspan="6" class="empty">ডেটা লোড হচ্ছে...</td></tr></tbody>
         </table>
       </div>
+    </div>
+
+    <div class="box" id="notif-section">
+      <h2>🔔 নোটিফিকেশন <button onclick="markAllRead()">সব পড়া হয়েছে</button></h2>
+      <div id="notif-body"><div class="empty">লোড হচ্ছে...</div></div>
     </div>
 
     <div class="box" id="stock-section">
@@ -109,19 +122,20 @@ const SUPABASE_URL = "https://xjwuozdfuflfoqiuucik.supabase.co";
 const SUPABASE_KEY = "sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const STATUSES = ['Pending','Confirmed','Processing','Shipped','Delivered','Cancelled'];
+const STATUSES = ['pending','confirmed','processing','shipped','delivered','cancelled'];
+const STATUS_LABEL = {pending:'Pending',confirmed:'Confirmed',processing:'Processing',shipped:'Shipped',delivered:'Delivered',cancelled:'Cancelled'};
 let salesChart, statusChart;
 
 function esc(t){return String(t ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function closeMenu(){document.getElementById('sidebar').classList.remove('open');}
 function setText(id,v){document.getElementById(id).innerText=v;}
+function fmtDate(t){return t ? new Date(t).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';}
 
 async function checkSecurityGateway(){
   const {data:{user}} = await supabaseClient.auth.getUser();
   if(!user){window.location.replace("login.html");return;}
 
   const {data:isAdmin,error:adminErr} = await supabaseClient.rpc('is_admin');
-
   if(adminErr || isAdmin !== true){
     await supabaseClient.auth.signOut();
     alert("⛔ আপনার অ্যাডমিন অনুমতি নেই!");
@@ -131,9 +145,14 @@ async function checkSecurityGateway(){
 
   setText('admin-email-display',`👤 ${user.email}`);
   loadDashboardData();
+  setInterval(loadDashboardData, 30000);
 }
 
 async function loadDashboardData(){
+  await Promise.all([loadOrders(), loadNotifications(), loadStock()]);
+}
+
+async function loadOrders(){
   const tbody = document.getElementById('order-table-body');
   const {data:orders,error} = await supabaseClient.from('orders').select('*').order('created_at',{ascending:false});
   if(error){
@@ -145,8 +164,8 @@ async function loadDashboardData(){
   let totalSales=0, pending=0;
   const counts = {}; STATUSES.forEach(s=>counts[s]=0);
   list.forEach(o=>{
-    if(o.status==='Delivered') totalSales += Number(o.total_amount||0);
-    if(!o.status || o.status==='Pending') pending++;
+    if(o.status==='delivered') totalSales += Number(o.total||0);
+    if(o.status==='pending') pending++;
     if(counts[o.status]!==undefined) counts[o.status]++;
   });
   setText('total-sales',`৳${totalSales}`);
@@ -157,25 +176,62 @@ async function loadDashboardData(){
     tbody.innerHTML=`<tr><td colspan="6" class="empty">কোনো কাস্টমার এখনো অর্ডার করেনি।</td></tr>`;
   } else {
     tbody.innerHTML = list.slice(0,50).map(o=>{
-      const opts = STATUSES.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('');
+      const opts = STATUSES.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${STATUS_LABEL[s]}</option>`).join('');
+      const dis = o.status==='cancelled' ? 'disabled' : '';
+      const flags = (o.flags||[]).map(f=>`<span class="flag">${esc(f)}</span>`).join('');
       return `<tr>
-        <td><strong>${esc(o.customer_name)||'Anonymous'}</strong></td>
-        <td>${esc(o.phone)||'N/A'}</td>
-        <td>৳${esc(o.total_amount||0)}</td>
-        <td><span class="tag">${o.payment_method?esc(o.payment_method.toUpperCase()):'COD'}</span></td>
-        <td>${o.delivery_charge_paid?'✅ paid':'❌ pending'}</td>
-        <td><select onchange="updateOrderStatus('${esc(o.id)}',this.value)">${opts}</select></td>
+        <td><strong>#${esc(o.order_no)}</strong><div class="muted">${esc(fmtDate(o.created_at))}</div></td>
+        <td><strong>${esc(o.customer_name)||'Anonymous'}</strong><div class="muted">${esc(o.phone)}</div><div class="muted">${esc(o.address)}</div></td>
+        <td>৳${esc(o.total)}${o.discount_label?`<div class="muted">${esc(o.discount_label)}</div>`:''}</td>
+        <td><span class="tag">${esc(String(o.payment||'Cash').toUpperCase())}</span></td>
+        <td>${flags||'—'}</td>
+        <td><select ${dis} data-old="${esc(o.status)}" onchange="changeStatus('${esc(o.id)}',this)">${opts}</select></td>
       </tr>`;
     }).join('');
   }
 
   drawCharts(list,counts);
+}
 
-  const {data:low} = await supabaseClient.from('products').select('*').lt('stock_count',4);
-  const lowList = low || [];
-  setText('low-stock-count',lowList.length);
-  document.getElementById('stock-body').innerHTML = lowList.length
-    ? lowList.map(p=>`<tr><td>${esc(p.name||p.title||p.product_name||'Product')}</td><td style="color:#dc2626;font-weight:700">${esc(p.stock_count)}</td></tr>`).join('')
+async function changeStatus(orderId, el){
+  const newStatus = el.value, old = el.dataset.old;
+  if(newStatus==='cancelled' && !confirm('অর্ডার বাতিল করলে আর ফেরানো যাবে না এবং স্টক ফিরে যাবে। নিশ্চিত?')){
+    el.value = old; return;
+  }
+  el.disabled = true;
+  const {error} = await supabaseClient.rpc('set_order_status',{p_order:orderId,p_status:newStatus,p_note:''});
+  if(error){ alert('স্ট্যাটাস বদলানো যায়নি: '+error.message); }
+  loadDashboardData();
+}
+
+async function loadNotifications(){
+  const {count} = await supabaseClient.from('notifications')
+    .select('id',{count:'exact',head:true}).eq('audience','staff').eq('read',false);
+  setText('notif-count',count||0);
+
+  const {data} = await supabaseClient.from('notifications').select('*')
+    .eq('audience','staff').order('at',{ascending:false}).limit(8);
+  const list = data || [];
+  document.getElementById('notif-body').innerHTML = list.length
+    ? list.map(n=>`<div class="notif-item ${n.read?'':'unread'}"><strong>${esc(n.title_bn||n.title_en)}</strong><div class="muted">${esc(n.body_bn||n.body_en)}</div></div>`).join('')
+    : `<div class="empty">কোনো নোটিফিকেশন নেই।</div>`;
+}
+
+async function markAllRead(){
+  await supabaseClient.from('notifications').update({read:true}).eq('audience','staff').eq('read',false);
+  loadNotifications();
+}
+
+async function loadStock(){
+  const [{data:stock},{data:prods}] = await Promise.all([
+    supabaseClient.from('stock').select('product_id,size,color,qty,low_at'),
+    supabaseClient.from('products').select('id,name')
+  ]);
+  const names = {}; (prods||[]).forEach(p=>names[p.id]=p.name);
+  const low = (stock||[]).filter(s=>Number(s.qty) <= Number(s.low_at ?? 3));
+  setText('low-stock-count',low.length);
+  document.getElementById('stock-body').innerHTML = low.length
+    ? low.map(s=>`<tr><td>${esc(names[s.product_id]||('#'+s.product_id))} <span class="muted">${esc([s.size,s.color].filter(Boolean).join(' / '))}</span></td><td style="color:#dc2626;font-weight:700">${esc(s.qty)}</td></tr>`).join('')
     : `<tr><td colspan="2" class="empty">সব প্রোডাক্টের স্টক ঠিক আছে।</td></tr>`;
 }
 
@@ -186,8 +242,8 @@ function drawCharts(list,counts){
     const d=new Date(); d.setDate(d.getDate()-i);
     labels.push(d.getDate()+'/'+(d.getMonth()+1));
     const key=d.toDateString();
-    sums.push(list.filter(o=>o.status!=='Cancelled' && o.created_at && new Date(o.created_at).toDateString()===key)
-                  .reduce((a,o)=>a+Number(o.total_amount||0),0));
+    sums.push(list.filter(o=>o.status!=='cancelled' && o.created_at && new Date(o.created_at).toDateString()===key)
+                  .reduce((a,o)=>a+Number(o.total||0),0));
   }
   if(salesChart) salesChart.destroy();
   if(statusChart) statusChart.destroy();
@@ -198,14 +254,9 @@ function drawCharts(list,counts){
   });
   statusChart=new Chart(document.getElementById('statusChart'),{
     type:'doughnut',
-    data:{labels:STATUSES,datasets:[{data:STATUSES.map(s=>counts[s]),backgroundColor:['#fbb034','#3b82f6','#7c6bf0','#06b6d4','#22c55e','#ef4444']}]},
+    data:{labels:STATUSES.map(s=>STATUS_LABEL[s]),datasets:[{data:STATUSES.map(s=>counts[s]),backgroundColor:['#fbb034','#3b82f6','#7c6bf0','#06b6d4','#22c55e','#ef4444']}]},
     options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}
   });
-}
-
-async function updateOrderStatus(orderId,newStatus){
-  await supabaseClient.from('orders').update({status:newStatus}).eq('id',orderId);
-  loadDashboardData();
 }
 
 function logoutAdmin(){
