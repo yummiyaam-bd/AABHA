@@ -3,117 +3,208 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AABHA Luxury - Admin Dashboard</title>
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@600;700&family=Manrope:wght@400;600;800&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--sb:#111827;--bg:#f1f5f9;--card:#fff;--acc:#2563eb;--text:#0f172a;--muted:#64748b;--line:#e2e8f0}
+:root{
+  --bg:#0d0b11;--side:#100d15;--card:#16131c;--card2:#1c1824;
+  --line:rgba(255,255,255,.08);--ink:#f2ece6;--mut:#9b91a4;
+  --ac:#dcb89a;--acrgb:220,184,154;--ac2:#b9805f;--ac2rgb:185,128,95;
+  --ok:#7fb89a;--warn:#d9a85f;--bad:#d9778a;--info:#8aa4d9;
+  --serif:"Bodoni Moda",Georgia,"Noto Sans Bengali",serif;
+  --sans:"Manrope","Noto Sans Bengali",system-ui,sans-serif}
 *{box-sizing:border-box}
-body{margin:0;font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--sb);color:#fff;padding:20px;display:flex;flex-direction:column;z-index:30;transition:.3s}
-.brand{font-size:20px;font-weight:700;letter-spacing:1px;margin-bottom:28px}
-.nav{flex:1}
-.nav a{display:block;padding:12px 14px;border-radius:8px;color:#9ca3af;text-decoration:none;margin-bottom:6px;font-weight:500}
-.nav a.active,.nav a:hover{background:var(--acc);color:#fff}
-.btn-logout{background:#ef4444;color:#fff;border:0;padding:11px;border-radius:8px;font-weight:700;cursor:pointer;width:100%}
-.main{margin-left:240px}
-.topbar{background:linear-gradient(90deg,#1e3a8a,#2563eb);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
-.topbar h1{font-size:20px;margin:0;flex:1}
-.menu-btn{display:none;background:rgba(255,255,255,.15);border:0;color:#fff;font-size:22px;border-radius:8px;padding:4px 12px;cursor:pointer}
-.mail{font-size:13px;opacity:.9}
-.btn-ref,.bell{background:rgba(255,255,255,.2);border:0;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;text-decoration:none;font-size:14px}
-.badge{background:#ef4444;color:#fff;border-radius:999px;font-size:11px;padding:2px 7px;margin-left:4px}
-.content{padding:24px}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
-.card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:14px}
-.ico{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;flex-shrink:0}
-.c1{background:#7c6bf0}.c2{background:#fbb034}.c3{background:#2563eb}.c4{background:#ef4444}
-.card h3{margin:0;font-size:22px}
-.card p{margin:2px 0 0;font-size:12px;color:var(--muted);text-transform:uppercase}
-.row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
-.box{background:var(--card);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}
-.row .box{margin-bottom:0}
-.box h2{font-size:16px;margin:0;padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-.box h2 button{font-size:12px;padding:6px 10px;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer}
-.chart-wrap{position:relative;height:260px;padding:14px}
-.scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:820px}
-th{background:#f8fafc;color:var(--muted);font-size:13px;text-align:left;padding:12px 16px}
-td{padding:12px 16px;border-top:1px solid var(--line);font-size:14px;vertical-align:top}
-select{padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1}
-.tag{background:#dbeafe;color:#1d4ed8;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600}
-.flag{background:#fee2e2;color:#b91c1c;padding:2px 6px;border-radius:6px;font-size:11px;font-weight:600;margin:0 4px 4px 0;display:inline-block}
-.muted{color:var(--muted);font-size:12px;margin-top:2px}
-.notif-item{padding:12px 18px;border-top:1px solid var(--line);font-size:14px}
-.notif-item.unread{background:#eff6ff}
-.empty{text-align:center;color:var(--muted);padding:24px}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;
+  background:radial-gradient(900px circle at 85% -10%,rgba(var(--ac2rgb),.10),transparent 60%),var(--bg)}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* sidebar */
+.sidebar{position:fixed;inset:0 auto 0 0;width:250px;background:var(--side);border-right:1px solid var(--line);padding:26px 18px;display:flex;flex-direction:column;z-index:40;transition:transform .35s}
+.brand{padding:0 10px 26px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.brand b{display:block;font:700 1.55rem var(--serif);letter-spacing:.32em;color:var(--ac)}
+.brand small{display:block;margin-top:6px;font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--mut)}
+.nav{flex:1;display:grid;gap:4px;align-content:start}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--mut);text-decoration:none;font-size:13.5px;font-weight:600;letter-spacing:.02em;position:relative;transition:.25s}
+.nav a:hover{color:var(--ink);background:rgba(255,255,255,.04)}
+.nav a.active{color:var(--ink);background:linear-gradient(90deg,rgba(var(--acrgb),.14),transparent)}
+.nav a.active::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--ac)}
+.logout{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:12px;background:transparent;border:1px solid var(--line);color:var(--mut);font:600 13px var(--sans);cursor:pointer;transition:.25s}
+.logout:hover{color:var(--bad);border-color:rgba(217,119,138,.5)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:35;opacity:0;visibility:hidden;transition:.3s}
+
+/* topbar */
+.main{margin-left:250px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:16px 32px;background:rgba(13,11,17,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.ttl{flex:1;min-width:0}
+.ttl h1{margin:0;font:600 1.7rem/1.1 var(--serif)}
+.ttl span{font-size:12px;color:var(--mut);letter-spacing:.04em}
+.chip{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--line);border-radius:30px;font-size:12.5px;color:var(--mut);max-width:240px}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;text-decoration:none;transition:.25s;flex-shrink:0}
+.ib:hover{border-color:var(--ac);color:var(--ac)}
+.menu-btn{display:none}
+.dot{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--ac);color:#1a1210;font:800 10px/18px var(--sans);text-align:center}
+
+/* content */
+.content{padding:30px 32px 60px;max-width:1400px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:22px}
+.stat{position:relative;padding:22px;border-radius:20px;background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);overflow:hidden}
+.stat::after{content:"";position:absolute;left:22px;right:22px;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--ac),transparent);opacity:.5}
+.stat .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.stat label{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+.stat .ic{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--ac)}
+.stat b{display:block;font:600 2rem/1 var(--serif)}
+.stat b.warn{color:var(--bad)}
+.grid2{display:grid;grid-template-columns:1.8fr 1fr;gap:18px;margin-bottom:22px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;margin-bottom:22px}
+.grid2 .panel{margin:0}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:20px 24px;border-bottom:1px solid var(--line)}
+.ph h2{margin:0;font:600 1.25rem var(--serif)}
+.ph small{display:block;margin-top:3px;color:var(--mut);font-size:12px}
+.txtbtn{padding:8px 16px;border-radius:30px;border:1px solid var(--line);background:transparent;color:var(--ink);font:600 12px var(--sans);cursor:pointer;transition:.25s;white-space:nowrap}
+.txtbtn:hover{border-color:var(--ac);color:var(--ac)}
+.cw{position:relative;height:280px;padding:18px 22px 22px}
+
+/* table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th{padding:14px 20px;text-align:left;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);font-weight:600;background:rgba(255,255,255,.02)}
+td{padding:16px 20px;border-top:1px solid var(--line);font-size:13.5px;vertical-align:top}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.sub{color:var(--mut);font-size:12px;margin-top:3px}
+.tag{display:inline-block;padding:3px 10px;border:1px solid var(--line);border-radius:20px;font-size:11px;letter-spacing:.08em}
+.flag{display:inline-block;margin:0 4px 4px 0;padding:2px 9px;border-radius:20px;font-size:10.5px;color:var(--bad);border:1px solid rgba(217,119,138,.4)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.06em;margin-bottom:8px}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.s-pending{color:var(--warn);background:rgba(217,168,95,.12)}
+.s-confirmed{color:var(--info);background:rgba(138,164,217,.12)}
+.s-processing{color:#b59be0;background:rgba(167,139,217,.12)}
+.s-shipped{color:#78bfcb;background:rgba(111,182,196,.12)}
+.s-delivered{color:var(--ok);background:rgba(127,184,154,.12)}
+.s-cancelled{color:var(--bad);background:rgba(217,119,138,.12)}
+select{display:block;width:140px;appearance:none;-webkit-appearance:none;padding:8px 30px 8px 12px;border-radius:10px;border:1px solid var(--line);color:var(--ink);font:600 12.5px var(--sans);cursor:pointer;
+  background:var(--card2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239b91a4' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center}
+select:disabled{opacity:.5;cursor:not-allowed}
+select option{background:#1c1824;color:#f2ece6}
+.dl{display:flex;align-items:flex-start;gap:8px;line-height:1.45}
+.dl .i{width:16px;height:16px;margin-top:2px}
+.dl.ok{color:var(--ok)}.dl.wait{color:var(--warn)}
+.empty{text-align:center;color:var(--mut);padding:34px 20px}
+.qty{display:inline-block;min-width:34px;text-align:center;padding:3px 10px;border-radius:20px;font-weight:700;color:var(--bad);background:rgba(217,119,138,.12)}
+
+/* notifications */
+.nt{padding:16px 24px;border-top:1px solid var(--line)}
+.nt:first-child{border-top:0}
+.nt.u{background:linear-gradient(90deg,rgba(var(--acrgb),.08),transparent);box-shadow:inset 3px 0 0 var(--ac)}
+.nt b{font-size:13.5px}
+.nt p{margin:3px 0 4px;color:var(--mut);font-size:13px}
+.nt small{color:var(--mut);font-size:11px;opacity:.8}
+
+/* responsive */
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){
-.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}
-.main{margin-left:0}.menu-btn{display:block}
-.cards{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:1fr}
-.mail{display:none}.content{padding:14px}
+  .sidebar{transform:translateX(-100%)}
+  body.menu .sidebar{transform:none}
+  body.menu .scrim{opacity:1;visibility:visible}
+  .main{margin-left:0}
+  .menu-btn{display:grid}
+  .topbar{padding:14px 16px}
+  .content{padding:20px 14px 50px}
+  .grid2{grid-template-columns:1fr}
+  .chip{display:none}
+  .ttl h1{font-size:1.4rem}
+}
+@media(max-width:520px){
+  .cards{gap:12px}
+  .stat{padding:16px}
+  .stat b{font-size:1.6rem}
+  .stat .ic{display:none}
 }
 </style>
 </head>
 <body>
 
-<div class="sidebar" id="sidebar">
-  <div class="brand">✨ AABHA ADMIN</div>
-  <div class="nav">
-    <a href="#top" class="active" onclick="closeMenu()">📊 Dashboard</a>
-    <a href="#orders-section" onclick="closeMenu()">🛒 Orders</a>
-    <a href="#notif-section" onclick="closeMenu()">🔔 Notifications</a>
-    <a href="#stock-section" onclick="closeMenu()">⚠️ Low Stock</a>
-  </div>
-  <button class="btn-logout" onclick="logoutAdmin()">🔒 Sign Out</button>
-</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17.5v.01"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 4H5v16h4"/><path d="M16 8l4 4-4 4M20 12H9"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 7h11v9H2z"/><path d="M13 10h4l4 3v3h-8"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-4 3.8-6 7.5-6s6.7 2 7.5 6"/></symbol>
+</svg>
+
+<div class="scrim" id="scrim" onclick="closeMenu()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><b>AABHA</b><small>Admin Studio</small></div>
+  <nav class="nav">
+    <a href="#top" class="active"><svg class="i"><use href="#i-grid"/></svg>Dashboard</a>
+    <a href="#orders-section"><svg class="i"><use href="#i-bag"/></svg>Orders</a>
+    <a href="#notif-section"><svg class="i"><use href="#i-bell"/></svg>Notifications</a>
+    <a href="#stock-section"><svg class="i"><use href="#i-box"/></svg>Low Stock</a>
+  </nav>
+  <button class="logout" onclick="logoutAdmin()"><svg class="i"><use href="#i-out"/></svg>Sign Out</button>
+</aside>
 
 <div class="main" id="top">
-  <div class="topbar">
-    <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-    <h1>Dashboard</h1>
-    <span class="mail" id="admin-email-display"></span>
-    <a class="bell" href="#notif-section">🔔<span class="badge" id="notif-count">0</span></a>
-    <button class="btn-ref" onclick="loadDashboardData()">🔄</button>
-  </div>
+  <header class="topbar">
+    <button class="ib menu-btn" onclick="document.body.classList.toggle('menu')" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button>
+    <div class="ttl"><h1>Dashboard</h1><span id="today"></span></div>
+    <div class="chip"><svg class="i"><use href="#i-user"/></svg><span id="admin-email-display"></span></div>
+    <a class="ib" href="#notif-section" aria-label="Notifications"><svg class="i"><use href="#i-bell"/></svg><span class="dot" id="notif-count">0</span></a>
+    <button class="ib" onclick="loadDashboardData()" aria-label="Refresh"><svg class="i"><use href="#i-refresh"/></svg></button>
+  </header>
 
   <div class="content">
-    <div class="cards">
-      <div class="card"><div class="ico c1">💰</div><div><h3 id="total-sales">৳0</h3><p>Total Sales</p></div></div>
-      <div class="card"><div class="ico c2">🛍️</div><div><h3 id="total-orders">0</h3><p>Total Orders</p></div></div>
-      <div class="card"><div class="ico c3">⏳</div><div><h3 id="pending-orders">0</h3><p>Pending</p></div></div>
-      <div class="card"><div class="ico c4">⚠️</div><div><h3 id="low-stock-count">0</h3><p>Low Stock</p></div></div>
-    </div>
+    <section class="cards">
+      <div class="stat"><div class="top"><label>Total Sales</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="total-sales">৳0</b></div>
+      <div class="stat"><div class="top"><label>Total Orders</label><div class="ic"><svg class="i"><use href="#i-bag"/></svg></div></div><b id="total-orders">0</b></div>
+      <div class="stat"><div class="top"><label>Pending</label><div class="ic"><svg class="i"><use href="#i-clock"/></svg></div></div><b id="pending-orders">0</b></div>
+      <div class="stat"><div class="top"><label>Low Stock</label><div class="ic"><svg class="i"><use href="#i-alert"/></svg></div></div><b id="low-stock-count">0</b></div>
+    </section>
 
-    <div class="row">
-      <div class="box"><h2>গত ৭ দিনের অর্ডার (৳)</h2><div class="chart-wrap"><canvas id="salesChart"></canvas></div></div>
-      <div class="box"><h2>অর্ডার স্ট্যাটাস</h2><div class="chart-wrap"><canvas id="statusChart"></canvas></div></div>
-    </div>
+    <section class="grid2">
+      <div class="panel"><div class="ph"><div><h2>বিক্রয়ের গতি</h2><small>গত ৭ দিনের অর্ডার (৳)</small></div></div><div class="cw"><canvas id="salesChart"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h2>অর্ডার স্ট্যাটাস</h2><small>সব অর্ডারের ভাগ</small></div></div><div class="cw"><canvas id="statusChart"></canvas></div></div>
+    </section>
 
-    <div class="box" id="orders-section" style="margin-top:20px">
-      <h2>রিয়েল-টাইম অর্ডার ট্র্যাকিং</h2>
-      <div class="scroll">
+    <section class="panel" id="orders-section">
+      <div class="ph"><div><h2>অর্ডার ট্র্যাকিং</h2><small>প্রতি ৩০ সেকেন্ডে নিজে থেকে আপডেট হয়</small></div></div>
+      <div class="tw">
         <table>
           <thead><tr><th>অর্ডার</th><th>ক্রেতা</th><th>মোট বিল</th><th>পেমেন্ট</th><th>সতর্কতা</th><th>ডেলিভারি</th><th>স্ট্যাটাস</th></tr></thead>
           <tbody id="order-table-body"><tr><td colspan="7" class="empty">ডেটা লোড হচ্ছে...</td></tr></tbody>
         </table>
       </div>
-    </div>
+    </section>
 
-    <div class="box" id="notif-section">
-      <h2>🔔 নোটিফিকেশন <button onclick="markAllRead()">সব পড়া হয়েছে</button></h2>
+    <section class="panel" id="notif-section">
+      <div class="ph"><div><h2>নোটিফিকেশন</h2><small>নতুন অর্ডার ও পণ্য পাওয়ার বার্তা</small></div><button class="txtbtn" onclick="markAllRead()">সব পড়া হয়েছে</button></div>
       <div id="notif-body"><div class="empty">লোড হচ্ছে...</div></div>
-    </div>
+    </section>
 
-    <div class="box" id="stock-section">
-      <h2>⚠️ স্টক ফুরিয়ে আসছে</h2>
-      <div class="scroll">
-        <table style="min-width:300px">
+    <section class="panel" id="stock-section">
+      <div class="ph"><div><h2>স্টক ফুরিয়ে আসছে</h2><small>যেগুলো শিগগির শেষ হবে</small></div></div>
+      <div class="tw">
+        <table style="min-width:320px">
           <thead><tr><th>প্রোডাক্ট</th><th>স্টক</th></tr></thead>
           <tbody id="stock-body"><tr><td colspan="2" class="empty">লোড হচ্ছে...</td></tr></tbody>
         </table>
       </div>
-    </div>
+    </section>
   </div>
 </div>
 
@@ -126,19 +217,30 @@ const STATUSES = ['pending','confirmed','processing','shipped','delivered','canc
 const STATUS_LABEL = {pending:'Pending',confirmed:'Confirmed',processing:'Processing',shipped:'Shipped',delivered:'Delivered',cancelled:'Cancelled'};
 let salesChart, statusChart;
 
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const ic = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
 function esc(t){return String(t ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function closeMenu(){document.getElementById('sidebar').classList.remove('open');}
-function setText(id,v){document.getElementById(id).innerText=v;}
+function closeMenu(){document.body.classList.remove('menu');}
+function setText(id,v){$(id).innerText=v;}
 function fmtDate(t){return t ? new Date(t).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';}
 
+document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>{
+  document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');closeMenu();
+}));
+setText('today', new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}));
+
 function etaCell(o){
-  if(o.status==='cancelled') return '—';
+  if(o.status==='cancelled') return '<span class="sub">—</span>';
   if(o.status==='delivered'){
-    return o.received_at ? '✅ ক্রেতা পণ্য পেয়েছেন' : '📦 পৌঁছেছে, ক্রেতার নিশ্চিতকরণের অপেক্ষা';
+    return o.received_at
+      ? `<div class="dl ok">${ic('check')}<span>ক্রেতা পণ্য পেয়েছেন</span></div>`
+      : `<div class="dl wait">${ic('box')}<span>পৌঁছেছে, ক্রেতার নিশ্চিতকরণের অপেক্ষা</span></div>`;
   }
   const a=o.eta_min||1, b=o.eta_max||2, base=new Date(o.created_at).getTime();
   const f=d=>new Date(base+d*864e5).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  return `🚚 ${f(a)} – ${f(b)}<div class="muted">${a}-${b} দিন</div>`;
+  return `<div class="dl">${ic('truck')}<div><div>${f(a)} – ${f(b)}</div><div class="sub">${a}-${b} দিন</div></div></div>`;
 }
 
 async function checkSecurityGateway(){
@@ -148,12 +250,12 @@ async function checkSecurityGateway(){
   const {data:isAdmin,error:adminErr} = await supabaseClient.rpc('is_admin');
   if(adminErr || isAdmin !== true){
     await supabaseClient.auth.signOut();
-    alert("⛔ আপনার অ্যাডমিন অনুমতি নেই!");
+    alert("আপনার অ্যাডমিন অনুমতি নেই!");
     window.location.replace("login.html");
     return;
   }
 
-  setText('admin-email-display',`👤 ${user.email}`);
+  setText('admin-email-display', user.email);
   loadDashboardData();
   setInterval(loadDashboardData, 30000);
 }
@@ -163,10 +265,10 @@ async function loadDashboardData(){
 }
 
 async function loadOrders(){
-  const tbody = document.getElementById('order-table-body');
+  const tbody = $('order-table-body');
   const {data:orders,error} = await supabaseClient.from('orders').select('*').order('created_at',{ascending:false});
   if(error){
-    tbody.innerHTML=`<tr><td colspan="7" class="empty" style="color:#dc2626">ডেটা লোড হয়নি: ${esc(error.message)}</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="7" class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: ${esc(error.message)}</td></tr>`;
     return;
   }
   const list = orders || [];
@@ -178,7 +280,7 @@ async function loadOrders(){
     if(o.status==='pending') pending++;
     if(counts[o.status]!==undefined) counts[o.status]++;
   });
-  setText('total-sales',`৳${totalSales}`);
+  setText('total-sales','৳'+totalSales.toLocaleString('en-US'));
   setText('total-orders',list.length);
   setText('pending-orders',pending);
 
@@ -190,13 +292,14 @@ async function loadOrders(){
       const dis = o.status==='cancelled' ? 'disabled' : '';
       const flags = (o.flags||[]).map(f=>`<span class="flag">${esc(f)}</span>`).join('');
       return `<tr>
-        <td><strong>#${esc(o.order_no)}</strong><div class="muted">${esc(fmtDate(o.created_at))}</div></td>
-        <td><strong>${esc(o.customer_name)||'Anonymous'}</strong><div class="muted">${esc(o.phone)}</div><div class="muted">${esc(o.address)}</div></td>
-        <td>৳${esc(o.total)}${o.discount_label?`<div class="muted">${esc(o.discount_label)}</div>`:''}</td>
+        <td><strong>#${esc(o.order_no)}</strong><div class="sub">${esc(fmtDate(o.created_at))}</div></td>
+        <td><strong>${esc(o.customer_name)||'Anonymous'}</strong><div class="sub">${esc(o.phone)}</div><div class="sub">${esc(o.address)}</div></td>
+        <td><strong>৳${esc(o.total)}</strong>${o.discount_label?`<div class="sub">${esc(o.discount_label)}</div>`:''}</td>
         <td><span class="tag">${esc(String(o.payment||'Cash').toUpperCase())}</span></td>
-        <td>${flags||'—'}</td>
+        <td>${flags||'<span class="sub">—</span>'}</td>
         <td>${etaCell(o)}</td>
-        <td><select ${dis} data-old="${esc(o.status)}" onchange="changeStatus('${esc(o.id)}',this)">${opts}</select></td>
+        <td><span class="pill s-${esc(o.status)}">${esc(STATUS_LABEL[o.status]||o.status)}</span>
+          <select ${dis} data-old="${esc(o.status)}" onchange="changeStatus('${esc(o.id)}',this)">${opts}</select></td>
       </tr>`;
     }).join('');
   }
@@ -223,8 +326,8 @@ async function loadNotifications(){
   const {data} = await supabaseClient.from('notifications').select('*')
     .eq('audience','staff').order('at',{ascending:false}).limit(8);
   const list = data || [];
-  document.getElementById('notif-body').innerHTML = list.length
-    ? list.map(n=>`<div class="notif-item ${n.read?'':'unread'}"><strong>${esc(n.title_bn||n.title_en)}</strong><div class="muted">${esc(n.body_bn||n.body_en)}</div></div>`).join('')
+  $('notif-body').innerHTML = list.length
+    ? list.map(n=>`<div class="nt ${n.read?'':'u'}"><b>${esc(n.title_bn||n.title_en)}</b><p>${esc(n.body_bn||n.body_en)}</p><small>${esc(fmtDate(n.at))}</small></div>`).join('')
     : `<div class="empty">কোনো নোটিফিকেশন নেই।</div>`;
 }
 
@@ -241,13 +344,17 @@ async function loadStock(){
   const names = {}; (prods||[]).forEach(p=>names[p.id]=p.name);
   const low = (stock||[]).filter(s=>Number(s.qty) <= Number(s.low_at ?? 3));
   setText('low-stock-count',low.length);
-  document.getElementById('stock-body').innerHTML = low.length
-    ? low.map(s=>`<tr><td>${esc(names[s.product_id]||('#'+s.product_id))} <span class="muted">${esc([s.size,s.color].filter(Boolean).join(' / '))}</span></td><td style="color:#dc2626;font-weight:700">${esc(s.qty)}</td></tr>`).join('')
+  $('low-stock-count').classList.toggle('warn',low.length>0);
+  $('stock-body').innerHTML = low.length
+    ? low.map(s=>`<tr><td>${esc(names[s.product_id]||('#'+s.product_id))} <span class="sub">${esc([s.size,s.color].filter(Boolean).join(' / '))}</span></td><td><span class="qty">${esc(s.qty)}</span></td></tr>`).join('')
     : `<tr><td colspan="2" class="empty">সব প্রোডাক্টের স্টক ঠিক আছে।</td></tr>`;
 }
 
 function drawCharts(list,counts){
   if(typeof Chart==='undefined') return;
+  Chart.defaults.color = css('--mut');
+  Chart.defaults.font.family = 'Manrope, "Noto Sans Bengali", sans-serif';
+
   const labels=[], sums=[];
   for(let i=6;i>=0;i--){
     const d=new Date(); d.setDate(d.getDate()-i);
@@ -258,15 +365,38 @@ function drawCharts(list,counts){
   }
   if(salesChart) salesChart.destroy();
   if(statusChart) statusChart.destroy();
-  salesChart=new Chart(document.getElementById('salesChart'),{
+
+  const rgb = css('--acrgb');
+  const tip = {backgroundColor:css('--card2'),borderColor:'rgba(255,255,255,.12)',borderWidth:1,padding:10,titleColor:css('--ink'),bodyColor:css('--ink')};
+
+  const ctx = $('salesChart').getContext('2d');
+  const g = ctx.createLinearGradient(0,0,0,260);
+  g.addColorStop(0,`rgba(${rgb},.95)`);
+  g.addColorStop(1,`rgba(${rgb},.12)`);
+  salesChart = new Chart(ctx,{
     type:'bar',
-    data:{labels,datasets:[{data:sums,backgroundColor:'#3b82f6',borderRadius:6}]},
-    options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    data:{labels,datasets:[{data:sums,backgroundColor:g,borderRadius:8,maxBarThickness:34}]},
+    options:{
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...tip,displayColors:false,callbacks:{label:c=>'৳'+c.parsed.y.toLocaleString('en-US')}}},
+      scales:{
+        x:{grid:{display:false},border:{display:false}},
+        y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'},border:{display:false},ticks:{maxTicksLimit:5}}
+      }
+    }
   });
-  statusChart=new Chart(document.getElementById('statusChart'),{
+
+  const palette = ['#d9a85f','#8aa4d9','#a78bd9','#6fb6c4','#7fb89a','#d9778a'];
+  const total = STATUSES.reduce((a,s)=>a+counts[s],0);
+  statusChart = new Chart($('statusChart'),{
     type:'doughnut',
-    data:{labels:STATUSES.map(s=>STATUS_LABEL[s]),datasets:[{data:STATUSES.map(s=>counts[s]),backgroundColor:['#fbb034','#3b82f6','#7c6bf0','#06b6d4','#22c55e','#ef4444']}]},
-    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}
+    data: total
+      ? {labels:STATUSES.map(s=>STATUS_LABEL[s]),datasets:[{data:STATUSES.map(s=>counts[s]),backgroundColor:palette,borderColor:css('--card'),borderWidth:3}]}
+      : {labels:['No orders'],datasets:[{data:[1],backgroundColor:['#2a2532'],borderColor:css('--card'),borderWidth:3}]},
+    options:{
+      maintainAspectRatio:false,cutout:'74%',
+      plugins:{legend:{display:!!total,position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14}},tooltip:{...tip,enabled:!!total}}
+    }
   });
 }
 
