@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Reports</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="admin.js"></script>
+<style>
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:1100px){.cards.c3{grid-template-columns:repeat(2,1fr)}}
+.pos{color:var(--ok)}
+.bk{margin-bottom:14px}
+.bkh{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.bkb{height:6px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden}
+.bkb i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+</style>
+</head>
+<body>
+<div id="page">
+  <section class="panel">
+    <div class="bar">
+      <select class="in" id="pd" style="max-width:190px">
+        <option value="7">শেষ ৭ দিন</option><option value="30" selected>শেষ ৩০ দিন</option><option value="m">এই মাস</option><option value="pm">গত মাস</option>
+      </select>
+      <select class="in" id="bs" style="max-width:270px">
+        <option value="delivered">শুধু Delivered অর্ডার</option><option value="active">বাতিল ছাড়া সব অর্ডার</option>
+      </select>
+      <button class="btn g sm" id="csv" type="button">CSV ডাউনলোড</button>
+    </div>
+  </section>
+
+  <section class="cards c3">
+    <div class="stat"><div class="top"><label>বিক্রয়</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="k_rev">৳0</b></div>
+    <div class="stat"><div class="top"><label>অর্ডার</label><div class="ic"><svg class="i"><use href="#i-bag"/></svg></div></div><b id="k_n">0</b></div>
+    <div class="stat"><div class="top"><label>গড় অর্ডার</label><div class="ic"><svg class="i"><use href="#i-chart"/></svg></div></div><b id="k_avg">৳0</b></div>
+    <div class="stat"><div class="top"><label>পণ্যের কেনা খরচ</label><div class="ic"><svg class="i"><use href="#i-box"/></svg></div></div><b id="k_cogs">৳0</b></div>
+    <div class="stat"><div class="top"><label>অন্যান্য খরচ</label><div class="ic"><svg class="i"><use href="#i-wallet"/></svg></div></div><b id="k_exp">৳0</b></div>
+    <div class="stat"><div class="top"><label>নিট লাভ</label><div class="ic"><svg class="i"><use href="#i-tag"/></svg></div></div><b id="k_net">৳0</b></div>
+  </section>
+  <p class="sub" id="warn" style="margin:-6px 4px 18px"></p>
+
+  <section class="grid2">
+    <div class="panel"><div class="ph"><div><h2>দিন অনুযায়ী বিক্রয়</h2><small>নির্বাচিত সময়ে (৳)</small></div></div><div class="cw"><canvas id="ch"></canvas></div></div>
+    <div class="panel"><div class="ph"><div><h2>পেমেন্ট পদ্ধতি</h2><small>অর্ডার ও টাকা</small></div></div><div id="pay" style="padding:20px 24px"></div></div>
+  </section>
+
+  <section class="panel">
+    <div class="ph"><div><h2>সবচেয়ে বেশি বিক্রি</h2><small>পণ্য অনুযায়ী</small></div></div>
+    <div class="tw"><table style="min-width:480px">
+      <thead><tr><th>পণ্য</th><th>পিস</th><th>বিক্রয়</th></tr></thead>
+      <tbody id="top"><tr><td colspan="3" class="empty">লোড হচ্ছে...</td></tr></tbody>
+    </table></div>
+  </section>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc, css=A.css;
+let chart, LIST=[];
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+
+function range(p){
+  const now=new Date();
+  let to=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1), from;
+  if(p==='7'){from=new Date(to);from.setDate(from.getDate()-7)}
+  else if(p==='30'){from=new Date(to);from.setDate(from.getDate()-30)}
+  else if(p==='m'){from=new Date(now.getFullYear(),now.getMonth(),1)}
+  else {from=new Date(now.getFullYear(),now.getMonth()-1,1);to=new Date(now.getFullYear(),now.getMonth(),1)}
+  return {from:from,to:to};
+}
+
+async function fetchItems(ids){
+  const out=[];
+  for(let i=0;i<ids.length;i+=80){
+    const r=await sb.from('order_items').select('order_id,name,qty,unit_price,unit_cost').in('order_id',ids.slice(i,i+80));
+    if(r.error) throw r.error;
+    out.push(...r.data);
+  }
+  return out;
+}
+
+async function load(){
+  try{
+    const {from,to}=range($('pd').value);
+    const basis=$('bs').value;
+    const [od,ex]=await Promise.all([
+      sb.from('orders').select('*').gte('created_at',from.toISOString()).lt('created_at',to.toISOString()).order('created_at',{ascending:true}),
+      sb.from('expenses').select('amount').gte('spent_on',ymd(from)).lte('spent_on',ymd(new Date(to.getTime()-864e5)))
+    ]);
+    if(od.error) throw od.error;
+    const valid=o=>basis==='delivered'?o.status==='delivered':o.status!=='cancelled';
+    LIST=(od.data||[]).filter(valid);
+    const ids=LIST.map(o=>o.id);
+    const items=ids.length?await fetchItems(ids):[];
+    const rev=LIST.reduce((a,o)=>a+Number(o.total||0),0);
+    const cogs=items.reduce((a,i)=>a+Number(i.unit_cost||0)*Number(i.qty||0),0);
+    const exp=(ex.data||[]).reduce((a,x)=>a+Number(x.amount||0),0);
+    const net=rev-cogs-exp;
+    $('k_rev').textContent=A.money(rev);
+    $('k_n').textContent=LIST.length;
+    $('k_avg').textContent=A.money(LIST.length?Math.round(rev/LIST.length):0);
+    $('k_cogs').textContent=A.money(cogs);
+    $('k_exp').textContent=A.money(exp);
+    $('k_net').textContent=(net<0?'−':'')+A.money(Math.abs(net));
+    $('k_net').className=net<0?'warn':'pos';
+    $('warn').textContent=(rev>0&&cogs===0)?'পণ্যের কেনা দাম দেওয়া নেই, তাই লাভ বেশি দেখাতে পারে। Products পেজে "কেনা দাম" বসান।':'';
+
+    /* দিন অনুযায়ী */
+    const days=[]; for(let d=new Date(from);d<to;d.setDate(d.getDate()+1)) days.push(new Date(d));
+    const sums=days.map(d=>{const k=d.toDateString();return LIST.filter(o=>new Date(o.created_at).toDateString()===k).reduce((a,o)=>a+Number(o.total||0),0)});
+    drawChart(days.map(d=>d.getDate()+'/'+(d.getMonth()+1)),sums);
+
+    /* পেমেন্ট */
+    const pm={}; LIST.forEach(o=>{const k=String(o.payment||'Cash');pm[k]=pm[k]||{n:0,t:0};pm[k].n++;pm[k].t+=Number(o.total||0)});
+    const pk=Object.keys(pm).sort((a,b)=>pm[b].t-pm[a].t);
+    $('pay').innerHTML=pk.length?pk.map(k=>{
+      const p=rev?Math.round(pm[k].t/rev*100):0;
+      return `<div class="bk"><div class="bkh"><span>${esc(k)} · ${pm[k].n} টি</span><span>${A.money(pm[k].t)} · ${p}%</span></div><div class="bkb"><i style="width:${p}%"></i></div></div>`;
+    }).join(''):'<div class="empty" style="padding:20px 0">কোনো অর্ডার নেই।</div>';
+
+    /* শীর্ষ পণ্য */
+    const tp={}; items.forEach(i=>{const k=i.name||'—';tp[k]=tp[k]||{q:0,r:0};tp[k].q+=Number(i.qty||0);tp[k].r+=Number(i.qty||0)*Number(i.unit_price||0)});
+    const tk=Object.keys(tp).sort((a,b)=>tp[b].q-tp[a].q).slice(0,8);
+    $('top').innerHTML=tk.length?tk.map(k=>`<tr><td><b>${esc(k)}</b></td><td>${tp[k].q}</td><td>${A.money(tp[k].r)}</td></tr>`).join('')
+      :'<tr><td colspan="3" class="empty">কোনো বিক্রি নেই।</td></tr>';
+  }catch(err){
+    $('top').innerHTML=`<tr><td colspan="3" class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: ${esc(err.message||err)}</td></tr>`;
+  }
+}
+
+function drawChart(labels,sums){
+  if(typeof Chart==='undefined') return;
+  Chart.defaults.color=css('--mut');
+  Chart.defaults.font.family='Manrope, "Noto Sans Bengali", sans-serif';
+  if(chart) chart.destroy();
+  const rgb=css('--acrgb'), ctx=$('ch').getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,260);
+  g.addColorStop(0,`rgba(${rgb},.95)`); g.addColorStop(1,`rgba(${rgb},.12)`);
+  chart=new Chart(ctx,{type:'bar',
+    data:{labels:labels,datasets:[{data:sums,backgroundColor:g,borderRadius:6,maxBarThickness:28}]},
+    options:{maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:css('--card2'),borderColor:'rgba(255,255,255,.12)',borderWidth:1,padding:10,titleColor:css('--ink'),bodyColor:css('--ink'),displayColors:false,callbacks:{label:c=>'৳'+c.parsed.y.toLocaleString('en-US')}}},
+      scales:{x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:10}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'},border:{display:false},ticks:{maxTicksLimit:5}}}}});
+}
+
+$('csv').onclick=()=>{
+  if(!LIST.length){A.toast('ডাউনলোডের মতো অর্ডার নেই');return}
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const head=['Order No','Date','Customer','Phone','Status','Payment','Subtotal','Discount','Delivery','Total'];
+  const rows=LIST.map(o=>[o.order_no,new Date(o.created_at).toLocaleString('en-GB'),o.customer_name,o.phone,o.status,o.payment,o.subtotal,o.discount,o.delivery_fee,o.total].map(q).join(','));
+  const blob=new Blob(['\ufeff'+head.join(',')+'\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='aabha-orders-'+ymd(new Date())+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+};
+
+$('pd').onchange=load; $('bs').onchange=load;
+Admin.boot({key:'reports',title:'Reports',perm:'reports',ready:async()=>{ A.onRefresh=load; await load(); }});
+</script>
+</body>
+</html>
