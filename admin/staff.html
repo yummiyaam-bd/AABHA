@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Staff</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+</head>
+<body>
+<div id="page">
+  <section class="panel">
+    <div class="ph"><div><h2>স্টাফ ও অনুমতি</h2><small>কে কোন পেজ দেখতে পারবে</small></div></div>
+    <div class="tw"><table style="min-width:700px">
+      <thead><tr><th>নাম</th><th>ভূমিকা</th><th>অনুমতি</th><th></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="4" class="empty">লোড হচ্ছে...</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel">
+    <div class="ph"><div><h2>নতুন স্টাফ যোগ করুন</h2><small>আগে ব্যক্তিকে সাইটের account পেজে ইমেইল ও পাসওয়ার্ড দিয়ে অ্যাকাউন্ট খুলতে হবে</small></div></div>
+    <div class="bar">
+      <input class="in" id="sq" type="email" placeholder="তার ইমেইল লিখুন..." style="max-width:320px">
+      <button class="btn" id="sgo" type="button">খুঁজুন</button>
+    </div>
+    <div id="sres"></div>
+  </section>
+
+  <div class="modal" id="md">
+    <div class="sheet" style="max-width:460px">
+      <div class="ph"><div><h2>অনুমতি ঠিক করুন</h2><small id="mwho"></small></div><button class="ib" id="mx" type="button" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+      <div class="f">
+        <label class="chk"><input type="checkbox" id="p_orders"> অর্ডার দেখা ও স্ট্যাটাস বদলানো</label>
+        <label class="chk"><input type="checkbox" id="p_products"> পণ্য ও স্টক</label>
+        <label class="chk"><input type="checkbox" id="p_expenses"> খরচ</label>
+        <label class="chk"><input type="checkbox" id="p_reports"> রিপোর্ট ও ফেলে যাওয়া কার্ট</label>
+        <div class="rb"><button class="btn" id="sv" type="button">সেভ করুন</button><button class="btn g" id="cx" type="button">বাতিল</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+const PK=['orders','products','expenses','reports'];
+const PL={orders:'অর্ডার',products:'পণ্য ও স্টক',expenses:'খরচ',reports:'রিপোর্ট'};
+let EID=null;
+
+const permChips=p=>{
+  const on=PK.filter(k=>p&&p[k]===true);
+  return on.length?on.map(k=>`<span class="tag" style="margin:0 4px 4px 0">${PL[k]}</span>`).join(''):'<span class="sub">কোনো অনুমতি নেই</span>';
+};
+
+async function load(){
+  const r=await sb.from('profiles').select('id,email,full_name,phone,role,perms').in('role',['admin','staff']).order('created_at',{ascending:true});
+  if(r.error){
+    $('rows').innerHTML=`<tr><td colspan="4" class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: ${esc(r.error.message)}</td></tr>`;return;
+  }
+  const L=r.data||[];
+  $('rows').innerHTML=L.length?L.map(p=>{
+    const adm=p.role==='admin';
+    return `<tr>
+      <td><b>${esc(p.full_name||p.email)}</b><div class="sub">${esc(p.email)}${p.phone?' · '+esc(p.phone):''}</div></td>
+      <td><span class="pill ${adm?'s-processing':'s-confirmed'}">${adm?'Admin':'Staff'}</span></td>
+      <td>${adm?'<span class="sub">সবকিছুর অনুমতি</span>':permChips(p.perms)}</td>
+      <td>${adm?'':`<div class="acts"><button class="btn g sm" data-e="${esc(p.id)}">Edit</button><button class="btn d sm" data-r="${esc(p.id)}">সরান</button></div>`}</td></tr>`;
+  }).join(''):'<tr><td colspan="4" class="empty">কোনো স্টাফ নেই।</td></tr>';
+  window.STAFF=L;
+}
+
+function openM(p,isNew){
+  EID=p.id;
+  $('mwho').textContent=p.email;
+  PK.forEach(k=>$('p_'+k).checked=isNew?(k==='orders'):(p.perms&&p.perms[k]===true));
+  $('md').classList.add('open');
+}
+const closeM=()=>$('md').classList.remove('open');
+$('mx').onclick=closeM; $('cx').onclick=closeM;
+$('md').onclick=e=>{if(e.target.id==='md')closeM()};
+
+$('sv').onclick=async()=>{
+  const perms={}; PK.forEach(k=>perms[k]=$('p_'+k).checked);
+  $('sv').disabled=true;
+  const r=await sb.from('profiles').update({role:'staff',perms:perms}).eq('id',EID);
+  $('sv').disabled=false;
+  if(r.error){A.toast('সেভ হয়নি: '+r.error.message);return}
+  A.toast('সেভ হয়েছে'); closeM(); load(); $('sres').innerHTML='';
+};
+
+$('rows').onclick=async e=>{
+  const b=e.target.closest('[data-e],[data-r]'); if(!b) return;
+  const id=b.dataset.e||b.dataset.r, p=(window.STAFF||[]).find(x=>x.id===id); if(!p) return;
+  if(b.dataset.e){openM(p,false);return}
+  if(!confirm(p.email+' কে স্টাফ থেকে সরিয়ে সাধারণ ক্রেতা করবেন?')) return;
+  const r=await sb.from('profiles').update({role:'customer',perms:{}}).eq('id',id);
+  if(r.error){A.toast('হয়নি: '+r.error.message);return}
+  A.toast('সরানো হয়েছে'); load();
+};
+
+$('sgo').onclick=async()=>{
+  const q=$('sq').value.trim().replace(/[%,]/g,'');
+  if(q.length<3){A.toast('ইমেইল লিখুন');return}
+  const r=await sb.from('profiles').select('id,email,full_name,phone,role,perms').ilike('email','%'+q+'%').limit(10);
+  if(r.error){A.toast('খোঁজা যায়নি: '+r.error.message);return}
+  const L=r.data||[];
+  window.FOUND=L;
+  $('sres').innerHTML=L.length?`<div class="tw"><table style="min-width:520px"><tbody>${L.map(p=>`<tr>
+    <td><b>${esc(p.full_name||p.email)}</b><div class="sub">${esc(p.email)}</div></td>
+    <td><span class="pill ${p.role==='admin'?'s-processing':p.role==='staff'?'s-confirmed':'s-pending'}">${esc(p.role)}</span></td>
+    <td>${p.role==='admin'?'':`<button class="btn sm" data-s="${esc(p.id)}">${p.role==='staff'?'অনুমতি বদলান':'স্টাফ বানান'}</button>`}</td></tr>`).join('')}</tbody></table></div>`
+    :'<div class="empty">এই ইমেইলে কোনো অ্যাকাউন্ট নেই। আগে সাইটে অ্যাকাউন্ট খুলতে বলুন।</div>';
+};
+$('sres').onclick=e=>{
+  const b=e.target.closest('[data-s]'); if(!b) return;
+  const p=(window.FOUND||[]).find(x=>x.id===b.dataset.s); if(p) openM(p,p.role!=='staff');
+};
+
+Admin.boot({key:'staff',title:'Staff',perm:'admin',ready:async()=>{ A.onRefresh=load; await load(); }});
+</script>
+</body>
+</html>
