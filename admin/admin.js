@@ -38,7 +38,8 @@ const SPRITE='<svg width="0" height="0" style="position:absolute" aria-hidden="t
 +'<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></symbol>'
 +'<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>'
 +'<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>'
-+'</svg>';
++'<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/></symbol>'
+ +'</svg>';
 
 /* [key, নাম, icon, ফাইল, দরকারি অনুমতি] */
 const NAV=[
@@ -49,6 +50,7 @@ const NAV=[
  ['reports','Reports','chart','reports.html','reports'],
  ['carts','Abandoned Carts','cart','carts.html','reports'],
  ['audit','Audit Log','doc','audit.html','admin'],
+ ['ai','AI Assistant','chat','ai.html','reports'],
  ['staff','Staff','users','staff.html','admin']];
 
 A.boot=async function(o){
