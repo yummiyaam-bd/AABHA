@@ -117,7 +117,11 @@ async function ask(text){
   try{
     const context=await buildCtx();
     const {data,error}=await sb.functions.invoke('smooth-processor',{body:{question:text,history:history.slice(-8),context}});
-    if(error)throw error;
+    if(error){
+      let m=error.message||'';
+      try{if(error.context&&error.context.text){const tx=await error.context.text();try{const jj=JSON.parse(tx);m=(jj.error||jj.message||tx)+' (code '+error.context.status+')'}catch(_){m=tx+' (code '+error.context.status+')'}}}catch(_){}
+      throw new Error(m);
+    }
     if(data&&data.error)throw new Error(data.error);
     const ans=(data&&data.answer)||'উত্তর পাওয়া যায়নি।';
     w.remove();add('b',fmt(ans),ans);
