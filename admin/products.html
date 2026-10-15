@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Products</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+</head>
+<body>
+<div id="page">
+  <section class="panel">
+    <div class="ph">
+      <div><h2>সব পণ্য</h2><small id="pcount"></small></div>
+      <button class="btn" id="addBtn"><svg class="i"><use href="#i-plus"/></svg>নতুন পণ্য</button>
+    </div>
+    <div class="bar"><input class="in" id="q" placeholder="পণ্য খুঁজুন..."></div>
+    <div class="tw"><table>
+      <thead><tr><th>পণ্য</th><th>দাম</th><th>স্টক</th><th>অবস্থা</th><th></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5" class="empty">লোড হচ্ছে...</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <div class="modal" id="md">
+    <div class="sheet">
+      <div class="ph"><div><h2 id="mt">নতুন পণ্য</h2></div><button class="ib" id="mx" type="button" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+      <form class="f" id="pf" autocomplete="off">
+        <div><label>নাম *</label><input class="in" id="f_name" required maxlength="80"></div>
+        <div><label>বিবরণ</label><textarea class="in" id="f_desc" rows="2" maxlength="200"></textarea></div>
+        <div class="fr">
+          <div><label>ক্যাটাগরি</label><select class="in" id="f_cat"><option value="men">Men</option><option value="women">Women</option><option value="unisex">Unisex</option></select></div>
+          <div><label>ট্যাগ</label><select class="in" id="f_tag"><option value="">কিছু না</option><option value="new">New</option><option value="best">Bestseller</option><option value="sale">Sale</option></select></div>
+        </div>
+        <div class="fr">
+          <div><label>বিক্রয় মূল্য (৳) *</label><input class="in" id="f_price" type="number" min="1" step="1" required></div>
+          <div><label>আগের দাম (৳)</label><input class="in" id="f_old" type="number" min="0" step="1" placeholder="ছাড় দেখাতে"></div>
+        </div>
+        <div class="fr">
+          <div><label>কেনা দাম (৳)</label><input class="in" id="f_cost" type="number" min="0" step="1" placeholder="লাভের হিসাবের জন্য"></div>
+          <div><label>সাইজ (কমা দিয়ে)</label><input class="in" id="f_sizes" placeholder="S, M, L, XL"></div>
+        </div>
+        <div><label>ছবির লিংক (ঐচ্ছিক)</label><input class="in" id="f_img" type="url" placeholder="https://..."></div>
+        <div><label>স্টক (সাইজ অনুযায়ী)</label><div class="stk" id="stk"></div></div>
+        <label class="chk"><input type="checkbox" id="f_act" checked> সাইটে দেখানো হবে</label>
+        <div class="rb"><button class="btn" type="submit" id="sv">সেভ করুন</button><button class="btn g" type="button" id="cx">বাতিল</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc, ic=A.ic;
+let PRODS=[], STK=[], EDIT=null;
+
+const sizesOf=()=>[...new Set($('f_sizes').value.split(',').map(s=>s.trim()).filter(Boolean))];
+function stkGrid(vals){
+  const sz=sizesOf();
+  $('stk').innerHTML=sz.length
+    ? sz.map(s=>`<div><label>${esc(s)}</label><input class="in" type="number" min="0" step="1" data-sz="${esc(s)}" value="${esc(vals&&vals[s]!=null?vals[s]:0)}"></div>`).join('')
+    : '<span class="sub">আগে সাইজ লিখুন</span>';
+}
+function stkVals(){const o={};document.querySelectorAll('#stk [data-sz]').forEach(i=>o[i.dataset.sz]=i.value);return o}
+
+async function load(){
+  const [p,s]=await Promise.all([
+    sb.from('products').select('*').order('id',{ascending:false}),
+    sb.from('stock').select('product_id,size,color,qty,low_at')
+  ]);
+  if(p.error){$('rows').innerHTML=`<tr><td colspan="5" class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: ${esc(p.error.message)}</td></tr>`;return}
+  PRODS=p.data||[]; STK=s.data||[];
+  render();
+}
+
+function render(){
+  const q=$('q').value.trim().toLowerCase();
+  const L=PRODS.filter(p=>!q||((p.name||'')+' '+(p.category||'')).toLowerCase().includes(q));
+  $('pcount').textContent=PRODS.length+' টি পণ্য';
+  $('rows').innerHTML=L.length?L.map(p=>{
+    const st=STK.filter(s=>s.product_id===p.id);
+    const tot=st.reduce((a,s)=>a+Number(s.qty),0);
+    const low=st.some(s=>Number(s.qty)<=Number(s.low_at??3));
+    const th=p.image_url?`<img class="th" src="${esc(p.image_url)}" alt="">`:`<div class="th">${esc((p.name||'?')[0])}</div>`;
+    return `<tr>
+      <td><div class="pr">${th}<div><b>${esc(p.name)}</b><div class="sub">${esc(p.category||'')}${p.tag?' · '+esc(p.tag):''}</div></div></div></td>
+      <td><b>${A.money(p.price)}</b>${p.old_price&&+p.old_price>+p.price?` <s class="sub">${A.money(p.old_price)}</s>`:''}<div class="sub">কেনা ${A.money(p.cost_price)}</div></td>
+      <td>${tot} টি ${low?'<span class="qty">কম</span>':''}<div class="sub">${st.map(s=>esc(s.size)+': '+esc(s.qty)).join(' · ')}</div></td>
+      <td><span class="pill ${p.active?'s-delivered':'s-cancelled'}">${p.active?'Active':'Hidden'}</span></td>
+      <td><div class="acts">
+        <button class="btn g sm" data-e="${p.id}">${ic('edit')}Edit</button>
+        <button class="btn g sm" data-t="${p.id}">${p.active?'Hide':'Show'}</button>
+        <button class="btn d sm" data-d="${p.id}">${ic('trash')}Delete</button>
+      </div></td></tr>`;
+  }).join(''):'<tr><td colspan="5" class="empty">কোনো পণ্য নেই।</td></tr>';
+}
+
+function openM(p){
+  EDIT=p?p.id:null;
+  $('mt').textContent=p?'পণ্য সম্পাদনা':'নতুন পণ্য';
+  $('f_name').value=p?p.name:'';
+  $('f_desc').value=p?(p.description||''):'';
+  const cat=p?(p.category||'unisex'):'men';
+  if(![...$('f_cat').options].some(o=>o.value===cat)) $('f_cat').add(new Option(cat,cat));
+  $('f_cat').value=cat;
+  $('f_tag').value=p?(p.tag||''):'';
+  $('f_price').value=p?p.price:'';
+  $('f_old').value=p&&p.old_price&&+p.old_price>+p.price?p.old_price:'';
+  $('f_cost').value=p?(p.cost_price||''):'';
+  $('f_sizes').value=p?(p.sizes||[]).join(', '):'S, M, L, XL';
+  $('f_img').value=p?(p.image_url||''):'';
+  $('f_act').checked=p?!!p.active:true;
+  const vals={}; if(p) STK.filter(s=>s.product_id===p.id).forEach(s=>vals[s.size]=s.qty);
+  stkGrid(vals);
+  $('md').classList.add('open');
+}
+const closeM=()=>$('md').classList.remove('open');
+
+$('addBtn').onclick=()=>openM(null);
+$('mx').onclick=closeM; $('cx').onclick=closeM;
+$('md').onclick=e=>{if(e.target.id==='md')closeM()};
+$('f_sizes').oninput=()=>stkGrid(stkVals());
+$('q').oninput=render;
+
+$('rows').onclick=e=>{
+  const b=e.target.closest('[data-e],[data-t],[data-d]'); if(!b) return;
+  const id=+(b.dataset.e||b.dataset.t||b.dataset.d), p=PRODS.find(x=>x.id===id); if(!p) return;
+  if(b.dataset.e) openM(p);
+  else if(b.dataset.t) toggle(p);
+  else del(p);
+};
+
+async function toggle(p){
+  const r=await sb.from('products').update({active:!p.active}).eq('id',p.id);
+  if(r.error){A.toast('হয়নি: '+r.error.message);return}
+  A.toast(p.active?'পণ্যটি সাইট থেকে লুকানো হয়েছে':'পণ্যটি সাইটে দেখানো হচ্ছে');
+  load();
+}
+
+async function del(p){
+  if(!confirm('"'+p.name+'" মুছে ফেলবেন?')) return;
+  const oc=await sb.from('order_items').select('id',{count:'exact',head:true}).eq('product_id',p.id);
+  if(!oc.error && (oc.count||0)>0){
+    await sb.from('products').update({active:false}).eq('id',p.id);
+    A.toast('এই পণ্যের অর্ডার আছে, তাই মুছিনি। সাইট থেকে লুকানো হয়েছে।');
+    load(); return;
+  }
+  await sb.from('stock').delete().eq('product_id',p.id);
+  const r=await sb.from('products').delete().eq('id',p.id);
+  if(r.error){
+    await sb.from('products').update({active:false}).eq('id',p.id);
+    A.toast('মোছা যায়নি, তাই সাইট থেকে লুকানো হয়েছে।');
+  } else A.toast('মুছে ফেলা হয়েছে');
+  load();
+}
+
+$('pf').onsubmit=async e=>{
+  e.preventDefault();
+  const name=$('f_name').value.trim(), price=+$('f_price').value;
+  const sizes=sizesOf();
+  if(!name||!(price>0)){A.toast('নাম ও সঠিক দাম দিন');return}
+  if(!sizes.length){A.toast('অন্তত একটা সাইজ দিন (যেমন Free)');return}
+  const old=+$('f_old').value;
+  const row={
+    name:name, description:$('f_desc').value.trim(), category:$('f_cat').value,
+    image_url:$('f_img').value.trim()||null,
+    price:price, old_price:old>price?old:price, cost_price:+$('f_cost').value||0,
+    sizes:sizes, tag:$('f_tag').value, active:$('f_act').checked
+  };
+  const btn=$('sv'); btn.disabled=true;
+  try{
+    let id=EDIT;
+    if(id){
+      const r=await sb.from('products').update(row).eq('id',id); if(r.error) throw r.error;
+    } else {
+      const r=await sb.from('products').insert(row).select('id').single(); if(r.error) throw r.error;
+      id=r.data.id;
+    }
+    const vals=stkVals();
+    const ex=STK.filter(s=>s.product_id===id);
+    for(const sz of sizes){
+      const qty=Math.max(0,parseInt(vals[sz],10)||0);
+      const cur=ex.find(s=>s.size===sz);
+      const r=cur
+        ? await sb.from('stock').update({qty:qty}).eq('product_id',id).eq('size',sz).eq('color',cur.color)
+        : await sb.from('stock').insert({product_id:id,size:sz,color:'',qty:qty,low_at:3});
+      if(r.error) throw r.error;
+    }
+    for(const cur of ex){
+      if(!sizes.includes(cur.size)){
+        const r=await sb.from('stock').delete().eq('product_id',id).eq('size',cur.size).eq('color',cur.color);
+        if(r.error) throw r.error;
+      }
+    }
+    A.toast('সেভ হয়েছে'); closeM(); load();
+  }catch(err){ A.toast('সেভ হয়নি: '+(err.message||err)); }
+  btn.disabled=false;
+};
+
+Admin.boot({key:'products',title:'Products',perm:'products',ready:async()=>{
+  A.onRefresh=load; await load();
+}});
+</script>
+</body>
+</html>
