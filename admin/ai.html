@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | AI Assistant</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.aichat{display:flex;flex-direction:column;height:calc(100vh - 150px);min-height:420px}
+.aimsgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.aim{max-width:88%;padding:11px 14px;border-radius:16px;line-height:1.6;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.aim.u{align-self:flex-end;background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-bottom-right-radius:4px}
+.aim.b{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-bottom-left-radius:4px}
+.aim.err{color:#ff9aa8}
+.aicp{display:block;margin-top:8px;background:none;border:1px solid rgba(255,255,255,.2);color:inherit;border-radius:20px;padding:3px 12px;font-size:11px;cursor:pointer}
+.aichips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 10px;scrollbar-width:none}
+.aichips button{flex:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:inherit;border-radius:20px;padding:7px 13px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.aibar{display:flex;gap:8px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);align-items:flex-end}
+.aibar textarea{flex:1;resize:none;max-height:110px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:16px;color:inherit;padding:11px 14px;font:inherit;font-size:14px;outline:none}
+.aibar button{flex:none;width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;color:#fff;font-size:18px;background:linear-gradient(135deg,#e8b4a0,#b8715a)}
+.aibar button.mic{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
+.aibar button.mic.on{background:#d9778a;animation:aip 1s infinite}
+.aibar button:disabled{opacity:.5}
+@keyframes aip{50%{opacity:.5}}
+</style>
+</head>
+<body>
+<div id="page">
+  <section class="panel aichat">
+    <div class="aimsgs" id="msgs">
+      <div class="aim b">আসসালামু আলাইকুম! আমি আপনার AABHA সহকারী। বিক্রি, স্টক, লাভ-ক্ষতি বা মেসেজ লেখা, যা খুশি জিজ্ঞেস করুন। আমি শুধু ডেটা পড়তে পারি, কিছু বদলাতে পারি না।</div>
+    </div>
+    <div class="aichips" id="chips"></div>
+    <div class="aibar">
+      <button class="mic" id="mic" type="button" aria-label="Voice">🎤</button>
+      <textarea id="q" rows="1" placeholder="প্রশ্ন লিখুন..."></textarea>
+      <button id="send" type="button" aria-label="Send">➤</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+const CHIPS=['আজ কয়টা অর্ডার, কত টাকার বিক্রি?','গতকালের বিক্রি কত?','কোন অর্ডারগুলো Pending?','সবচেয়ে বেশি কোন প্রোডাক্ট বিক্রি হচ্ছে?','কোন সাইজ শেষ হয়ে আসছে?','কী কী আবার কেনা উচিত?','এই মাসে নিট লাভ কত?','আজকের জন্য কী করা উচিত?','দেরির জন্য ক্ষমা চাওয়া মেসেজ লিখে দাও','একটা ডিসকাউন্ট আইডিয়া দাও'];
+let history=[], ctx=null, ctxAt=0, busy=false;
+
+const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const PII=/^(customer_name|phone|address|email|user_id|full_name|customer_phone|customer_address)$/i;
+const clean=r=>{const o={};for(const k in r){if(!PII.test(k))o[k]=r[k]}return o};
+
+async function buildCtx(){
+  if(ctx&&Date.now()-ctxAt<60000)return ctx;
+  const since=new Date(Date.now()-60*864e5).toISOString();
+  const [o,p,s,e]=await Promise.all([
+    sb.from('orders').select('id,order_no,status,total,created_at,payment,discount_label,flags').gte('created_at',since).order('created_at',{ascending:false}).limit(600),
+    sb.from('products').select('*'),
+    sb.from('stock').select('product_id,size,color,qty,low_at'),
+    sb.from('expenses').select('*').limit(300)
+  ]);
+  const orders=o.data||[], byId={};
+  orders.forEach(x=>byId[x.id]=x);
+  const ids=orders.map(x=>x.id), chunks=[];
+  for(let i=0;i<ids.length;i+=100)chunks.push(ids.slice(i,i+100));
+  const itemRes=await Promise.all(chunks.map(c=>sb.from('order_items').select('*').in('order_id',c)));
+  const items=itemRes.flatMap(r=>r.data||[]).map(clean);
+
+  const now=Date.now(), daily={};
+  for(let i=0;i<45;i++){daily[dkey(now-i*864e5)]={orders:0,sales:0,delivered_sales:0}}
+  orders.forEach(x=>{
+    if(x.status==='cancelled')return;
+    const d=daily[dkey(x.created_at)];if(!d)return;
+    d.orders++;d.sales+=Number(x.total||0);
+    if(x.status==='delivered')d.delivered_sales+=Number(x.total||0);
+  });
+  const status={};orders.forEach(x=>status[x.status]=(status[x.status]||0)+1);
+
+  const sold={};
+  items.forEach(it=>{
+    const od=byId[it.order_id];if(!od||od.status==='cancelled')return;
+    const age=(now-new Date(od.created_at))/864e5;
+    const n=it.name||'?', k=sold[n]||(sold[n]={units_30d:0,units_7d:0,revenue_30d:0});
+    const q=Number(it.qty||0), pr=Number(it.price??it.unit_price??0);
+    if(age<=30){k.units_30d+=q;k.revenue_30d+=q*pr}
+    if(age<=7)k.units_7d+=q;
+  });
+  const names={};(p.data||[]).forEach(x=>names[x.id]=x.name);
+  ctx={
+    today:dkey(now),
+    note:'daily = last 45 days (local date). status_counts = last 60 days.',
+    daily,status_counts:status,
+    pending:orders.filter(x=>x.status==='pending').map(x=>({order_no:x.order_no,placed:x.created_at,total:x.total,flags:x.flags})),
+    sold_by_product:sold,
+    products:(p.data||[]).map(clean),
+    stock:(s.data||[]).map(x=>({product:names[x.product_id]||x.product_id,size:x.size,color:x.color,qty:x.qty,low_at:x.low_at})),
+    expenses:(e.data||[]).map(clean)
+  };
+  ctxAt=Date.now();
+  return ctx;
+}
+
+function fmt(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}
+function add(cls,html,raw){
+  const d=document.createElement('div');d.className='aim '+cls;d.innerHTML=html;
+  if(raw){const b=document.createElement('button');b.className='aicp';b.textContent='Copy';
+    b.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(raw);A.toast('Copy হয়েছে')};d.appendChild(b)}
+  $('msgs').appendChild(d);$('msgs').scrollTop=$('msgs').scrollHeight;return d;
+}
+
+async function ask(text){
+  text=(text||'').trim();if(!text||busy)return;
+  busy=true;$('send').disabled=true;$('q').value='';$('q').style.height='auto';
+  add('u',esc(text));
+  const w=add('b','…');
+  try{
+    const context=await buildCtx();
+    const {data,error}=await sb.functions.invoke('smooth-processor',{body:{question:text,history:history.slice(-8),context}});
+    if(error)throw error;
+    if(data&&data.error)throw new Error(data.error);
+    const ans=(data&&data.answer)||'উত্তর পাওয়া যায়নি।';
+    w.remove();add('b',fmt(ans),ans);
+    history.push({role:'user',text:text},{role:'model',text:ans});
+  }catch(err){
+    w.remove();add('b err','সমস্যা হয়েছে: '+esc(err.message||err)+'\n(কিছুক্ষণ পর আবার চেষ্টা করুন। ফ্রি লিমিট শেষ হলে এমন হতে পারে।)');
+  }
+  busy=false;$('send').disabled=false;
+}
+
+function setupMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition, m=$('mic');
+  if(!SR){m.style.display='none';return}
+  const r=new SR();r.lang='bn-BD';r.interimResults=false;
+  r.onresult=ev=>{const t=ev.results[0][0].transcript;$('q').value=t;ask(t)};
+  r.onend=()=>m.classList.remove('on');
+  r.onerror=()=>m.classList.remove('on');
+  m.onclick=()=>{if(m.classList.contains('on')){r.stop();return}m.classList.add('on');try{r.start()}catch(e){m.classList.remove('on')}};
+}
+
+Admin.boot({key:'ai',title:'AI Assistant',perm:'reports',ready:async()=>{
+  $('chips').innerHTML=CHIPS.map(c=>`<button type="button">${esc(c)}</button>`).join('');
+  $('chips').onclick=e=>{const b=e.target.closest('button');if(b)ask(b.textContent)};
+  $('send').onclick=()=>ask($('q').value);
+  $('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask($('q').value)}});
+  $('q').addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,110)+'px'});
+  setupMic();
+  A.onRefresh=()=>{ctx=null;A.toast('ডেটা রিফ্রেশ হবে')};
+}});
+</script>
+</body>
+</html>
