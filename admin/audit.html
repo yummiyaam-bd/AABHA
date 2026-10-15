@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Audit Log</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+</head>
+<body>
+<div id="page">
+  <section class="panel">
+    <div class="ph"><div><h2>অ্যাক্টিভিটি লগ</h2><small>কে, কখন, কী বদলেছে</small></div></div>
+    <div class="bar">
+      <select class="in" id="ft" style="max-width:190px">
+        <option value="">সব টেবিল</option>
+        <option>orders</option><option>order_items</option><option>order_events</option>
+        <option>products</option><option>stock</option><option>profiles</option>
+        <option>expenses</option><option>notifications</option><option>carts</option>
+      </select>
+      <select class="in" id="fa" style="max-width:170px">
+        <option value="">সব কাজ</option><option value="insert">নতুন</option><option value="update">বদল</option><option value="delete">মোছা</option>
+      </select>
+      <input class="in" id="q" placeholder="ইমেইল / আইডি খুঁজুন..." style="max-width:260px">
+    </div>
+    <div class="tw"><table style="min-width:860px">
+      <thead><tr><th>কখন</th><th>কে</th><th>কাজ</th><th>কী বদলেছে</th><th></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5" class="empty">লোড হচ্ছে...</td></tr></tbody>
+    </table></div>
+    <div id="more" style="padding:16px 24px;text-align:center"></div>
+  </section>
+
+  <div class="modal" id="md">
+    <div class="sheet">
+      <div class="ph"><div><h2 id="mt"></h2></div><button class="ib" id="mx" type="button" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+      <div id="mbody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+let ROWS=[], LIM=100;
+
+function fmt(v){
+  if(v===undefined||v===null) return '—';
+  let s=typeof v==='object'?JSON.stringify(v):String(v);
+  return s.length>200?s.slice(0,200)+'…':s;
+}
+function diff(o,n){
+  const ks=new Set([...Object.keys(o||{}),...Object.keys(n||{})]);
+  const out=[];
+  ks.forEach(k=>{
+    if(k==='updated_at') return;
+    const a=o?o[k]:undefined, b=n?n[k]:undefined;
+    if(JSON.stringify(a)!==JSON.stringify(b)) out.push([k,a,b]);
+  });
+  return out;
+}
+const actCls=a=>{a=String(a||'').toLowerCase();return a.includes('insert')?'s-delivered':a.includes('delete')?'s-cancelled':a.includes('update')?'s-confirmed':'s-pending'};
+
+async function load(){
+  let q=sb.from('audit_log').select('*').order('at',{ascending:false}).limit(LIM);
+  if($('ft').value) q=q.eq('tbl',$('ft').value);
+  const r=await q;
+  if(r.error){
+    $('rows').innerHTML=`<tr><td colspan="5" class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: ${esc(r.error.message)}</td></tr>`;
+    return;
+  }
+  ROWS=r.data||[];
+  render();
+  $('more').innerHTML=ROWS.length>=LIM?'<button class="btn g sm" id="mb" type="button">আরও দেখান</button>':'';
+}
+
+function render(){
+  const act=$('fa').value, q=$('q').value.trim().toLowerCase();
+  const L=ROWS.map((r,i)=>[r,i]).filter(([r])=>{
+    if(act && !String(r.action||'').toLowerCase().includes(act)) return false;
+    if(q && !((r.actor_email||'')+' '+(r.record_id||'')+' '+(r.tbl||'')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  $('rows').innerHTML=L.length?L.map(([r,i])=>{
+    const d=diff(r.old_data,r.new_data);
+    const sum=d.length?d.slice(0,2).map(x=>esc(x[0])+': '+(r.old_data?esc(fmt(x[1])).slice(0,24)+' → ':'')+esc(fmt(x[2])).slice(0,24)).join('<br>')+(d.length>2?`<div class="sub">+${d.length-2} টি ঘর</div>`:''):'<span class="sub">—</span>';
+    return `<tr>
+      <td>${esc(A.fmtDate(r.at))}</td>
+      <td>${r.actor_email?esc(r.actor_email):'<span class="sub">সিস্টেম</span>'}</td>
+      <td><span class="pill ${actCls(r.action)}">${esc(r.action||'')}</span><div class="sub">${esc(r.tbl||'')} · ${esc(String(r.record_id||'').slice(0,12))}</div></td>
+      <td class="sub" style="color:var(--ink)">${sum}</td>
+      <td><button class="btn g sm" data-i="${i}">দেখুন</button></td></tr>`;
+  }).join(''):'<tr><td colspan="5" class="empty">কিছু পাওয়া যায়নি।</td></tr>';
+}
+
+function show(i){
+  const r=ROWS[i], d=diff(r.old_data,r.new_data);
+  $('mt').textContent=(r.tbl||'')+' · '+(r.action||'');
+  $('mbody').innerHTML=`<p class="sub" style="margin:0 0 14px">${esc(A.fmtDate(r.at))} · ${esc(r.actor_email||'সিস্টেম')} · ID: ${esc(r.record_id)}</p>`
+    +(d.length?`<div class="tw"><table style="min-width:420px"><thead><tr><th>ঘর</th><th>আগে</th><th>পরে</th></tr></thead><tbody>${
+      d.map(x=>`<tr><td><b>${esc(x[0])}</b></td><td class="sub">${esc(fmt(x[1]))}</td><td>${esc(fmt(x[2]))}</td></tr>`).join('')
+    }</tbody></table></div>`:'<div class="empty">কোনো পরিবর্তন নেই</div>');
+  $('md').classList.add('open');
+}
+
+$('rows').onclick=e=>{const b=e.target.closest('[data-i]'); if(b) show(+b.dataset.i)};
+$('more').onclick=e=>{if(e.target.closest('#mb')){LIM+=100;load()}};
+$('mx').onclick=()=>$('md').classList.remove('open');
+$('md').onclick=e=>{if(e.target.id==='md')$('md').classList.remove('open')};
+$('ft').onchange=()=>{LIM=100;load()};
+$('fa').onchange=render; $('q').oninput=render;
+
+Admin.boot({key:'audit',title:'Audit Log',perm:'admin',ready:async()=>{ A.onRefresh=load; await load(); }});
+</script>
+</body>
+</html>
