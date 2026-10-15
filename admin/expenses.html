@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Expenses</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.gx{display:grid;grid-template-columns:1fr 1.7fr;gap:18px;align-items:start}
+.gx .panel{margin:0}
+@media(max-width:900px){.gx{grid-template-columns:1fr}}
+.bk{margin-bottom:14px}
+.bkh{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.bkb{height:6px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden}
+.bkb i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+</style>
+</head>
+<body>
+<div id="page">
+  <section class="cards">
+    <div class="stat"><div class="top"><label>মোট খরচ</label><div class="ic"><svg class="i"><use href="#i-wallet"/></svg></div></div><b id="c_tot">৳0</b></div>
+    <div class="stat"><div class="top"><label>এন্ট্রি</label><div class="ic"><svg class="i"><use href="#i-doc"/></svg></div></div><b id="c_n">0</b></div>
+    <div class="stat"><div class="top"><label>সবচেয়ে বেশি</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="c_top" style="font-size:1.35rem">—</b></div>
+    <div class="stat"><div class="top"><label>দৈনিক গড়</label><div class="ic"><svg class="i"><use href="#i-clock"/></svg></div></div><b id="c_avg">৳0</b></div>
+  </section>
+
+  <div class="gx">
+    <section class="panel">
+      <div class="ph"><div><h2>নতুন খরচ</h2><small>যা খরচ হলো লিখে রাখুন</small></div></div>
+      <form class="f" id="ef" style="padding:20px 24px" autocomplete="off">
+        <div><label>খাত</label><select class="in" id="e_kind"></select></div>
+        <div><label>টাকা (৳) *</label><input class="in" id="e_amt" type="number" min="1" step="1" required></div>
+        <div><label>তারিখ</label><input class="in" id="e_date" type="date"></div>
+        <div><label>নোট</label><input class="in" id="e_note" maxlength="120" placeholder="যেমন: Steadfast কুরিয়ার"></div>
+        <button class="btn" type="submit" id="esv"><svg class="i"><use href="#i-plus"/></svg>যোগ করুন</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="ph"><div><h2>খরচের তালিকা</h2><small id="mlabel"></small></div></div>
+      <div class="bar"><input class="in" id="mo" type="month" style="max-width:200px"></div>
+      <div id="bkd" style="padding:18px 24px 4px"></div>
+      <div class="tw"><table style="min-width:520px">
+        <thead><tr><th>তারিখ</th><th>খাত</th><th>টাকা</th><th></th></tr></thead>
+        <tbody id="rows"><tr><td colspan="4" class="empty">লোড হচ্ছে...</td></tr></tbody>
+      </table></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc, ic=A.ic;
+const KINDS=[['Courier','কুরিয়ার'],['Packaging','প্যাকেজিং'],['Marketing','বিজ্ঞাপন'],['Rent','ভাড়া'],['Salary','বেতন'],['Utilities','বিল'],['Purchase','মাল কেনা'],['Other','অন্যান্য']];
+const KL={}; KINDS.forEach(k=>KL[k[0]]=k[1]);
+const kl=k=>KL[k]||k;
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+let ROWS=[];
+
+$('e_kind').innerHTML=KINDS.map(k=>`<option value="${k[0]}">${k[1]} (${k[0]})</option>`).join('');
+$('e_date').value=ymd(new Date());
+$('mo').value=ymd(new Date()).slice(0,7);
+
+async function load(){
+  const mo=$('mo').value; if(!mo) return;
+  const [y,m]=mo.split('-').map(Number);
+  const from=mo+'-01', to=ymd(new Date(y,m,0));
+  const r=await sb.from('expenses').select('*').gte('spent_on',from).lte('spent_on',to).order('spent_on',{ascending:false}).order('id',{ascending:false});
+  if(r.error){$('rows').innerHTML=`<tr><td colspan="4" class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: ${esc(r.error.message)}</td></tr>`;return}
+  ROWS=r.data||[];
+  const total=ROWS.reduce((a,x)=>a+Number(x.amount),0);
+  const by={}; ROWS.forEach(x=>by[x.kind]=(by[x.kind]||0)+Number(x.amount));
+  const ks=Object.keys(by).sort((a,b)=>by[b]-by[a]);
+  const now=new Date();
+  const days=(y===now.getFullYear()&&m===now.getMonth()+1)?now.getDate():new Date(y,m,0).getDate();
+  $('c_tot').textContent=A.money(total);
+  $('c_n').textContent=ROWS.length;
+  $('c_top').textContent=ks.length?kl(ks[0]):'—';
+  $('c_avg').textContent=A.money(Math.round(total/Math.max(1,days)));
+  $('mlabel').textContent=new Date(y,m-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  $('bkd').innerHTML=ks.length?ks.map(k=>{
+    const p=total?Math.round(by[k]/total*100):0;
+    return `<div class="bk"><div class="bkh"><span>${esc(kl(k))}</span><span>${A.money(by[k])} · ${p}%</span></div><div class="bkb"><i style="width:${p}%"></i></div></div>`;
+  }).join(''):'';
+  $('rows').innerHTML=ROWS.length?ROWS.map(x=>`<tr>
+    <td>${esc(new Date(x.spent_on+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}))}</td>
+    <td><b>${esc(kl(x.kind))}</b>${x.note?`<div class="sub">${esc(x.note)}</div>`:''}</td>
+    <td><b>${A.money(x.amount)}</b></td>
+    <td><button class="btn d sm" data-d="${esc(x.id)}">${ic('trash')}</button></td></tr>`).join('')
+    :'<tr><td colspan="4" class="empty">এই মাসে কোনো খরচ নেই।</td></tr>';
+}
+
+$('mo').onchange=load;
+
+$('ef').onsubmit=async e=>{
+  e.preventDefault();
+  const amt=+$('e_amt').value;
+  if(!(amt>0)){A.toast('সঠিক টাকা দিন');return}
+  const date=$('e_date').value||ymd(new Date());
+  const btn=$('esv'); btn.disabled=true;
+  const r=await sb.from('expenses').insert({kind:$('e_kind').value,amount:amt,note:$('e_note').value.trim(),spent_on:date,by:A.user.id});
+  btn.disabled=false;
+  if(r.error){A.toast('সেভ হয়নি: '+r.error.message);return}
+  A.toast('খরচ যোগ হয়েছে');
+  $('e_amt').value=''; $('e_note').value='';
+  $('mo').value=date.slice(0,7);
+  load();
+};
+
+$('rows').onclick=async e=>{
+  const b=e.target.closest('[data-d]'); if(!b) return;
+  if(!confirm('এই খরচ মুছে ফেলবেন?')) return;
+  const r=await sb.from('expenses').delete().eq('id',b.dataset.d);
+  if(r.error){A.toast('মোছা যায়নি: '+r.error.message);return}
+  A.toast('মুছে ফেলা হয়েছে'); load();
+};
+
+Admin.boot({key:'expenses',title:'Expenses',perm:'expenses',ready:async()=>{ A.onRefresh=load; await load(); }});
+</script>
+</body>
+</html>
