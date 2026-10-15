@@ -50,8 +50,6 @@ const NAV=[
  ['carts','Abandoned Carts','cart','carts.html','reports'],
  ['audit','Audit Log','doc','audit.html','admin'],
  ['staff','Staff','users','staff.html','admin']];
-/* যে পেজগুলো বানানো হয়ে গেছে */
-const BUILT={index:1,products:1};
 
 A.boot=async function(o){
   const {data:{user}}=await sb.auth.getUser();
@@ -63,10 +61,12 @@ A.boot=async function(o){
   perms.forEach((k,i)=>P[k]=rs[i+2].data===true);
   A.perm=P;A.user=user;
 
-  const items=NAV.filter(n=>!n[4]||P[n[4]]).map(n=>{
-    if(!BUILT[n[0]])return '<span class="soon">'+A.ic(n[2])+n[1]+'<em>Soon</em></span>';
-    return '<a href="'+n[3]+'" class="'+(n[0]===o.key?'active':'')+'">'+A.ic(n[2])+n[1]+'</a>';
-  }).join('');
+  /* যে পেজ ফাইল আছে সেটাই লিংক হবে, নাহলে "Soon" */
+  const vis=NAV.filter(n=>!n[4]||P[n[4]]);
+  const ok=await Promise.all(vis.map(n=>n[0]===o.key?true:fetch(n[3],{method:'HEAD',cache:'no-store'}).then(r=>r.ok).catch(()=>false)));
+  const items=vis.map((n,i)=>ok[i]
+    ?'<a href="'+n[3]+'" class="'+(n[0]===o.key?'active':'')+'">'+A.ic(n[2])+n[1]+'</a>'
+    :'<span class="soon">'+A.ic(n[2])+n[1]+'<em>Soon</em></span>').join('');
 
   document.body.insertAdjacentHTML('afterbegin',SPRITE
    +'<div class="scrim" id="scrim"></div>'
