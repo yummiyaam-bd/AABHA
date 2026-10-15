@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Abandoned Carts</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+</head>
+<body>
+<div id="page">
+  <section class="cards">
+    <div class="stat"><div class="top"><label>ফেলে যাওয়া কার্ট</label><div class="ic"><svg class="i"><use href="#i-cart"/></svg></div></div><b id="c_n">0</b></div>
+    <div class="stat"><div class="top"><label>মোট মূল্য</label><div class="ic"><svg class="i"><use href="#i-wallet"/></svg></div></div><b id="c_v">৳0</b></div>
+    <div class="stat"><div class="top"><label>১ ঘণ্টার বেশি পুরনো</label><div class="ic"><svg class="i"><use href="#i-clock"/></svg></div></div><b id="c_o">0</b></div>
+    <div class="stat"><div class="top"><label>অর্ডার হয়েছে</label><div class="ic"><svg class="i"><use href="#i-check"/></svg></div></div><b id="c_c">0</b></div>
+  </section>
+
+  <section class="panel">
+    <div class="ph"><div><h2>ফেলে যাওয়া কার্ট</h2><small>পণ্য কার্টে রেখেছে কিন্তু অর্ডার করেনি</small></div></div>
+    <div class="bar">
+      <select class="in" id="ag" style="max-width:240px">
+        <option value="0">সব কার্ট</option>
+        <option value="60" selected>১ ঘণ্টার বেশি পুরনো</option>
+        <option value="1440">১ দিনের বেশি পুরনো</option>
+      </select>
+    </div>
+    <div class="tw"><table style="min-width:780px">
+      <thead><tr><th>কখন</th><th>ক্রেতা</th><th>কার্টে যা আছে</th><th>মোট</th><th></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5" class="empty">লোড হচ্ছে...</td></tr></tbody>
+    </table></div>
+  </section>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+let ALL=[], PF={};
+
+const mins=t=>(Date.now()-new Date(t).getTime())/60000;
+function ago(t){
+  const m=Math.max(0,Math.round(mins(t)));
+  if(m<60) return m+' মিনিট আগে';
+  if(m<1440) return Math.floor(m/60)+' ঘণ্টা আগে';
+  return Math.floor(m/1440)+' দিন আগে';
+}
+function waLink(phone,name){
+  let d=String(phone||'').replace(/\D/g,'');
+  if(!d) return '';
+  if(d.startsWith('0')) d='88'+d; else if(!d.startsWith('88')) d='88'+d;
+  const msg='আসসালামু আলাইকুম'+(name?' '+name:'')+', AABHA-তে আপনার কার্টে কিছু পণ্য রয়ে গেছে। চাইলে আমরা অর্ডারটি সম্পূর্ণ করতে সাহায্য করতে পারি।';
+  return 'https://wa.me/'+d+'?text='+encodeURIComponent(msg);
+}
+
+async function load(){
+  const [a,c]=await Promise.all([
+    sb.from('carts').select('*').eq('ordered',false).order('updated_at',{ascending:false}).limit(300),
+    sb.from('carts').select('session_id',{count:'exact',head:true}).eq('ordered',true)
+  ]);
+  if(a.error){
+    $('rows').innerHTML=`<tr><td colspan="5" class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: ${esc(a.error.message)}</td></tr>`;
+    return;
+  }
+  ALL=(a.data||[]).filter(r=>Array.isArray(r.items)&&r.items.length);
+  const uids=[...new Set(ALL.map(r=>r.user_id).filter(Boolean))];
+  PF={};
+  if(uids.length){
+    const p=await sb.from('profiles').select('id,full_name,email,phone').in('id',uids);
+    (p.data||[]).forEach(x=>PF[x.id]=x);
+  }
+  $('c_n').textContent=ALL.length;
+  $('c_v').textContent=A.money(ALL.reduce((s,r)=>s+Number(r.total||0),0));
+  $('c_o').textContent=ALL.filter(r=>mins(r.updated_at)>=60).length;
+  $('c_c').textContent=c.count||0;
+  render();
+}
+
+function render(){
+  const min=+$('ag').value;
+  const L=ALL.filter(r=>mins(r.updated_at)>=min);
+  $('rows').innerHTML=L.length?L.map(r=>{
+    const p=PF[r.user_id];
+    const name=p?(p.full_name||p.email):'';
+    const who=p
+      ? `<b>${esc(name)}</b><div class="sub">${esc(p.phone||p.email||'')}</div>`
+      : '<span class="sub">অতিথি (লগইন করেননি)</span>';
+    const items=r.items.map(i=>`${esc(i.qty)} × ${esc(i.name)}${i.size?' ('+esc(i.size)+')':''}`).join('<br>');
+    const wa=p&&p.phone?waLink(p.phone,p.full_name):'';
+    return `<tr>
+      <td>${esc(ago(r.updated_at))}<div class="sub">${esc(A.fmtDate(r.updated_at))}</div></td>
+      <td>${who}</td>
+      <td class="sub" style="color:var(--ink)">${items}</td>
+      <td><b>${A.money(r.total)}</b></td>
+      <td>${wa?`<a class="btn g sm" target="_blank" rel="noopener" href="${esc(wa)}">WhatsApp</a>`:'<span class="sub">যোগাযোগ নেই</span>'}</td></tr>`;
+  }).join(''):'<tr><td colspan="5" class="empty">কোনো কার্ট নেই।</td></tr>';
+}
+
+$('ag').onchange=render;
+Admin.boot({key:'carts',title:'Abandoned Carts',perm:'reports',ready:async()=>{ A.onRefresh=load; await load(); }});
+</script>
+</body>
+</html>
