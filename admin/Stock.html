@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Stock</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.qc{display:inline-flex;align-items:center;gap:6px}
+.qc button{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);font:700 16px var(--sans);cursor:pointer}
+.qc button:hover{border-color:var(--ac);color:var(--ac)}
+.qc .in{width:78px;text-align:center;padding:8px}
+.lw{width:90px;padding:8px;text-align:center}
+</style>
+</head>
+<body>
+<div id="page">
+  <section class="cards">
+    <div class="stat"><div class="top"><label>মোট পিস</label><div class="ic"><svg class="i"><use href="#i-box"/></svg></div></div><b id="c_tot">0</b></div>
+    <div class="stat"><div class="top"><label>সাইজ লাইন</label><div class="ic"><svg class="i"><use href="#i-tag"/></svg></div></div><b id="c_var">0</b></div>
+    <div class="stat"><div class="top"><label>কম স্টক</label><div class="ic"><svg class="i"><use href="#i-alert"/></svg></div></div><b id="c_low">0</b></div>
+    <div class="stat"><div class="top"><label>স্টক শেষ</label><div class="ic"><svg class="i"><use href="#i-x"/></svg></div></div><b id="c_out">0</b></div>
+  </section>
+
+  <section class="panel">
+    <div class="ph"><div><h2>স্টক ব্যবস্থাপনা</h2><small>সংখ্যা বদলালে নিজে থেকে সেভ হয়</small></div></div>
+    <div class="bar">
+      <input class="in" id="q" placeholder="পণ্য খুঁজুন...">
+      <select class="in" id="fl" style="max-width:200px"><option value="all">সব</option><option value="low">কম স্টক</option><option value="out">স্টক শেষ</option></select>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>পণ্য</th><th>সাইজ</th><th>স্টক</th><th>সতর্কতা সীমা</th><th>অবস্থা</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5" class="empty">লোড হচ্ছে...</td></tr></tbody>
+    </table></div>
+  </section>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+let PN={}, ST=[];
+
+const stat=r=>Number(r.qty)<=0?['s-cancelled','শেষ']:Number(r.qty)<=Number(r.low_at??3)?['s-pending','কম']:['s-delivered','ঠিক আছে'];
+
+function summary(){
+  const tot=ST.reduce((a,r)=>a+Number(r.qty),0);
+  const out=ST.filter(r=>Number(r.qty)<=0).length;
+  const low=ST.filter(r=>Number(r.qty)>0&&Number(r.qty)<=Number(r.low_at??3)).length;
+  $('c_tot').textContent=tot; $('c_var').textContent=ST.length;
+  $('c_low').textContent=low; $('c_out').textContent=out;
+  $('c_low').classList.toggle('warn',low>0); $('c_out').classList.toggle('warn',out>0);
+}
+
+async function load(){
+  const [p,s]=await Promise.all([
+    sb.from('products').select('id,name,active'),
+    sb.from('stock').select('product_id,size,color,qty,low_at')
+  ]);
+  if(s.error||p.error){
+    $('rows').innerHTML=`<tr><td colspan="5" class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: ${esc((s.error||p.error).message)}</td></tr>`;return;
+  }
+  PN={}; (p.data||[]).forEach(x=>PN[x.id]=x);
+  ST=(s.data||[]).slice().sort((a,b)=>((PN[a.product_id]||{}).name||'').localeCompare((PN[b.product_id]||{}).name||'')||String(a.size).localeCompare(String(b.size)));
+  summary(); render();
+}
+
+function render(){
+  const q=$('q').value.trim().toLowerCase(), f=$('fl').value;
+  const L=ST.map((r,i)=>[r,i]).filter(([r])=>{
+    const n=((PN[r.product_id]||{}).name||'').toLowerCase();
+    if(q&&!n.includes(q)) return false;
+    const s=Number(r.qty), lw=Number(r.low_at??3);
+    if(f==='low') return s>0&&s<=lw;
+    if(f==='out') return s<=0;
+    return true;
+  });
+  $('rows').innerHTML=L.length?L.map(([r,i])=>{
+    const p=PN[r.product_id]||{}, s=stat(r);
+    return `<tr>
+      <td><b>${esc(p.name||('#'+r.product_id))}</b>${p.active===false?' <span class="sub">(Hidden)</span>':''}</td>
+      <td>${esc(r.size)}${r.color?` <span class="sub">${esc(r.color)}</span>`:''}</td>
+      <td><div class="qc"><button data-d="-1" data-i="${i}" type="button">&minus;</button><input class="in" type="number" min="0" step="1" value="${esc(r.qty)}" data-i="${i}" data-f="qty"><button data-d="1" data-i="${i}" type="button">+</button></div></td>
+      <td><input class="in lw" type="number" min="0" step="1" value="${esc(r.low_at??3)}" data-i="${i}" data-f="low_at"></td>
+      <td><span class="pill ${s[0]}" id="st${i}">${s[1]}</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" class="empty">কিছু পাওয়া যায়নি।</td></tr>';
+}
+
+async function save(i,field,val){
+  const r=ST[i]; const v=Math.max(0,parseInt(val,10)||0);
+  const {error}=await sb.from('stock').update({[field]:v}).eq('product_id',r.product_id).eq('size',r.size).eq('color',r.color);
+  if(error){A.toast('সেভ হয়নি: '+error.message);return}
+  r[field]=v;
+  const el=$('st'+i); if(el){const s=stat(r); el.className='pill '+s[0]; el.textContent=s[1]}
+  summary(); A.toast('সেভ হয়েছে');
+}
+
+$('rows').onclick=e=>{
+  const b=e.target.closest('button[data-d]'); if(!b) return;
+  const inp=b.parentNode.querySelector('input');
+  const v=Math.max(0,(parseInt(inp.value,10)||0)+(+b.dataset.d));
+  inp.value=v; save(+b.dataset.i,'qty',v);
+};
+$('rows').onchange=e=>{
+  const inp=e.target.closest('input[data-f]'); if(!inp) return;
+  save(+inp.dataset.i,inp.dataset.f,inp.value);
+};
+$('q').oninput=render; $('fl').onchange=render;
+
+Admin.boot({key:'stock',title:'Stock',perm:'products',ready:async()=>{ A.onRefresh=load; await load(); }});
+</script>
+</body>
+</html>
