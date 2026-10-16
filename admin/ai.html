@@ -32,18 +32,20 @@
 /* action confirm card */
 .aact{margin-top:10px;padding:12px;border-radius:14px;background:rgba(232,180,160,.1);border:1px solid rgba(232,180,160,.35)}
 .aact .t{font-size:13px;line-height:1.6;margin-bottom:10px}
+.aact .w{font-size:12.5px;line-height:1.5;color:#ff9aa8;margin-bottom:10px}
 .aact .r{display:flex;gap:8px}
 .aact button{flex:1;border:0;border-radius:30px;padding:10px 14px;font:700 12px inherit;cursor:pointer;color:#fff;background:linear-gradient(135deg,#e8b4a0,#b8715a)}
 .aact button.no{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
 .aact button:disabled{opacity:.5}
 .aact .s{font-size:13px}
+.err{color:#ff9aa8}
 </style>
 </head>
 <body>
 <div id="page">
   <section class="panel aichat">
     <div class="aimsgs" id="msgs">
-      <div class="aim b">আসসালামু আলাইকুম! আমি আপনার AABHA সহকারী। বিক্রি, স্টক, লাভ-ক্ষতি, রিস্টক, দাম সাজেশন বা মেসেজ লেখা, যা খুশি জিজ্ঞেস করুন। স্টক বদলাতে বললে আমি আগে আপনার কনফার্মেশন চাইব।</div>
+      <div class="aim b">আসসালামু আলাইকুম! আমি আপনার AABHA সহকারী। বিক্রি, স্টক, লাভ-ক্ষতি, রিস্টক, দাম সাজেশন বা মেসেজ লেখা, যা খুশি জিজ্ঞেস করুন। স্টক, দাম, পণ্যের স্ট্যাটাস বা অর্ডারের স্ট্যাটাস বদলাতে বললে আমি আগে আপনার কনফার্মেশন চাইব।</div>
     </div>
     <div class="aichips" id="chips"></div>
     <div class="aibar">
@@ -68,9 +70,9 @@ const CHIPS=[
 'দেরির জন্য ক্ষমা চাওয়া মেসেজ লিখে দাও',
 'একটা ডিসকাউন্ট আইডিয়া দাও'
 ];
-const MEM=10; // আগের কতটা মেসেজ AI-কে পাঠানো হবে
+const MEM=10;
 let history=[], ctx=null, ctxAt=0, busy=false;
-let stockRows=[], prodByName={}; // অ্যাকশনের জন্য (AI-কে পাঠানো হয় না)
+let stockRows=[], prodRows=[], orderRows=[];
 
 const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const PII=/^(customer_name|phone|address|email|user_id|full_name|customer_phone|customer_address)$/i;
@@ -114,14 +116,16 @@ async function buildCtx(){
   });
   const names={};(p.data||[]).forEach(x=>names[x.id]=x.name);
   stockRows=s.data||[];
-  prodByName={};(p.data||[]).forEach(x=>{if(x.name)prodByName[String(x.name).trim().toLowerCase()]=x.id});
+  prodRows=p.data||[];
+  orderRows=orders;
   ctx={
     today:dkey(now),
     note:'daily = last 45 days (local date). status_counts = last 60 days.',
     daily,status_counts:status,
     pending:orders.filter(x=>x.status==='pending').map(x=>({order_no:x.order_no,placed:x.created_at,total:x.total,flags:x.flags})),
+    recent_orders:orders.slice(0,40).map(x=>({order_no:x.order_no,status:x.status,total:x.total,placed:x.created_at})),
     sold_by_product:sold,
-    products:(p.data||[]).map(clean),
+    products:prodRows.map(clean),
     stock:stockRows.map(x=>({product:names[x.product_id]||x.product_id,size:x.size,color:x.color,qty:x.qty,low_at:x.low_at})),
     expenses:(e.data||[]).map(clean)
   };
@@ -137,49 +141,130 @@ function add(cls,html,raw){
   $('msgs').appendChild(d);$('msgs').scrollTop=$('msgs').scrollHeight;return d;
 }
 
-/* ---------- Action + Confirm ---------- */
+/* ================= Action + Confirm ================= */
+const PRICE_COLS=['price','sale_price','selling_price'];
+const COST_COLS=['cost','cost_price','buy_price','buying_price','purchase_price'];
+const STATUS_COLS=['status','is_active','active'];
+const findCol=(row,list)=>list.find(c=>c in row);
+const same=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
+const prodRow=n=>prodRows.find(x=>same(x.name,n));
+const taka=n=>'৳'+Number(n).toLocaleString('en-US');
+const RANK={pending:0,confirmed:1,shipped:2,delivered:3};
+
+async function upd(table,patch,filters){
+  let u=sb.from(table).update(patch);
+  for(const [k,v] of filters)u=v===null?u.is(k,null):u.eq(k,v);
+  const {data,error}=await u.select();
+  if(error)throw error;
+  if(!data||!data.length)throw new Error('আপডেট হয়নি (permission/RLS চেক করুন)');
+  return data;
+}
+
 const ACT_RE=/ACTION:\s*(\{[\s\S]*?\})\s*$/;
 function splitAction(ans){
   const m=ans.match(ACT_RE);
   if(m){let a=null;try{a=JSON.parse(m[1])}catch(_){}return{text:ans.slice(0,m.index).trim(),action:a}}
-  const i=ans.indexOf('ACTION:');          // স্ট্রিমিং চলাকালীন অর্ধেক ACTION লুকাতে
+  const i=ans.indexOf('ACTION:');
   return{text:(i>=0?ans.slice(0,i):ans).trim(),action:null};
 }
 
-// AI-র প্রস্তাব আসল ডেটার সাথে মিলিয়ে নেয়। মিললে row ফেরত দেয়।
+// AI-র প্রস্তাব আসল ডেটার সাথে মিলিয়ে নেয়। সব ঠিক থাকলে {title,warn,apply,mem} ফেরত দেয়।
 function resolveAction(a){
-  if(!a||a.type!=='set_stock')return{error:'এই অ্যাকশন এখনো সাপোর্ট করে না'};
-  const pid=prodByName[String(a.product||'').trim().toLowerCase()];
-  if(!pid)return{error:'পণ্য খুঁজে পাইনি: '+(a.product||'?')};
-  const qty=Number(a.qty);
-  if(!Number.isInteger(qty)||qty<0||qty>100000)return{error:'সংখ্যাটা ঠিক না'};
-  const size=String(a.size||'').trim().toLowerCase();
-  let rows=stockRows.filter(r=>r.product_id===pid&&String(r.size||'').trim().toLowerCase()===size);
-  if(a.color)rows=rows.filter(r=>String(r.color||'').trim().toLowerCase()===String(a.color).trim().toLowerCase());
-  if(rows.length===0)return{error:'ওই সাইজ/রং-এর স্টক রো পাইনি'};
-  if(rows.length>1)return{error:'একাধিক রো মিলেছে, রংসহ বলুন'};
-  return{row:rows[0],qty,name:a.product};
+  if(!a||!a.type)return{error:'অ্যাকশনটা বোঝা যায়নি'};
+
+  if(a.type==='set_stock'){
+    const p=prodRow(a.product);
+    if(!p)return{error:'পণ্য খুঁজে পাইনি: '+(a.product||'?')};
+    const qty=Number(a.qty);
+    if(!Number.isInteger(qty)||qty<0||qty>100000)return{error:'সংখ্যাটা ঠিক না'};
+    let rows=stockRows.filter(r=>r.product_id===p.id&&same(r.size,a.size));
+    if(a.color)rows=rows.filter(r=>same(r.color,a.color));
+    if(rows.length===0)return{error:'ওই সাইজ/রং-এর স্টক রো পাইনি'};
+    if(rows.length>1)return{error:'একাধিক রো মিলেছে, রংসহ বলুন'};
+    const row=rows[0], label=esc(p.name)+' · '+esc(row.size)+(row.color?' · '+esc(row.color):'');
+    return{
+      title:'স্টক বদলাবো?<br><b>'+label+'</b><br>'+esc(row.qty)+' → <b>'+qty+'</b>',
+      apply:async()=>{
+        await upd('stock',{qty},[['product_id',row.product_id],['size',row.size],['color',row.color==null?null:row.color]]);
+        row.qty=qty;return 'স্টক: '+label+' → '+qty;
+      },
+      mem:p.name+' '+row.size+' এর স্টক এখন '+qty+'।'
+    };
+  }
+
+  if(a.type==='set_price'){
+    const p=prodRow(a.product);
+    if(!p)return{error:'পণ্য খুঁজে পাইনি: '+(a.product||'?')};
+    const pc=findCol(p,PRICE_COLS);
+    if(!pc)return{error:'দামের কলাম পাইনি (products টেবিলে price নামে কলাম লাগবে)'};
+    const np=Number(a.price), old=Number(p[pc]);
+    if(!(np>0)||np>10000000)return{error:'দামটা ঠিক না'};
+    if(old>0&&Math.abs(np-old)/old>0.5)return{error:'দাম ৫০%-এর বেশি বদলানো AI দিয়ে করা যায় না। Products পেজ থেকে করুন।'};
+    const cc=findCol(p,COST_COLS), cost=cc?Number(p[cc]):0;
+    const warn=(cost>0&&np<=cost)?'⚠️ নতুন দাম কেনা দামের ('+taka(cost)+') সমান বা কম, লস হবে!':'';
+    return{
+      title:'দাম বদলাবো?<br><b>'+esc(p.name)+'</b><br>'+taka(old)+' → <b>'+taka(np)+'</b><br><small>কলাম: '+esc(pc)+'</small>',
+      warn,
+      apply:async()=>{await upd('products',{[pc]:np},[['id',p.id]]);p[pc]=np;return 'দাম: '+esc(p.name)+' → '+taka(np)},
+      mem:p.name+' এর দাম এখন '+taka(np)+'।'
+    };
+  }
+
+  if(a.type==='set_status'){
+    const p=prodRow(a.product);
+    if(!p)return{error:'পণ্য খুঁজে পাইনি: '+(a.product||'?')};
+    const sc=findCol(p,STATUS_COLS);
+    if(!sc)return{error:'স্ট্যাটাসের কলাম পাইনি (status / is_active / active)'};
+    const want=String(a.status||'').toLowerCase();
+    if(want!=='active'&&want!=='inactive')return{error:'স্ট্যাটাস শুধু active বা inactive হতে পারে'};
+    const act=want==='active', cur=p[sc];
+    let val;
+    if(typeof cur==='boolean')val=act;
+    else if(typeof cur==='string'&&/^[A-Z]/.test(cur))val=act?'Active':'Inactive';
+    else val=act?'active':'inactive';
+    return{
+      title:'পণ্যের স্ট্যাটাস বদলাবো?<br><b>'+esc(p.name)+'</b><br>'+esc(cur)+' → <b>'+esc(val)+'</b><br><small>কলাম: '+esc(sc)+'</small>',
+      warn:act?'':'⚠️ Inactive করলে পণ্যটা ওয়েবসাইটে আর দেখা নাও যেতে পারে।',
+      apply:async()=>{await upd('products',{[sc]:val},[['id',p.id]]);p[sc]=val;return 'স্ট্যাটাস: '+esc(p.name)+' → '+esc(val)},
+      mem:p.name+' এখন '+val+'।'
+    };
+  }
+
+  if(a.type==='set_order_status'){
+    const od=orderRows.find(o=>same(o.order_no,a.order_no));
+    if(!od)return{error:'অর্ডার পাইনি: '+(a.order_no||'?')+' (শুধু গত ৬০ দিনের অর্ডার)'};
+    const to=String(a.status||'').toLowerCase(), from=String(od.status||'').toLowerCase();
+    if(to==='cancelled')return{error:'বাতিল করা AI দিয়ে হয় না। আগের মতো নিজে বাতিল করুন, যাতে স্টকের হিসাব ঠিক থাকে।'};
+    if(!(to in RANK)||to==='pending')return{error:'স্ট্যাটাস শুধু confirmed, shipped বা delivered হতে পারে'};
+    if(from==='delivered'||from==='cancelled')return{error:'ডেলিভারড বা বাতিল অর্ডার আর বদলানো যায় না'};
+    if(from===to)return{error:'অর্ডারটা আগে থেকেই '+to+' আছে'};
+    if(from in RANK&&RANK[to]<=RANK[from])return{error:'অর্ডার পেছনের ধাপে নেওয়া যায় না'};
+    return{
+      title:'অর্ডারের স্ট্যাটাস বদলাবো?<br><b>'+esc(od.order_no)+'</b> ('+taka(od.total||0)+')<br>'+esc(from)+' → <b>'+esc(to)+'</b>',
+      warn:to==='delivered'?'⚠️ Delivered করলে আর ফেরানো যাবে না।':'',
+      apply:async()=>{await upd('orders',{status:to},[['id',od.id]]);od.status=to;return 'অর্ডার '+esc(od.order_no)+' → '+esc(to)},
+      mem:'অর্ডার '+od.order_no+' এখন '+to+'।'
+    };
+  }
+
+  return{error:'এই অ্যাকশন এখনো সাপোর্ট করে না'};
 }
 
 function actionCard(parent,a){
   const r=resolveAction(a), card=document.createElement('div');card.className='aact';
   if(r.error){card.innerHTML='<div class="s err">⚠️ '+esc(r.error)+'</div>';parent.appendChild(card);return}
-  const label=esc(r.name)+' · '+esc(r.row.size)+(r.row.color?' · '+esc(r.row.color):'');
-  card.innerHTML='<div class="t">স্টক বদলাবো?<br><b>'+label+'</b><br>'+esc(r.row.qty)+' → <b>'+r.qty+'</b></div><div class="r"><button class="ok" type="button">✔ Confirm</button><button class="no" type="button">✖ Cancel</button></div>';
-  const ok=card.querySelector('.ok'), no=card.querySelector('.no'), row=card.querySelector('.r');
+  card.innerHTML='<div class="t">'+r.title+'</div>'+(r.warn?'<div class="w">'+r.warn+'</div>':'')+
+    '<div class="r"><button class="ok" type="button">✔ Confirm</button><button class="no" type="button">✖ Cancel</button></div>';
+  const ok=card.querySelector('.ok'), no=card.querySelector('.no');
   no.onclick=()=>{card.innerHTML='<div class="s">বাতিল করা হয়েছে।</div>'};
   ok.onclick=async()=>{
     ok.disabled=no.disabled=true;
     try{
-      let u=sb.from('stock').update({qty:r.qty}).eq('product_id',r.row.product_id).eq('size',r.row.size);
-      u=r.row.color==null?u.is('color',null):u.eq('color',r.row.color);
-      const {data,error}=await u.select();
-      if(error)throw error;
-      if(!data||!data.length)throw new Error('আপডেট হয়নি (permission/RLS চেক করুন)');
-      r.row.qty=r.qty;ctx=null;
-      card.innerHTML='<div class="s">✅ হয়ে গেছে: '+label+' → '+r.qty+'</div>';
-      history.push({role:'user',text:'(আমি কনফার্ম করেছি, স্টক আপডেট হয়েছে)'},{role:'model',text:'ঠিক আছে, '+r.name+' '+r.row.size+' এর স্টক এখন '+r.qty+'।'});
-      A.toast('স্টক আপডেট হয়েছে');
+      const msg=await r.apply();
+      ctx=null;
+      card.innerHTML='<div class="s">✅ হয়ে গেছে: '+msg+'</div>';
+      history.push({role:'user',text:'(আমি কনফার্ম করেছি, আপডেট হয়েছে)'},{role:'model',text:r.mem});
+      A.toast('আপডেট হয়েছে');
     }catch(err){
       card.innerHTML='<div class="s err">সমস্যা: '+esc(err.message||err)+'</div>';
     }
@@ -188,6 +273,7 @@ function actionCard(parent,a){
   $('msgs').scrollTop=$('msgs').scrollHeight;
 }
 
+/* ================= Ask ================= */
 async function ask(text){
   text=(text||'').trim();if(!text||busy)return;
   busy=true;$('send').disabled=true;$('q').value='';$('q').style.height='auto';
@@ -214,6 +300,24 @@ async function ask(text){
   busy=false;$('send').disabled=false;
 }
 
+/* ================= সকালের সামারি + কম স্টক ================= */
+async function showBrief(){
+  try{
+    const {data}=await sb.from('ai_briefs').select('day,body').order('day',{ascending:false}).limit(1);
+    if(data&&data[0])add('b','🌅 <b>সকালের সামারি ('+esc(data[0].day)+')</b>\n'+fmt(data[0].body),data[0].body);
+  }catch(_){}
+}
+async function showLow(){
+  try{
+    await buildCtx();
+    const low=stockRows.filter(r=>Number(r.qty)<=Number(r.low_at??3));
+    if(!low.length)return;
+    const d=add('b','⚠️ <b>'+low.length+' টি সাইজের স্টক কম</b>');
+    const b=document.createElement('button');b.className='aicp';b.textContent='🤖 রিস্টক সাজেশন নাও';
+    b.onclick=()=>ask('কম স্টকের সাইজগুলোর জন্য রিস্টক সাজেশন দাও');d.appendChild(b);
+  }catch(_){}
+}
+
 function setupMic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition, m=$('mic');
   if(!SR){m.style.display='none';return}
@@ -231,7 +335,7 @@ Admin.boot({key:'ai',title:'AI Assistant',perm:'reports',ready:async()=>{
   $('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask($('q').value)}});
   $('q').addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,110)+'px'});
   setupMic();
-  buildCtx().catch(()=>{});
+  showBrief().then(showLow);
   A.onRefresh=()=>{ctx=null;A.toast('ডেটা রিফ্রেশ হবে')};
 }});
 </script>
