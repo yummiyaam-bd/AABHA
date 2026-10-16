@@ -51,6 +51,7 @@ const NAV=[
  ['carts','Abandoned Carts','cart','carts.html','reports'],
  ['audit','Audit Log','doc','audit.html','admin'],
  ['ai','AI Assistant','chat','ai.html','reports'],
+ ['desc','Description','edit','desc.html','products'],
  ['staff','Staff','users','staff.html','admin']];
 
 A.boot=async function(o){
