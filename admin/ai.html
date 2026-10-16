@@ -49,7 +49,8 @@ let history=[], ctx=null, ctxAt=0, busy=false;
 
 const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const PII=/^(customer_name|phone|address|email|user_id|full_name|customer_phone|customer_address)$/i;
-const clean=r=>{const o={};for(const k in r){if(!PII.test(k))o[k]=r[k]}return o};
+const SKIP=/image|img|photo|picture|url|desc|html|gallery|thumb/i;
+const clean=r=>{const o={};for(const k in r){const v=r[k];if(PII.test(k)||SKIP.test(k)||v==null)continue;if(typeof v==='string'&&v.length>120)continue;if(typeof v==='object'&&JSON.stringify(v).length>200)continue;o[k]=v}return o};
 
 async function buildCtx(){
   if(ctx&&Date.now()-ctxAt<60000)return ctx;
@@ -115,19 +116,19 @@ async function ask(text){
   add('u',esc(text));
   const w=add('b','…');
   try{
-    const context=await buildCtx();
-    const {data,error}=await sb.functions.invoke('smooth-processor',{body:{question:text,history:history.slice(-8),context}});
-    if(error){
-      let m=error.message||'';
-      try{if(error.context&&error.context.text){const tx=await error.context.text();try{const jj=JSON.parse(tx);m=(jj.error||jj.message||tx)+' (code '+error.context.status+')'}catch(_){m=tx+' (code '+error.context.status+')'}}}catch(_){}
-      throw new Error(m);
-    }
-    if(data&&data.error)throw new Error(data.error);
-    const ans=(data&&data.answer)||'উত্তর পাওয়া যায়নি।';
-    w.remove();add('b',fmt(ans),ans);
+    const [context,ses]=await Promise.all([buildCtx(),sb.auth.getSession()]);
+    const tok=ses.data.session.access_token;
+    const url=(sb.supabaseUrl||'https://xjwuozdfuflfoqiuucik.supabase.co')+'/functions/v1/smooth-processor';
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok,'apikey':sb.supabaseKey||'sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm'},body:JSON.stringify({question:text,history:history.slice(-6),context})});
+    if(!res.ok){let m='';try{const tx=await res.text();try{const jj=JSON.parse(tx);m=jj.error||jj.message||tx}catch(_){m=tx}}catch(_){}throw new Error((m||'error')+' (code '+res.status+')')}
+    const rd=res.body.getReader(),dec=new TextDecoder();let ans='';
+    while(true){const r=await rd.read();if(r.done)break;ans+=dec.decode(r.value,{stream:true});w.innerHTML=fmt(ans);$('msgs').scrollTop=$('msgs').scrollHeight}
+    if(!ans.trim())throw new Error('খালি উত্তর এসেছে');
+    const cb=document.createElement('button');cb.className='aicp';cb.textContent='Copy';
+    cb.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(ans);A.toast('Copy হয়েছে')};w.appendChild(cb);
     history.push({role:'user',text:text},{role:'model',text:ans});
   }catch(err){
-    w.remove();add('b err','সমস্যা হয়েছে: '+esc(err.message||err)+'\n(কিছুক্ষণ পর আবার চেষ্টা করুন। ফ্রি লিমিট শেষ হলে এমন হতে পারে।)');
+    w.remove();add('b err','সমস্যা হয়েছে: '+esc(err.message||err));
   }
   busy=false;$('send').disabled=false;
 }
@@ -149,6 +150,7 @@ Admin.boot({key:'ai',title:'AI Assistant',perm:'reports',ready:async()=>{
   $('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask($('q').value)}});
   $('q').addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,110)+'px'});
   setupMic();
+  buildCtx().catch(()=>{});
   A.onRefresh=()=>{ctx=null;A.toast('ডেটা রিফ্রেশ হবে')};
 }});
 </script>
