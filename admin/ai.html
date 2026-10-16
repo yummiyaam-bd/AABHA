@@ -29,13 +29,21 @@
 .dots i{width:8px;height:8px;border-radius:50%;background:#e8b4a0;display:block;animation:dj 1.1s infinite ease-in-out}
 .dots i:nth-child(2){animation-delay:.18s}.dots i:nth-child(3){animation-delay:.36s}
 @keyframes dj{0%,70%,100%{transform:translateY(0);opacity:.45}35%{transform:translateY(-7px);opacity:1}}
+/* action confirm card */
+.aact{margin-top:10px;padding:12px;border-radius:14px;background:rgba(232,180,160,.1);border:1px solid rgba(232,180,160,.35)}
+.aact .t{font-size:13px;line-height:1.6;margin-bottom:10px}
+.aact .r{display:flex;gap:8px}
+.aact button{flex:1;border:0;border-radius:30px;padding:10px 14px;font:700 12px inherit;cursor:pointer;color:#fff;background:linear-gradient(135deg,#e8b4a0,#b8715a)}
+.aact button.no{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
+.aact button:disabled{opacity:.5}
+.aact .s{font-size:13px}
 </style>
 </head>
 <body>
 <div id="page">
   <section class="panel aichat">
     <div class="aimsgs" id="msgs">
-      <div class="aim b">আসসালামু আলাইকুম! আমি আপনার AABHA সহকারী। বিক্রি, স্টক, লাভ-ক্ষতি বা মেসেজ লেখা, যা খুশি জিজ্ঞেস করুন। আমি শুধু ডেটা পড়তে পারি, কিছু বদলাতে পারি না।</div>
+      <div class="aim b">আসসালামু আলাইকুম! আমি আপনার AABHA সহকারী। বিক্রি, স্টক, লাভ-ক্ষতি, রিস্টক, দাম সাজেশন বা মেসেজ লেখা, যা খুশি জিজ্ঞেস করুন। স্টক বদলাতে বললে আমি আগে আপনার কনফার্মেশন চাইব।</div>
     </div>
     <div class="aichips" id="chips"></div>
     <div class="aibar">
@@ -48,8 +56,21 @@
 
 <script>
 const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
-const CHIPS=['আজ কয়টা অর্ডার, কত টাকার বিক্রি?','গতকালের বিক্রি কত?','কোন অর্ডারগুলো Pending?','সবচেয়ে বেশি কোন প্রোডাক্ট বিক্রি হচ্ছে?','কোন সাইজ শেষ হয়ে আসছে?','কী কী আবার কেনা উচিত?','এই মাসে নিট লাভ কত?','আজকের জন্য কী করা উচিত?','দেরির জন্য ক্ষমা চাওয়া মেসেজ লিখে দাও','একটা ডিসকাউন্ট আইডিয়া দাও'];
+const CHIPS=[
+'আজ কয়টা অর্ডার, কত টাকার বিক্রি?',
+'আজকের ডেইলি সামারি দাও',
+'গতকালের বিক্রি কত?',
+'কোন অর্ডারগুলো Pending?',
+'বেস্টসেলার বিশ্লেষণ করো (টপ ৫)',
+'রিস্টক সাজেশন দাও: কোন পণ্য কত পিস আনব?',
+'কোন পণ্যের দাম কত করা উচিত?',
+'এই মাসে নিট লাভ কত?',
+'দেরির জন্য ক্ষমা চাওয়া মেসেজ লিখে দাও',
+'একটা ডিসকাউন্ট আইডিয়া দাও'
+];
+const MEM=10; // আগের কতটা মেসেজ AI-কে পাঠানো হবে
 let history=[], ctx=null, ctxAt=0, busy=false;
+let stockRows=[], prodByName={}; // অ্যাকশনের জন্য (AI-কে পাঠানো হয় না)
 
 const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const PII=/^(customer_name|phone|address|email|user_id|full_name|customer_phone|customer_address)$/i;
@@ -92,6 +113,8 @@ async function buildCtx(){
     if(age<=7)k.units_7d+=q;
   });
   const names={};(p.data||[]).forEach(x=>names[x.id]=x.name);
+  stockRows=s.data||[];
+  prodByName={};(p.data||[]).forEach(x=>{if(x.name)prodByName[String(x.name).trim().toLowerCase()]=x.id});
   ctx={
     today:dkey(now),
     note:'daily = last 45 days (local date). status_counts = last 60 days.',
@@ -99,7 +122,7 @@ async function buildCtx(){
     pending:orders.filter(x=>x.status==='pending').map(x=>({order_no:x.order_no,placed:x.created_at,total:x.total,flags:x.flags})),
     sold_by_product:sold,
     products:(p.data||[]).map(clean),
-    stock:(s.data||[]).map(x=>({product:names[x.product_id]||x.product_id,size:x.size,color:x.color,qty:x.qty,low_at:x.low_at})),
+    stock:stockRows.map(x=>({product:names[x.product_id]||x.product_id,size:x.size,color:x.color,qty:x.qty,low_at:x.low_at})),
     expenses:(e.data||[]).map(clean)
   };
   ctxAt=Date.now();
@@ -114,6 +137,57 @@ function add(cls,html,raw){
   $('msgs').appendChild(d);$('msgs').scrollTop=$('msgs').scrollHeight;return d;
 }
 
+/* ---------- Action + Confirm ---------- */
+const ACT_RE=/ACTION:\s*(\{[\s\S]*?\})\s*$/;
+function splitAction(ans){
+  const m=ans.match(ACT_RE);
+  if(m){let a=null;try{a=JSON.parse(m[1])}catch(_){}return{text:ans.slice(0,m.index).trim(),action:a}}
+  const i=ans.indexOf('ACTION:');          // স্ট্রিমিং চলাকালীন অর্ধেক ACTION লুকাতে
+  return{text:(i>=0?ans.slice(0,i):ans).trim(),action:null};
+}
+
+// AI-র প্রস্তাব আসল ডেটার সাথে মিলিয়ে নেয়। মিললে row ফেরত দেয়।
+function resolveAction(a){
+  if(!a||a.type!=='set_stock')return{error:'এই অ্যাকশন এখনো সাপোর্ট করে না'};
+  const pid=prodByName[String(a.product||'').trim().toLowerCase()];
+  if(!pid)return{error:'পণ্য খুঁজে পাইনি: '+(a.product||'?')};
+  const qty=Number(a.qty);
+  if(!Number.isInteger(qty)||qty<0||qty>100000)return{error:'সংখ্যাটা ঠিক না'};
+  const size=String(a.size||'').trim().toLowerCase();
+  let rows=stockRows.filter(r=>r.product_id===pid&&String(r.size||'').trim().toLowerCase()===size);
+  if(a.color)rows=rows.filter(r=>String(r.color||'').trim().toLowerCase()===String(a.color).trim().toLowerCase());
+  if(rows.length===0)return{error:'ওই সাইজ/রং-এর স্টক রো পাইনি'};
+  if(rows.length>1)return{error:'একাধিক রো মিলেছে, রংসহ বলুন'};
+  return{row:rows[0],qty,name:a.product};
+}
+
+function actionCard(parent,a){
+  const r=resolveAction(a), card=document.createElement('div');card.className='aact';
+  if(r.error){card.innerHTML='<div class="s err">⚠️ '+esc(r.error)+'</div>';parent.appendChild(card);return}
+  const label=esc(r.name)+' · '+esc(r.row.size)+(r.row.color?' · '+esc(r.row.color):'');
+  card.innerHTML='<div class="t">স্টক বদলাবো?<br><b>'+label+'</b><br>'+esc(r.row.qty)+' → <b>'+r.qty+'</b></div><div class="r"><button class="ok" type="button">✔ Confirm</button><button class="no" type="button">✖ Cancel</button></div>';
+  const ok=card.querySelector('.ok'), no=card.querySelector('.no'), row=card.querySelector('.r');
+  no.onclick=()=>{card.innerHTML='<div class="s">বাতিল করা হয়েছে।</div>'};
+  ok.onclick=async()=>{
+    ok.disabled=no.disabled=true;
+    try{
+      let u=sb.from('stock').update({qty:r.qty}).eq('product_id',r.row.product_id).eq('size',r.row.size);
+      u=r.row.color==null?u.is('color',null):u.eq('color',r.row.color);
+      const {data,error}=await u.select();
+      if(error)throw error;
+      if(!data||!data.length)throw new Error('আপডেট হয়নি (permission/RLS চেক করুন)');
+      r.row.qty=r.qty;ctx=null;
+      card.innerHTML='<div class="s">✅ হয়ে গেছে: '+label+' → '+r.qty+'</div>';
+      history.push({role:'user',text:'(আমি কনফার্ম করেছি, স্টক আপডেট হয়েছে)'},{role:'model',text:'ঠিক আছে, '+r.name+' '+r.row.size+' এর স্টক এখন '+r.qty+'।'});
+      A.toast('স্টক আপডেট হয়েছে');
+    }catch(err){
+      card.innerHTML='<div class="s err">সমস্যা: '+esc(err.message||err)+'</div>';
+    }
+  };
+  parent.appendChild(card);
+  $('msgs').scrollTop=$('msgs').scrollHeight;
+}
+
 async function ask(text){
   text=(text||'').trim();if(!text||busy)return;
   busy=true;$('send').disabled=true;$('q').value='';$('q').style.height='auto';
@@ -123,14 +197,17 @@ async function ask(text){
     const [context,ses]=await Promise.all([buildCtx(),sb.auth.getSession()]);
     const tok=ses.data.session.access_token;
     const url=(sb.supabaseUrl||'https://xjwuozdfuflfoqiuucik.supabase.co')+'/functions/v1/smooth-processor';
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok,'apikey':sb.supabaseKey||'sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm'},body:JSON.stringify({question:text,history:history.slice(-6),context})});
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok,'apikey':sb.supabaseKey||'sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm'},body:JSON.stringify({question:text,history:history.slice(-MEM),context})});
     if(!res.ok){let m='';try{const tx=await res.text();try{const jj=JSON.parse(tx);m=jj.error||jj.message||tx}catch(_){m=tx}}catch(_){}throw new Error((m||'error')+' (code '+res.status+')')}
     const rd=res.body.getReader(),dec=new TextDecoder();let ans='';
-    while(true){const r=await rd.read();if(r.done)break;ans+=dec.decode(r.value,{stream:true});w.innerHTML=fmt(ans);$('msgs').scrollTop=$('msgs').scrollHeight}
+    while(true){const r=await rd.read();if(r.done)break;ans+=dec.decode(r.value,{stream:true});w.innerHTML=fmt(splitAction(ans).text);$('msgs').scrollTop=$('msgs').scrollHeight}
     if(!ans.trim())throw new Error('খালি উত্তর এসেছে');
+    const sp=splitAction(ans);
+    w.innerHTML=fmt(sp.text||'ঠিক আছে।');
     const cb=document.createElement('button');cb.className='aicp';cb.textContent='Copy';
-    cb.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(ans);A.toast('Copy হয়েছে')};w.appendChild(cb);
-    history.push({role:'user',text:text},{role:'model',text:ans});
+    cb.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(sp.text);A.toast('Copy হয়েছে')};w.appendChild(cb);
+    if(sp.action)actionCard(w,sp.action);
+    history.push({role:'user',text:text},{role:'model',text:sp.text||ans});
   }catch(err){
     w.remove();add('b err','সমস্যা হয়েছে: '+esc(err.message||err));
   }
