@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Description</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.dg{padding:18px;display:flex;flex-direction:column;gap:12px}
+.dg label{font-size:12px;opacity:.7;margin-bottom:-6px}
+.dg input,.dg textarea,.dg select{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;color:inherit;padding:12px 14px;font:inherit;font-size:14px;outline:none}
+.dg select option{color:#111}
+.dg textarea{min-height:80px;resize:vertical}
+.dgb{border:0;border-radius:40px;padding:13px 22px;font:800 12px inherit;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;background:linear-gradient(135deg,#e8b4a0,#b8715a)}
+.dgb:disabled{opacity:.5}
+.dgb.g{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
+#pv{max-width:140px;max-height:140px;border-radius:12px;display:none;object-fit:cover}
+#out{white-space:pre-wrap;line-height:1.7;font-size:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px;display:none;word-break:break-word}
+.er{color:#ff9aa8}
+</style>
+</head>
+<body>
+<div id="page">
+  <section class="panel dg">
+    <label>পণ্যের নাম</label>
+    <input id="nm" placeholder="যেমন: Mint Brocade Panjabi">
+    <label>অতিরিক্ত তথ্য (ঐচ্ছিক): কাপড়, রং, কোন অনুষ্ঠানে</label>
+    <textarea id="dt" placeholder="যেমন: জ্যাকার্ড কাপড়, হাতের কাজ, ঈদ ও বিয়ের জন্য"></textarea>
+    <label>ছবি (ঐচ্ছিক)</label>
+    <input id="im" type="file" accept="image/*">
+    <img id="pv" alt="">
+    <label>ভাষা</label>
+    <select id="lg"><option value="bn">বাংলা</option><option value="en">English</option><option value="both">দুটোই</option></select>
+    <button class="dgb" id="go" type="button">বর্ণনা লিখে দাও</button>
+    <div id="out"></div>
+    <button class="dgb g" id="cp" type="button" style="display:none">Copy</button>
+  </section>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+let IMG=null, busy=false;
+
+function shrink(file){
+  return new Promise((ok,no)=>{
+    const u=URL.createObjectURL(file), im=new Image();
+    im.onload=()=>{
+      const m=900, k=Math.min(1,m/Math.max(im.width,im.height));
+      const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      const url=c.toDataURL('image/jpeg',0.8);
+      URL.revokeObjectURL(u);ok({mime:'image/jpeg',data:url.split(',')[1],url});
+    };
+    im.onerror=()=>no(new Error('ছবি পড়া যায়নি'));
+    im.src=u;
+  });
+}
+
+async function gen(){
+  if(busy)return;
+  const name=$('nm').value.trim();
+  if(!name&&!IMG){A.toast('নাম বা ছবি দিন');return}
+  busy=true;$('go').disabled=true;
+  const out=$('out');out.className='';out.style.display='block';out.textContent='…';$('cp').style.display='none';
+  const L={bn:'বাংলায় লেখো।',en:'Write in English.',both:'আগে বাংলায়, তারপর ইংরেজিতে লেখো।'}[$('lg').value];
+  const q='পণ্যের নাম: '+(name||'(ছবি দেখে বোঝো)')+'\nতথ্য: '+($('dt').value.trim()||'নেই')+'\n'+L;
+  try{
+    const ses=await sb.auth.getSession();
+    const url=(sb.supabaseUrl||'https://xjwuozdfuflfoqiuucik.supabase.co')+'/functions/v1/smooth-processor';
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ses.data.session.access_token,'apikey':sb.supabaseKey||'sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm'},
+      body:JSON.stringify({mode:'describe',question:q,image:IMG?{mime:IMG.mime,data:IMG.data}:null})});
+    if(!res.ok){let m='';try{const tx=await res.text();try{const j=JSON.parse(tx);m=j.error||j.message||tx}catch(_){m=tx}}catch(_){}throw new Error((m||'error')+' (code '+res.status+')')}
+    const rd=res.body.getReader(),dec=new TextDecoder();let ans='';
+    while(true){const r=await rd.read();if(r.done)break;ans+=dec.decode(r.value,{stream:true});out.textContent=ans}
+    if(!ans.trim())throw new Error('খালি উত্তর এসেছে');
+    $('cp').style.display='inline-block';
+  }catch(e){out.className='er';out.textContent='সমস্যা হয়েছে: '+(e.message||e)}
+  busy=false;$('go').disabled=false;
+}
+
+Admin.boot({key:'desc',title:'Description',perm:'products',ready:async()=>{
+  $('go').onclick=gen;
+  $('cp').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText($('out').textContent);A.toast('Copy হয়েছে')};
+  $('im').onchange=async e=>{
+    const f=e.target.files[0];IMG=null;$('pv').style.display='none';
+    if(!f)return;
+    try{IMG=await shrink(f);$('pv').src=IMG.url;$('pv').style.display='block'}catch(err){A.toast(err.message)}
+  };
+}});
+</script>
+</body>
+</html>
