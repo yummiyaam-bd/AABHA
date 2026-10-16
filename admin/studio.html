@@ -11,9 +11,10 @@
 <style>
 .dg{padding:18px;display:flex;flex-direction:column;gap:12px}
 .dg label{font-size:12px;opacity:.7;margin-bottom:-6px}
-.dg input,.dg textarea,.dg select{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;color:inherit;padding:12px 14px;font:inherit;font-size:14px;outline:none}
+.dg input[type=text],.dg input:not([type]),.dg input[type=file],.dg input[type=number],.dg select{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;color:inherit;padding:12px 14px;font:inherit;font-size:14px;outline:none}
+.dg input[type=range]{width:100%;accent-color:#e8b4a0}
+.dg input[type=color]{width:100%;height:46px;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:none;padding:4px}
 .dg select option{color:#111}
-.dg textarea{min-height:64px;resize:vertical}
 .dgb{border:0;border-radius:40px;padding:13px 22px;font:800 12px inherit;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;background:linear-gradient(135deg,#e8b4a0,#b8715a)}
 .dgb:disabled{opacity:.5}
 .dgb.g{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
@@ -25,7 +26,7 @@
 #cv{width:100%;border-radius:14px;display:none;background:#111}
 .note{font-size:12px;line-height:1.6;opacity:.75;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
 .er{color:#ff9aa8;font-size:13px;line-height:1.6}
-.dots{display:inline-flex;gap:5px;align-items:center;height:20px;padding:0 4px}
+.dots{display:inline-flex;gap:5px;align-items:center;height:20px;padding:0 4px;vertical-align:middle}
 .dots i{width:8px;height:8px;border-radius:50%;background:#e8b4a0;display:block;animation:dj 1.1s infinite ease-in-out}
 .dots i:nth-child(2){animation-delay:.18s}.dots i:nth-child(3){animation-delay:.36s}
 @keyframes dj{0%,70%,100%{transform:translateY(0);opacity:.45}35%{transform:translateY(-7px);opacity:1}}
@@ -34,140 +35,218 @@
 <body>
 <div id="page">
   <section class="panel dg">
-    <label>১. জামার ছবি</label>
+    <label>১. জামার ছবি (মডেলসহ)</label>
     <input id="im" type="file" accept="image/*">
+    <div id="msg"></div>
 
-    <label>২. কেমন ব্যাকগ্রাউন্ড চান?</label>
+    <label>২. নতুন ব্যাকগ্রাউন্ড বাছুন</label>
     <div class="chips" id="pre"></div>
-    <textarea id="cu" placeholder="অথবা নিজে লিখুন (ইংরেজিতে ভালো কাজ করে), যেমন: soft pink wall with sunlight from a window"></textarea>
+    <input id="bc" type="color" value="#e8d9c8" style="display:none">
+    <input id="bi" type="file" accept="image/*" style="display:none">
+
+    <label>মডেলের সাইজ</label>
+    <input id="sc" type="range" min="60" max="140" value="100">
+    <label>ওপর-নিচ</label>
+    <input id="oy" type="range" min="-25" max="25" value="0">
 
     <label>৩. ছবির উপর লেখা (ঐচ্ছিক)</label>
-    <input id="tn" placeholder="পণ্যের নাম, যেমন: Mint Brocade Panjabi">
+    <input id="tn" type="text" placeholder="পণ্যের নাম, যেমন: Mint Brocade Panjabi">
     <div class="row">
-      <input id="tp" placeholder="দাম, যেমন: 3250" inputmode="numeric">
-      <input id="tt" placeholder="ট্যাগ, যেমন: NEW / -17%">
+      <input id="tp" type="text" placeholder="দাম, যেমন: 3250" inputmode="numeric">
+      <input id="tt" type="text" placeholder="ট্যাগ, যেমন: NEW / -17%">
     </div>
     <label>ছবির মাপ</label>
     <select id="rt"><option value="4:5">৪:৫ (Instagram/Facebook পোস্ট)</option><option value="1:1">১:১ (চৌকো)</option><option value="orig">আসল মাপ</option></select>
-
-    <button class="dgb" id="go" type="button">ব্যাকগ্রাউন্ড বদলাও</button>
-    <div id="msg"></div>
 
     <canvas id="cv"></canvas>
     <div class="row" id="act" style="display:none">
       <button class="dgb g" id="tg" type="button">আসল ছবি দেখুন</button>
       <button class="dgb" id="dl" type="button">Download</button>
     </div>
-    <div class="note">⚠️ AI ছবি বানানোর পর জামার <b>রং, নকশা ও বর্ডার</b> আসল ছবির সাথে মিলিয়ে দেখুন। কাস্টমার যেন ছবি দেখে যা কেনে, হাতে তাই পায়। না মিললে আবার চেষ্টা করুন।</div>
+    <div class="note">ℹ️ এটা ফ্রি টুল, ফোনের ভেতরেই চলে। প্রথমবার ৪০-৫০ MB ডাউনলোড হয়, ১-২ মিনিট লাগতে পারে। পরেরবার দ্রুত হবে। জামার চুল বা ফিতার কিনারা ঠিক আছে কিনা বড় করে দেখে নিন।</div>
   </section>
 </div>
 
 <script>
-const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
-const PRESETS=[
- ['☀️ জানালার আলো','a soft warm beige studio wall with a diagonal window-light shadow falling across it, clean minimal editorial fashion look'],
- ['🤍 সাদা স্টুডিও','a clean seamless white studio backdrop with soft even light'],
- ['🌿 বাগান','a softly blurred green garden in gentle daylight'],
- ['🏛️ ক্লাসিক প্রাসাদ','an elegant classic palace interior, softly blurred, warm light'],
- ['🌙 ডার্ক লাক্স','a dark luxury plum-brown studio backdrop with a gentle spotlight'],
- ['✨ ঈদ/উৎসব','a festive warm golden bokeh background with soft lights']
+const A=Admin, $=A.$, esc=A.esc;
+
+const BGS=[
+ ['☀️ জানালার আলো','window'],['🤍 সাদা','white'],['🩶 স্টুডিও গ্রে','grey'],
+ ['🌸 গোলাপি দেয়াল','pink'],['🌿 সবুজ বাগান','green'],['🌙 ডার্ক লাক্স','dark'],
+ ['✨ ঈদ/উৎসব','gold'],['🎨 নিজের রং','color'],['🖼️ নিজের ছবি','image']
 ];
-let ORIG=null, AI=null, busy=false, showOrig=false, STYLE=PRESETS[0][1];
+let ORIG=null, CUT=null, BGIMG=null, BG='window', busy=false, showOrig=false;
 
 const loadImg=u=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('ছবি পড়া যায়নি'));i.src=u});
+const toBlob=(c,t,q)=>new Promise(r=>c.toBlob(r,t,q));
+function setMsg(h,cls){$('msg').className=cls||'';$('msg').innerHTML=h}
+const dotsH='<span class="dots"><i></i><i></i><i></i></span> ';
 
+/* ---------- ছবি ছোট করা ---------- */
 async function shrink(file){
   const u=URL.createObjectURL(file), im=await loadImg(u);
-  const m=1024, k=Math.min(1,m/Math.max(im.width,im.height));
+  const m=1280, k=Math.min(1,m/Math.max(im.width,im.height));
   const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
   c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-  const url=c.toDataURL('image/jpeg',0.88);
+  const blob=await toBlob(c,'image/jpeg',0.92);
   URL.revokeObjectURL(u);
-  return{img:await loadImg(url),mime:'image/jpeg',data:url.split(',')[1]};
+  return{img:await loadImg(URL.createObjectURL(blob)),blob};
 }
 
+/* ---------- ব্যাকগ্রাউন্ড কাটার টুল (ফ্রি, ব্রাউজারেই চলে) ---------- */
+const LIBS=[
+ 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.8/+esm',
+ 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm',
+ 'https://esm.sh/@imgly/background-removal@1.5.8'
+];
+let RB=null;
+async function loadLib(){
+  if(RB)return RB;
+  let last;
+  for(const u of LIBS){
+    try{const m=await import(u);const f=m.removeBackground||m.default;if(typeof f==='function'){RB=f;return f}}
+    catch(e){last=e}
+  }
+  throw new Error('কাটার টুল লোড হয়নি, ইন্টারনেট চেক করে আবার চেষ্টা করুন ('+((last&&last.message)||'')+')');
+}
+
+async function cut(){
+  if(busy||!ORIG)return;
+  busy=true;CUT=null;
+  setMsg(dotsH+'কাটার টুল লোড হচ্ছে... (প্রথমবার ১-২ মিনিট লাগতে পারে)');
+  try{
+    const rb=await loadLib();
+    const progress=(k,c,t)=>{if(t>0)setMsg(dotsH+(String(k).startsWith('fetch')?'টুল ডাউনলোড হচ্ছে ':'ছবি কাটা হচ্ছে ')+Math.round(c/t*100)+'%')};
+    let blob;
+    try{blob=await rb(ORIG.blob,{model:'isnet_quint8',output:{format:'image/png'},progress})}
+    catch(e){blob=await rb(ORIG.blob,{output:{format:'image/png'},progress})}
+    CUT=await loadImg(URL.createObjectURL(blob));
+    setMsg('✅ মডেল আলাদা হয়েছে। এখন ব্যাকগ্রাউন্ড বাছুন।');
+    render();
+  }catch(e){setMsg('সমস্যা হয়েছে: '+esc(e.message||e),'er')}
+  busy=false;
+}
+
+/* ---------- ব্যাকগ্রাউন্ড আঁকা ---------- */
+const hasF=g=>'filter' in g;
+function withBlur(g,px,fn){if(hasF(g)){g.save();g.filter='blur('+px+'px)';fn();g.restore()}else fn()}
+function poly(g,pts){g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();g.fill()}
+function bokeh(g,W,H,rgb,n,seed){
+  let s=seed;const r=()=>(s=(s*16807)%2147483647)/2147483647;
+  withBlur(g,W*.006,()=>{for(let i=0;i<n;i++){
+    const x=r()*W,y=r()*H,rad=(.02+r()*.06)*W;
+    g.fillStyle='rgba('+rgb+','+(.12+r()*.25).toFixed(2)+')';g.beginPath();g.arc(x,y,rad,0,7);g.fill()}});
+}
+function wall(g,W,H,c1,c2,shade){
+  const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,c1);gr.addColorStop(1,c2);
+  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  const gl=g.createRadialGradient(W*.2,H*.22,0,W*.2,H*.22,W*.8);
+  gl.addColorStop(0,'rgba(255,250,240,.55)');gl.addColorStop(1,'rgba(255,250,240,0)');
+  g.fillStyle=gl;g.fillRect(0,0,W,H);
+  // জানালার তির্যক ছায়া
+  g.fillStyle=shade;
+  withBlur(g,W*.015,()=>poly(g,[[W*.46,-20],[W+20,-20],[W+20,H+20],[W*.08,H+20]]));
+}
+function drawBg(g,W,H){
+  if(BG==='window')wall(g,W,H,'#f1e6d9','#d9c5b0','rgba(120,90,68,.30)');
+  else if(BG==='pink')wall(g,W,H,'#f0d6d2','#d4a8a8','rgba(120,70,80,.28)');
+  else if(BG==='white'){const r=g.createRadialGradient(W/2,H*.4,0,W/2,H*.4,Math.max(W,H)*.8);r.addColorStop(0,'#ffffff');r.addColorStop(1,'#e6e2de');g.fillStyle=r;g.fillRect(0,0,W,H)}
+  else if(BG==='grey'){const r=g.createRadialGradient(W/2,H*.35,0,W/2,H*.35,Math.max(W,H)*.85);r.addColorStop(0,'#dcdcdf');r.addColorStop(1,'#8c8c93');g.fillStyle=r;g.fillRect(0,0,W,H)}
+  else if(BG==='dark'){const r=g.createRadialGradient(W/2,H*.35,0,W/2,H*.35,Math.max(W,H)*.9);r.addColorStop(0,'#4a2e3f');r.addColorStop(1,'#0d0b11');g.fillStyle=r;g.fillRect(0,0,W,H)}
+  else if(BG==='green'){const l=g.createLinearGradient(0,0,0,H);l.addColorStop(0,'#d5e6c6');l.addColorStop(1,'#5f8c55');g.fillStyle=l;g.fillRect(0,0,W,H);bokeh(g,W,H,'255,255,235',16,7)}
+  else if(BG==='gold'){const r=g.createRadialGradient(W/2,H*.4,0,W/2,H*.4,Math.max(W,H)*.9);r.addColorStop(0,'#4a3320');r.addColorStop(1,'#0d0b11');g.fillStyle=r;g.fillRect(0,0,W,H);bokeh(g,W,H,'255,205,120',26,11)}
+  else if(BG==='color'){const c=$('bc').value;g.fillStyle=c;g.fillRect(0,0,W,H);const r=g.createRadialGradient(W*.3,H*.25,0,W*.3,H*.25,W);r.addColorStop(0,'rgba(255,255,255,.28)');r.addColorStop(1,'rgba(0,0,0,.12)');g.fillStyle=r;g.fillRect(0,0,W,H)}
+  else if(BG==='image'&&BGIMG){const k=Math.max(W/BGIMG.width,H/BGIMG.height),dw=BGIMG.width*k,dh=BGIMG.height*k;g.drawImage(BGIMG,(W-dw)/2,(H-dh)/2,dw,dh)}
+  else{g.fillStyle='#e8d9c8';g.fillRect(0,0,W,H)}
+}
+
+/* ---------- পুরো ছবি তৈরি ---------- */
 function render(){
-  const src=showOrig?ORIG:(AI||ORIG);
-  if(!src)return;
-  const W=1080, iw=src.img.width, ih=src.img.height, r=$('rt').value;
+  if(!ORIG)return;
+  const W=1080, src=ORIG.img, r=$('rt').value;
   let H;
-  if(r==='orig')H=Math.round(W*ih/iw);
+  if(r==='orig')H=Math.round(W*src.height/src.width);
   else{const [a,b]=r.split(':').map(Number);H=Math.round(W*b/a)}
   const c=$('cv');c.width=W;c.height=H;c.style.display='block';
   const g=c.getContext('2d');
-  const k=Math.max(W/iw,H/ih), dw=iw*k, dh=ih*k;
-  g.drawImage(src.img,(W-dw)/2,(H-dh)/2,dw,dh);
+  const scl=Number($('sc').value)/100, oy=Number($('oy').value)/100*H;
 
+  const useCut=!!CUT&&!showOrig;
+  if(!useCut){
+    // আসল ছবি (বা কাটা শেষ হয়নি)
+    g.fillStyle='#111';g.fillRect(0,0,W,H);
+    const k=Math.min(W/src.width,H/src.height),dw=src.width*k,dh=src.height*k;
+    g.drawImage(src,(W-dw)/2,(H-dh)/2,dw,dh);
+  }else{
+    drawBg(g,W,H);
+    const k=Math.min(W/CUT.width,H/CUT.height)*scl, dw=CUT.width*k, dh=CUT.height*k;
+    const dx=(W-dw)/2, dy=H-dh+oy;
+    // নরম ছায়া
+    const sh=document.createElement('canvas');sh.width=W;sh.height=H;
+    const sg=sh.getContext('2d');
+    sg.drawImage(CUT,dx,dy,dw,dh);
+    sg.globalCompositeOperation='source-in';sg.fillStyle='rgba(40,25,20,1)';sg.fillRect(0,0,W,H);
+    g.save();if(hasF(g))g.filter='blur('+(W*.018)+'px)';g.globalAlpha=.4;g.drawImage(sh,W*.045,H*.008);g.restore();
+    g.drawImage(CUT,dx,dy,dw,dh);
+  }
+
+  // লেখা
   const name=$('tn').value.trim(), tag=$('tt').value.trim();
   const pn=Number(($('tp').value||'').replace(/[^\d.]/g,'')), price=pn>0?'৳'+pn.toLocaleString('en-US'):'';
   const SERIF='"Playfair Display",Georgia,"Noto Serif Bengali",serif';
-
   if(name||price){
-    const gh=H*0.28, gr=g.createLinearGradient(0,H-gh,0,H);
+    const gh=H*.28, gr=g.createLinearGradient(0,H-gh,0,H);
     gr.addColorStop(0,'rgba(10,6,12,0)');gr.addColorStop(1,'rgba(10,6,12,.85)');
     g.fillStyle=gr;g.fillRect(0,H-gh,W,gh);
     let y=H-60;
     if(price){g.font='700 54px '+SERIF;g.fillStyle='#e8b4a0';g.textAlign='left';g.fillText(price,60,y);y-=74}
-    if(name){
-      let fs=62;g.font='600 '+fs+'px '+SERIF;
+    if(name){let fs=62;g.font='600 '+fs+'px '+SERIF;
       while(g.measureText(name).width>W-120&&fs>26){fs-=2;g.font='600 '+fs+'px '+SERIF}
-      g.fillStyle='#fff';g.textAlign='left';g.fillText(name,60,y);
-    }
+      g.fillStyle='#fff';g.textAlign='left';g.fillText(name,60,y)}
   }
   if(tag){
-    g.font='700 30px sans-serif';
-    const tw=g.measureText(tag).width+44;
-    g.fillStyle='#b8715a';
-    g.beginPath();g.roundRect?g.roundRect(48,48,tw,56,28):g.rect(48,48,tw,56);g.fill();
+    g.font='700 30px sans-serif';const tw=g.measureText(tag).width+44;
+    g.fillStyle='#b8715a';g.beginPath();g.roundRect?g.roundRect(48,48,tw,56,28):g.rect(48,48,tw,56);g.fill();
     g.fillStyle='#fff';g.textAlign='left';g.fillText(tag,70,87);
   }
-  // ব্র্যান্ড নাম
-  g.save();g.font='600 34px '+SERIF;g.fillStyle='rgba(255,255,255,.9)';g.textAlign='right';
+  g.save();g.font='600 34px '+SERIF;g.fillStyle='rgba(255,255,255,.92)';g.textAlign='right';
   if('letterSpacing' in g)g.letterSpacing='8px';
-  g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=8;
-  g.fillText('AABHA',W-48,86);g.restore();
-  $('act').style.display=AI?'flex':'none';
-  $('tg').textContent=showOrig?'AI ছবি দেখুন':'আসল ছবি দেখুন';
-}
+  g.shadowColor='rgba(0,0,0,.5)';g.shadowBlur=8;g.fillText('AABHA',W-48,86);g.restore();
 
-function setMsg(h,cls){$('msg').className=cls||'';$('msg').innerHTML=h}
-
-async function gen(){
-  if(busy)return;
-  if(!ORIG){A.toast('আগে জামার ছবি দিন');return}
-  const style=($('cu').value.trim())||STYLE;
-  busy=true;$('go').disabled=true;showOrig=false;
-  setMsg('<span class="dots"><i></i><i></i><i></i></span> ছবি বানানো হচ্ছে, ২০-৪০ সেকেন্ড লাগতে পারে...');
-  try{
-    const ses=await sb.auth.getSession();
-    const url=(sb.supabaseUrl||'https://xjwuozdfuflfoqiuucik.supabase.co')+'/functions/v1/super-service';
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ses.data.session.access_token,'apikey':sb.supabaseKey||'sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm'},
-      body:JSON.stringify({image:{mime:ORIG.mime,data:ORIG.data},style})});
-    const tx=await res.text();let j={};try{j=JSON.parse(tx)}catch(_){}
-    if(!res.ok||!j.image)throw new Error((j.error||j.message||tx||'error')+' (code '+res.status+')');
-    AI={img:await loadImg('data:'+(j.mime||'image/png')+';base64,'+j.image)};
-    setMsg('');render();
-  }catch(e){setMsg('সমস্যা হয়েছে: '+esc(e.message||e),'er')}
-  busy=false;$('go').disabled=false;
+  $('act').style.display=CUT?'flex':'none';
+  $('tg').textContent=showOrig?'নতুন ছবি দেখুন':'আসল ছবি দেখুন';
 }
 
 Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
-  $('pre').innerHTML=PRESETS.map((p,i)=>`<button type="button" data-i="${i}" class="${i?'':'on'}">${esc(p[0])}</button>`).join('');
-  $('pre').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  $('pre').innerHTML=BGS.map((b,i)=>`<button type="button" data-k="${b[1]}" class="${i?'':'on'}">${esc(b[0])}</button>`).join('');
+  $('pre').onclick=e=>{
+    const b=e.target.closest('button');if(!b)return;
     [...$('pre').children].forEach(x=>x.classList.remove('on'));b.classList.add('on');
-    STYLE=PRESETS[b.dataset.i][1];$('cu').value=''};
+    BG=b.dataset.k;
+    $('bc').style.display=BG==='color'?'block':'none';
+    $('bi').style.display=BG==='image'?'block':'none';
+    render();
+  };
+  $('bc').oninput=render;
+  $('bi').onchange=async e=>{
+    const f=e.target.files[0];if(!f)return;
+    try{BGIMG=await loadImg(URL.createObjectURL(f));render()}catch(err){A.toast(err.message)}
+  };
   $('im').onchange=async e=>{
-    const f=e.target.files[0];AI=null;showOrig=false;
+    const f=e.target.files[0];CUT=null;showOrig=false;
     if(!f)return;
-    try{ORIG=await shrink(f);setMsg('');render()}catch(err){A.toast(err.message)}
+    try{ORIG=await shrink(f);render();cut()}catch(err){setMsg(esc(err.message),'er')}
   };
   ['tn','tp','tt'].forEach(id=>$(id).addEventListener('input',render));
+  ['sc','oy'].forEach(id=>$(id).addEventListener('input',render));
   $('rt').onchange=render;
-  $('go').onclick=gen;
   $('tg').onclick=()=>{showOrig=!showOrig;render()};
-  $('dl').onclick=()=>{
-    showOrig=false;render();
-    $('cv').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aabha-'+Date.now()+'.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)},'image/jpeg',0.92);
+  $('dl').onclick=async()=>{
+    const was=showOrig;showOrig=false;render();
+    const b=await toBlob($('cv'),'image/jpeg',0.92);
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aabha-'+Date.now()+'.jpg';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    showOrig=was;
   };
 }});
 </script>
