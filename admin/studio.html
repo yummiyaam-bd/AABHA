@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#0d0b11">
 <title>AABHA | Photo Studio</title>
 <link rel="stylesheet" href="admin.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Hind+Siliguri:wght@500;700&family=Noto+Serif+Bengali:wght@600;700&family=Playfair+Display:wght@600;700&family=Poppins:wght@500;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>
 <style>
@@ -14,7 +17,10 @@
 .dg input[type=text],.dg input:not([type]),.dg input[type=file],.dg input[type=number],.dg select{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;color:inherit;padding:12px 14px;font:inherit;font-size:14px;outline:none}
 .dg input[type=range]{width:100%;accent-color:#e8b4a0}
 .dg input[type=color]{width:100%;height:46px;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:none;padding:4px}
+.dg input[type=color].m{height:36px}
+.dg input[type=checkbox]{width:auto}
 .dg select option{color:#111}
+.dg label.ck{display:flex;gap:8px;align-items:center;opacity:1;font-size:13px;margin-bottom:0}
 .dgb{border:0;border-radius:40px;padding:13px 22px;font:800 12px inherit;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;background:linear-gradient(135deg,#e8b4a0,#b8715a)}
 .dgb:disabled{opacity:.5}
 .dgb.g{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
@@ -23,10 +29,17 @@
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips button{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:inherit;border-radius:20px;padding:8px 13px;font-size:12.5px;cursor:pointer;font-family:inherit}
 .chips button.on{background:linear-gradient(135deg,#e8b4a0,#b8715a);border-color:transparent;color:#fff}
-#cv{width:100%;border-radius:14px;display:none;background:#111}
+#cvw{position:sticky;top:0;z-index:5;background:#0d0b11;padding:6px 0;text-align:center}
+#cv{max-height:46vh;max-width:100%;width:auto;border-radius:14px;display:none;margin:0 auto;background:#111}
 .sw{display:flex;flex-wrap:wrap;gap:10px}
 .sw button{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.25);cursor:pointer;padding:0}
+.sw.s{gap:8px}.sw.s button{width:30px;height:30px}
 .sw button.on{border-color:#fff;box-shadow:0 0 0 2px #b8715a}
+.dg details{border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.03);padding:0 14px}
+.dg details[open]{padding-bottom:14px}
+.dg summary{cursor:pointer;padding:14px 0;font-weight:700;font-size:14px;list-style:none}
+.dg summary::-webkit-details-marker{display:none}
+.in{display:flex;flex-direction:column;gap:12px}
 .note{font-size:12px;line-height:1.6;opacity:.75;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
 .er{color:#ff9aa8;font-size:13px;line-height:1.6}
 .dots{display:inline-flex;gap:5px;align-items:center;height:20px;padding:0 4px;vertical-align:middle}
@@ -41,38 +54,113 @@
     <label>১. জামার ছবি (মডেলসহ)</label>
     <input id="im" type="file" accept="image/*">
     <div id="msg"></div>
-    <label>কাটার মান</label>
-    <select id="ql"><option value="isnet_fp16">ভালো মান (ধীর, ~৮৫ MB)</option><option value="isnet_quint8">দ্রুত (কম মান)</option></select>
-    <label>কিনারা পরিষ্কার (কম-বেশি করে দেখুন)</label>
-    <input id="ed" type="range" min="0" max="100" value="60">
-    <label style="display:flex;gap:8px;align-items:center;opacity:1"><input id="hf" type="checkbox" checked style="width:auto"> জামার ভেতরের ফাঁকা অংশ ভরাট করুন</label>
-    <button class="dgb g" id="rc" type="button">আবার কাটুন</button>
 
-    <label>২. নতুন ব্যাকগ্রাউন্ড বাছুন</label>
-    <div class="chips" id="pre"></div>
-    <div class="sw" id="sw" style="display:none"></div>
-    <input id="bc" type="color" value="#e8d9c8" style="display:none">
-    <input id="bi" type="file" accept="image/*" style="display:none">
-
-    <label>মডেলের সাইজ</label>
-    <input id="sc" type="range" min="60" max="140" value="100">
-    <label>ওপর-নিচ</label>
-    <input id="oy" type="range" min="-25" max="25" value="0">
-
-    <label>৩. ছবির উপর লেখা (ঐচ্ছিক)</label>
-    <input id="tn" type="text" placeholder="পণ্যের নাম, যেমন: Mint Brocade Panjabi">
-    <div class="row">
-      <input id="tp" type="text" placeholder="দাম, যেমন: 3250" inputmode="numeric">
-      <input id="tt" type="text" placeholder="ট্যাগ, যেমন: NEW / -17%">
-    </div>
-    <label>ছবির মাপ</label>
-    <select id="rt"><option value="4:5">৪:৫ (Instagram/Facebook পোস্ট)</option><option value="1:1">১:১ (চৌকো)</option><option value="orig">আসল মাপ</option></select>
-
-    <canvas id="cv"></canvas>
+    <div id="cvw"><canvas id="cv"></canvas></div>
     <div class="row" id="act" style="display:none">
       <button class="dgb g" id="tg" type="button">আসল ছবি দেখুন</button>
       <button class="dgb" id="dl" type="button">Download</button>
     </div>
+    <label>ছবির মাপ</label>
+    <select id="rt"><option value="4:5">৪:৫ (Instagram/Facebook পোস্ট)</option><option value="1:1">১:১ (চৌকো)</option><option value="orig">আসল মাপ</option></select>
+
+    <details open><summary>🖼️ ব্যাকগ্রাউন্ড</summary><div class="in">
+      <div class="chips" id="pre"></div>
+      <div class="sw" id="sw" style="display:none"></div>
+      <input id="bc" type="color" value="#e8d9c8" style="display:none">
+      <input id="bi" type="file" accept="image/*" style="display:none">
+    </div></details>
+
+    <details><summary>👤 মডেল: সাইজ ও জায়গা</summary><div class="in">
+      <label>সাইজ</label>
+      <input id="sc" type="range" min="60" max="140" value="100">
+      <label>ওপর-নিচ</label>
+      <input id="oy" type="range" min="-25" max="25" value="0">
+      <label>বাম-ডান</label>
+      <input id="ox" type="range" min="-50" max="50" value="0">
+      <div class="row">
+        <button class="dgb g" type="button" data-ox="-25">⬅ বামে</button>
+        <button class="dgb g" type="button" data-ox="0">মাঝে</button>
+        <button class="dgb g" type="button" data-ox="25">ডানে ➡</button>
+      </div>
+      <label class="ck"><input id="flip" type="checkbox"> মডেল উল্টে দিন (আয়না)</label>
+    </div></details>
+
+    <details><summary>✍️ লেখা</summary><div class="in">
+      <input id="tn" type="text" placeholder="পণ্যের নাম, যেমন: Mint Brocade Panjabi">
+      <input id="ts" type="text" placeholder="ছোট লাইন, যেমন: Eid Collection 2026">
+      <div class="row">
+        <input id="tp" type="text" placeholder="দাম: 3250" inputmode="numeric">
+        <input id="to" type="text" placeholder="পুরনো দাম: 3900" inputmode="numeric">
+      </div>
+      <input id="tc" type="text" placeholder="নিচের লাইন, যেমন: অর্ডার: 01XXXXXXXXX">
+      <label>ফন্ট</label>
+      <select id="fn">
+        <option value="playfair">Playfair (রাজকীয়)</option>
+        <option value="cormorant">Cormorant (লাক্সারি, চিকন)</option>
+        <option value="poppins">Poppins (মডার্ন)</option>
+        <option value="hind">Hind Siliguri (বাংলা)</option>
+        <option value="notoserif">Noto Serif (বাংলা সেরিফ)</option>
+      </select>
+      <label>লেখার সাইজ</label>
+      <input id="tz" type="range" min="60" max="160" value="100">
+    </div></details>
+
+    <details><summary>🎨 লেখার স্টাইল</summary><div class="in">
+      <label>নাম ও ছোট লাইনের রং</label>
+      <div class="sw s" id="swn"></div>
+      <input id="cn" class="m" type="color" value="#ffffff">
+      <label>দামের রং</label>
+      <div class="sw s" id="swp"></div>
+      <input id="cp" class="m" type="color" value="#e8b4a0">
+      <div class="row">
+        <div><label>জায়গা</label>
+          <select id="tpos"><option value="bottom">নিচে</option><option value="center">মাঝখানে</option><option value="top">ওপরে</option></select></div>
+        <div><label>সাজানো</label>
+          <select id="tal"><option value="left">বামে</option><option value="center">মাঝে</option><option value="right">ডানে</option></select></div>
+      </div>
+      <label>লেখার পেছনে</label>
+      <select id="bs">
+        <option value="grad">ছায়া (গ্রেডিয়েন্ট)</option>
+        <option value="bar">কালো পটি</option>
+        <option value="card">কালো কার্ড (গ্লাস)</option>
+        <option value="cardL">সাদা কার্ড</option>
+        <option value="none">কিছু না</option>
+      </select>
+      <label>পেছনের গাঢ়ত্ব</label>
+      <input id="bo" type="range" min="0" max="100" value="80">
+      <label class="ck"><input id="tsh" type="checkbox" checked> লেখায় নরম ছায়া</label>
+    </div></details>
+
+    <details><summary>🏷️ ট্যাগ, ব্র্যান্ড ও ফ্রেম</summary><div class="in">
+      <input id="tt" type="text" placeholder="ট্যাগ, যেমন: NEW / -17%">
+      <label class="ck"><input id="tdisc" type="checkbox"> ট্যাগ ফাঁকা থাকলে ছাড়ের % নিজে বসান (পুরনো দাম লাগবে)</label>
+      <label>ট্যাগের রং</label>
+      <div class="sw s" id="swt"></div>
+      <input id="tcol" class="m" type="color" value="#b8715a">
+      <div class="row">
+        <div><label>ট্যাগের জায়গা</label>
+          <select id="tps"><option value="tl">ওপরে-বামে</option><option value="tr">ওপরে-ডানে</option></select></div>
+        <div><label>AABHA লোগো</label>
+          <select id="brp"><option value="tr">ওপরে-ডানে</option><option value="tl">ওপরে-বামে</option><option value="br">নিচে-ডানে</option><option value="bc">নিচে-মাঝে</option><option value="none">লুকান</option></select></div>
+      </div>
+      <label>লোগোর সাইজ</label>
+      <input id="brs" type="range" min="60" max="200" value="100">
+      <label>লোগো ও ফ্রেমের রং</label>
+      <div class="sw s" id="swb"></div>
+      <input id="brc" class="m" type="color" value="#ffffff">
+      <label>ফ্রেম</label>
+      <select id="frm"><option value="none">নেই</option><option value="thin">পাতলা</option><option value="double">ডাবল</option></select>
+    </div></details>
+
+    <details><summary>✂️ কাটার সেটিং</summary><div class="in">
+      <label>কাটার মান</label>
+      <select id="ql"><option value="isnet_fp16">ভালো মান (ধীর, ~৮৫ MB)</option><option value="isnet_quint8">দ্রুত (কম মান)</option></select>
+      <label>কিনারা পরিষ্কার (কম-বেশি করে দেখুন)</label>
+      <input id="ed" type="range" min="0" max="100" value="60">
+      <label class="ck"><input id="hf" type="checkbox" checked> জামার ভেতরের ফাঁকা অংশ ভরাট করুন</label>
+      <button class="dgb g" id="rc" type="button">আবার কাটুন</button>
+    </div></details>
+
     <div class="note">ℹ️ এটা ফ্রি টুল, ফোনের ভেতরেই চলে। প্রথমবার ৪০-৮৫ MB ডাউনলোড হয়, ১-২ মিনিট লাগতে পারে। পরেরবার দ্রুত হবে। জামার চুল বা ফিতার কিনারা ঠিক আছে কিনা বড় করে দেখে নিন।</div>
   </section>
 </div>
@@ -207,6 +295,126 @@ function drawBg(g,W,H){
   else{g.fillStyle='#e8d9c8';g.fillRect(0,0,W,H)}
 }
 
+/* ---------- লেখা ও সাজসজ্জা ---------- */
+const num=v=>Number(String(v||'').replace(/[^\d.]/g,''))||0;
+const lum=c=>{const n=parseInt(String(c).slice(1),16);return(0.299*(n>>16&255)+0.587*(n>>8&255)+0.114*(n&255))/255};
+const setLS=(g,px)=>{if('letterSpacing' in g)g.letterSpacing=px+'px'};
+const rr=(g,x,y,w,h,r)=>{g.beginPath();if(g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h)};
+const FONTS={
+  playfair:{fam:'"Playfair Display","Noto Serif Bengali",Georgia,serif',w:700},
+  cormorant:{fam:'"Cormorant Garamond","Noto Serif Bengali",Georgia,serif',w:700},
+  poppins:{fam:'"Poppins","Hind Siliguri",sans-serif',w:600},
+  hind:{fam:'"Hind Siliguri","Poppins",sans-serif',w:700},
+  notoserif:{fam:'"Noto Serif Bengali","Playfair Display",serif',w:700}
+};
+
+function drawTexts(g,W,H){
+  const S=W/1080, ts=Number($('tz').value)/100*S, F=FONTS[$('fn').value]||FONTS.playfair;
+  const name=$('tn').value.trim(), sub=$('ts').value.trim(), cta=$('tc').value.trim();
+  const pn=num($('tp').value), po=num($('to').value);
+  const price=pn>0?'৳'+pn.toLocaleString('en-US'):'', old=po>0?'৳'+po.toLocaleString('en-US'):'';
+  if(!(name||sub||price||old||cta))return;
+  const style=$('bs').value, op=Number($('bo').value)/100, pos=$('tpos').value, al=$('tal').value;
+  const card=style==='card'||style==='cardL', M=60*S, ip=card?26*S:0;
+  const ax=al==='left'?M+ip:al==='right'?W-M-ip:W/2;
+  let cN=$('cn').value, cP=$('cp').value;
+  if(style==='cardL'){if(lum(cN)>.7)cN='#1b1418';if(lum(cP)>.8)cP='#8a4a37'}
+  const maxW=W-2*M-2*ip;
+  let nfs=64*ts;g.font=F.w+' '+nfs+'px '+F.fam;
+  while(name&&g.measureText(name).width>maxW&&nfs>20*S){nfs-=2;g.font=F.w+' '+nfs+'px '+F.fam}
+  const sfs=32*ts, pfs=56*ts, cfs=28*ts, gap=12*ts, LH=1.22;
+  const rows=[];
+  if(name)rows.push(['n',nfs]);
+  if(sub)rows.push(['s',sfs]);
+  if(price||old)rows.push(['p',pfs]);
+  if(cta)rows.push(['c',cfs]);
+  const bh=rows.reduce((a,r)=>a+r[1]*LH,0)+gap*(rows.length-1), pad=34*S, dark='10,6,12';
+  const top=pos==='bottom'?H-M-bh-ip:pos==='top'?M+96*S:(H-bh)/2;
+
+  if(style==='grad'){
+    let y0,y1,st;
+    if(pos==='bottom'){y0=Math.max(0,top-pad*3.2);y1=H;st=[[0,0],[1,op]]}
+    else if(pos==='top'){y0=0;y1=top+bh+pad*3.2;st=[[0,op],[1,0]]}
+    else{y0=Math.max(0,top-pad*3);y1=Math.min(H,top+bh+pad*3);st=[[0,0],[.35,op],[.65,op],[1,0]]}
+    const gr=g.createLinearGradient(0,y0,0,y1);
+    st.forEach(s=>gr.addColorStop(s[0],'rgba('+dark+','+s[1]+')'));
+    g.fillStyle=gr;g.fillRect(0,y0,W,y1-y0);
+  }else if(style==='bar'){
+    g.fillStyle='rgba('+dark+','+op+')';g.fillRect(0,top-pad,W,bh+2*pad);
+  }else if(card){
+    const cx=M*.6, cw=W-2*cx, cy=top-pad, ch=bh+2*pad;
+    g.save();rr(g,cx,cy,cw,ch,30*S);
+    g.fillStyle=style==='cardL'?'rgba(255,255,255,'+op+')':'rgba('+dark+','+(op*.9)+')';g.fill();
+    g.lineWidth=1.5*S;g.strokeStyle=style==='cardL'?'rgba(0,0,0,.08)':'rgba(255,255,255,.16)';g.stroke();g.restore();
+  }
+
+  g.save();
+  g.textBaseline='top';g.textAlign=al==='center'?'center':al;
+  if($('tsh').checked){g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=12*S;g.shadowOffsetY=2*S}
+  let y=top;
+  for(const [k,h] of rows){
+    if(k==='n'){g.font=F.w+' '+h+'px '+F.fam;g.fillStyle=cN;g.fillText(name,ax,y)}
+    else if(k==='s'){g.font='500 '+h+'px '+F.fam;g.globalAlpha=.88;g.fillStyle=cN;g.fillText(sub,ax,y);g.globalAlpha=1}
+    else if(k==='c'){g.font='600 '+h+'px '+F.fam;setLS(g,2*S);g.globalAlpha=.92;g.fillStyle=cN;g.fillText(cta,ax,y);g.globalAlpha=1;setLS(g,0)}
+    else{
+      g.textAlign='left';
+      g.font='700 '+h+'px '+F.fam;const wp=price?g.measureText(price).width:0;
+      const of=h*.6;g.font='500 '+of+'px '+F.fam;const wo=old?g.measureText(old).width:0;
+      const gp=(price&&old)?18*S:0, tot=wp+gp+wo;
+      const x0=al==='left'?ax:al==='right'?ax-tot:ax-tot/2;
+      if(price){g.font='700 '+h+'px '+F.fam;g.fillStyle=cP;g.fillText(price,x0,y)}
+      if(old){
+        g.font='500 '+of+'px '+F.fam;g.globalAlpha=.75;g.fillStyle=cN;
+        const xo=x0+wp+gp, yo=y+h*.32;
+        g.fillText(old,xo,yo);
+        g.shadowColor='transparent';g.lineWidth=2.5*S;g.strokeStyle=cN;
+        g.beginPath();g.moveTo(xo,yo+of*.55);g.lineTo(xo+wo,yo+of*.55);g.stroke();g.globalAlpha=1;
+      }
+      g.textAlign=al==='center'?'center':al;
+    }
+    y+=h*LH+gap;
+  }
+  g.restore();
+}
+
+function drawTag(g,W,H){
+  const S=W/1080;let t=$('tt').value.trim();
+  const pn=num($('tp').value), po=num($('to').value);
+  if(!t&&$('tdisc').checked&&po>pn&&pn>0)t='-'+Math.round((1-pn/po)*100)+'%';
+  if(!t)return;
+  const col=$('tcol').value, tp=$('tps').value, brp=$('brp').value;
+  g.save();
+  g.font='700 '+(30*S)+'px Poppins,"Hind Siliguri",sans-serif';g.textBaseline='middle';g.textAlign='left';
+  const tw=g.measureText(t).width+46*S, th=58*S;
+  let y=48*S;if(brp===tp)y+=80*S;
+  const x=tp==='tl'?48*S:W-48*S-tw;
+  rr(g,x,y,tw,th,th/2);g.fillStyle=col;g.fill();
+  g.fillStyle=lum(col)>.65?'#1b1418':'#ffffff';g.fillText(t,x+23*S,y+th/2+1*S);
+  g.restore();
+}
+
+function drawBrand(g,W,H){
+  const p=$('brp').value;if(p==='none')return;
+  const S=W/1080, bs=Number($('brs').value)/100, col=$('brc').value, ls=8*S*bs, m=48*S, h=34*S*bs;
+  g.save();
+  g.font='600 '+h+'px "Playfair Display",Georgia,serif';g.fillStyle=col;g.textBaseline='top';
+  setLS(g,ls);g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=8*S;
+  if(p==='tr'){g.textAlign='right';g.fillText('AABHA',W-m+ls,m)}
+  else if(p==='tl'){g.textAlign='left';g.fillText('AABHA',m,m)}
+  else if(p==='br'){g.textAlign='right';g.fillText('AABHA',W-m+ls,H-m-h)}
+  else{g.textAlign='center';g.fillText('AABHA',W/2+ls/2,H-m-h)}
+  g.restore();
+}
+
+function drawFrame(g,W,H){
+  const f=$('frm').value;if(f==='none')return;
+  const S=W/1080;
+  g.save();g.strokeStyle=$('brc').value;g.globalAlpha=.85;
+  g.lineWidth=3*S;g.strokeRect(26*S,26*S,W-52*S,H-52*S);
+  if(f==='double'){g.lineWidth=1.5*S;g.strokeRect(40*S,40*S,W-80*S,H-80*S)}
+  g.restore();
+}
+
 /* ---------- পুরো ছবি তৈরি ---------- */
 function render(){
   if(!ORIG)return;
@@ -216,55 +424,61 @@ function render(){
   else{const [a,b]=r.split(':').map(Number);H=Math.round(W*b/a)}
   const c=$('cv');c.width=W;c.height=H;c.style.display='block';
   const g=c.getContext('2d');
-  const scl=Number($('sc').value)/100, oy=Number($('oy').value)/100*H;
+  const scl=Number($('sc').value)/100, oy=Number($('oy').value)/100*H, oxp=Number($('ox').value)/100*W, flip=$('flip').checked;
 
   const useCut=!!CUT&&!showOrig;
   if(!useCut){
-    // আসল ছবি (বা কাটা শেষ হয়নি)
     g.fillStyle='#111';g.fillRect(0,0,W,H);
     const k=Math.min(W/src.width,H/src.height),dw=src.width*k,dh=src.height*k;
     g.drawImage(src,(W-dw)/2,(H-dh)/2,dw,dh);
   }else{
     drawBg(g,W,H);
     const k=Math.min(W/CUT.width,H/CUT.height)*scl, dw=CUT.width*k, dh=CUT.height*k;
-    const dx=(W-dw)/2, dy=H-dh+oy;
-    // নরম ছায়া
+    const dx=(W-dw)/2+oxp, dy=H-dh+oy, fx=flip?W-dx-dw:dx;
+    g.save();
+    if(flip){g.translate(W,0);g.scale(-1,1)}
     const sh=document.createElement('canvas');sh.width=W;sh.height=H;
     const sg=sh.getContext('2d');
-    sg.drawImage(CUT,dx,dy,dw,dh);
+    sg.drawImage(CUT,fx,dy,dw,dh);
     sg.globalCompositeOperation='source-in';sg.fillStyle='rgba(40,25,20,1)';sg.fillRect(0,0,W,H);
-    g.save();if(hasF(g))g.filter='blur('+(W*.018)+'px)';g.globalAlpha=.4;g.drawImage(sh,W*.045,H*.008);g.restore();
-    g.drawImage(CUT,dx,dy,dw,dh);
+    g.save();if(hasF(g))g.filter='blur('+(W*.018)+'px)';g.globalAlpha=.4;g.drawImage(sh,(flip?-1:1)*W*.045,H*.008);g.restore();
+    g.drawImage(CUT,fx,dy,dw,dh);
+    g.restore();
   }
 
-  // লেখা
-  const name=$('tn').value.trim(), tag=$('tt').value.trim();
-  const pn=Number(($('tp').value||'').replace(/[^\d.]/g,'')), price=pn>0?'৳'+pn.toLocaleString('en-US'):'';
-  const SERIF='"Playfair Display",Georgia,"Noto Serif Bengali",serif';
-  if(name||price){
-    const gh=H*.28, gr=g.createLinearGradient(0,H-gh,0,H);
-    gr.addColorStop(0,'rgba(10,6,12,0)');gr.addColorStop(1,'rgba(10,6,12,.85)');
-    g.fillStyle=gr;g.fillRect(0,H-gh,W,gh);
-    let y=H-60;
-    if(price){g.font='700 54px '+SERIF;g.fillStyle='#e8b4a0';g.textAlign='left';g.fillText(price,60,y);y-=74}
-    if(name){let fs=62;g.font='600 '+fs+'px '+SERIF;
-      while(g.measureText(name).width>W-120&&fs>26){fs-=2;g.font='600 '+fs+'px '+SERIF}
-      g.fillStyle='#fff';g.textAlign='left';g.fillText(name,60,y)}
-  }
-  if(tag){
-    g.font='700 30px sans-serif';const tw=g.measureText(tag).width+44;
-    g.fillStyle='#b8715a';g.beginPath();g.roundRect?g.roundRect(48,48,tw,56,28):g.rect(48,48,tw,56);g.fill();
-    g.fillStyle='#fff';g.textAlign='left';g.fillText(tag,70,87);
-  }
-  g.save();g.font='600 34px '+SERIF;g.fillStyle='rgba(255,255,255,.92)';g.textAlign='right';
-  if('letterSpacing' in g)g.letterSpacing='8px';
-  g.shadowColor='rgba(0,0,0,.5)';g.shadowBlur=8;g.fillText('AABHA',W-48,86);g.restore();
+  drawTexts(g,W,H);
+  drawTag(g,W,H);
+  drawBrand(g,W,H);
+  drawFrame(g,W,H);
 
   $('act').style.display=CUT?'flex':'none';
   $('tg').textContent=showOrig?'নতুন ছবি দেখুন':'আসল ছবি দেখুন';
 }
 
+/* ফন্ট (বাংলা সহ) লোড হয়ে গেলে আবার আঁকা */
+async function ensureFonts(){
+  const F=FONTS[$('fn').value]||FONTS.playfair;
+  const txt=[$('tn').value,$('ts').value,$('tp').value,$('to').value,$('tc').value,$('tt').value,'৳0123456789AABHA'].join(' ');
+  try{await Promise.all([
+    document.fonts.load('700 40px '+F.fam,txt),
+    document.fonts.load('500 30px '+F.fam,txt),
+    document.fonts.load('600 30px "Playfair Display"','AABHA'),
+    document.fonts.load('700 30px Poppins',$('tt').value||'NEW')
+  ])}catch(_){}
+  render();
+}
+let _fd;const fontSoon=()=>{clearTimeout(_fd);_fd=setTimeout(ensureFonts,300)};
+
+function mkSw(boxId,inpId,list){
+  const box=$(boxId), inp=$(inpId);
+  box.innerHTML=list.map(c=>`<button type="button" data-c="${c}" style="background:${c}"></button>`).join('');
+  const sync=()=>[...box.children].forEach(b=>b.classList.toggle('on',b.dataset.c===inp.value.toLowerCase()));
+  box.onclick=e=>{const b=e.target.closest('button');if(!b)return;inp.value=b.dataset.c;inp.dispatchEvent(new Event('input',{bubbles:true}))};
+  inp.addEventListener('input',sync);sync();
+}
+
 Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
+  /* ব্যাকগ্রাউন্ড */
   $('pre').innerHTML=BGS.map((b,i)=>`<button type="button" data-k="${b[1]}" class="${i?'':'on'}">${esc(b[0])}</button>`).join('');
   $('pre').onclick=e=>{
     const b=e.target.closest('button');if(!b)return;
@@ -285,25 +499,39 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
     const f=e.target.files[0];if(!f)return;
     try{BGIMG=await loadImg(URL.createObjectURL(f));render()}catch(err){A.toast(err.message)}
   };
+
+  /* রং বাছাই */
+  mkSw('swn','cn',['#ffffff','#f5efe6','#e8c27a','#e8b4a0','#c9a24a','#1b1418','#6d1f2f','#1f4d3f']);
+  mkSw('swp','cp',['#e8b4a0','#e8c27a','#ffffff','#c9a24a','#b8715a','#1b1418','#6d1f2f','#1f4d3f']);
+  mkSw('swt','tcol',['#b8715a','#6d1f2f','#1f4d3f','#c9a24a','#1b1418','#ffffff']);
+  mkSw('swb','brc',['#ffffff','#f5efe6','#e8c27a','#1b1418']);
+
+  /* ছবি দেওয়া */
   $('im').onchange=async e=>{
     const f=e.target.files[0];CUT=null;RAW=null;showOrig=false;
     if(!f)return;
     try{ORIG=await shrink(f);render();cut()}catch(err){setMsg(esc(err.message),'er')}
   };
-  ['tn','tp','tt'].forEach(id=>$(id).addEventListener('input',render));
-  ['sc','oy'].forEach(id=>$(id).addEventListener('input',render));
-  $('rt').onchange=render;
+
+  /* সব কন্ট্রোল */
+  ['sc','oy','ox','flip','tz','cn','cp','tpos','tal','bs','bo','tsh','tcol','tps','tdisc','brp','brs','brc','frm','rt']
+    .forEach(id=>{$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
+  ['tn','ts','tp','to','tc','tt'].forEach(id=>$(id).addEventListener('input',()=>{render();fontSoon()}));
+  $('fn').addEventListener('change',ensureFonts);
+  document.querySelectorAll('[data-ox]').forEach(b=>b.onclick=()=>{$('ox').value=b.dataset.ox;render()});
   $('ed').addEventListener('input',refineSoon);
   $('hf').onchange=refine;
   $('rc').onclick=cut;
   $('tg').onclick=()=>{showOrig=!showOrig;render()};
   $('dl').onclick=async()=>{
-    const was=showOrig;showOrig=false;render();
+    const was=showOrig;showOrig=false;
+    await ensureFonts();
     const b=await toBlob($('cv'),'image/jpeg',0.92);
     const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aabha-'+Date.now()+'.jpg';
     document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    showOrig=was;
+    showOrig=was;render();
   };
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(ORIG)render()});
 }});
 </script>
 </body>
