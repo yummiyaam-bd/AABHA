@@ -24,6 +24,9 @@
 .chips button{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:inherit;border-radius:20px;padding:8px 13px;font-size:12.5px;cursor:pointer;font-family:inherit}
 .chips button.on{background:linear-gradient(135deg,#e8b4a0,#b8715a);border-color:transparent;color:#fff}
 #cv{width:100%;border-radius:14px;display:none;background:#111}
+.sw{display:flex;flex-wrap:wrap;gap:10px}
+.sw button{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.25);cursor:pointer;padding:0}
+.sw button.on{border-color:#fff;box-shadow:0 0 0 2px #b8715a}
 .note{font-size:12px;line-height:1.6;opacity:.75;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
 .er{color:#ff9aa8;font-size:13px;line-height:1.6}
 .dots{display:inline-flex;gap:5px;align-items:center;height:20px;padding:0 4px;vertical-align:middle}
@@ -38,9 +41,16 @@
     <label>১. জামার ছবি (মডেলসহ)</label>
     <input id="im" type="file" accept="image/*">
     <div id="msg"></div>
+    <label>কাটার মান</label>
+    <select id="ql"><option value="isnet_fp16">ভালো মান (ধীর, ~৮৫ MB)</option><option value="isnet_quint8">দ্রুত (কম মান)</option></select>
+    <label>কিনারা পরিষ্কার (কম-বেশি করে দেখুন)</label>
+    <input id="ed" type="range" min="0" max="100" value="60">
+    <label style="display:flex;gap:8px;align-items:center;opacity:1"><input id="hf" type="checkbox" checked style="width:auto"> জামার ভেতরের ফাঁকা অংশ ভরাট করুন</label>
+    <button class="dgb g" id="rc" type="button">আবার কাটুন</button>
 
     <label>২. নতুন ব্যাকগ্রাউন্ড বাছুন</label>
     <div class="chips" id="pre"></div>
+    <div class="sw" id="sw" style="display:none"></div>
     <input id="bc" type="color" value="#e8d9c8" style="display:none">
     <input id="bi" type="file" accept="image/*" style="display:none">
 
@@ -63,7 +73,7 @@
       <button class="dgb g" id="tg" type="button">আসল ছবি দেখুন</button>
       <button class="dgb" id="dl" type="button">Download</button>
     </div>
-    <div class="note">ℹ️ এটা ফ্রি টুল, ফোনের ভেতরেই চলে। প্রথমবার ৪০-৫০ MB ডাউনলোড হয়, ১-২ মিনিট লাগতে পারে। পরেরবার দ্রুত হবে। জামার চুল বা ফিতার কিনারা ঠিক আছে কিনা বড় করে দেখে নিন।</div>
+    <div class="note">ℹ️ এটা ফ্রি টুল, ফোনের ভেতরেই চলে। প্রথমবার ৪০-৮৫ MB ডাউনলোড হয়, ১-২ মিনিট লাগতে পারে। পরেরবার দ্রুত হবে। জামার চুল বা ফিতার কিনারা ঠিক আছে কিনা বড় করে দেখে নিন।</div>
   </section>
 </div>
 
@@ -73,9 +83,16 @@ const A=Admin, $=A.$, esc=A.esc;
 const BGS=[
  ['☀️ জানালার আলো','window'],['🤍 সাদা','white'],['🩶 স্টুডিও গ্রে','grey'],
  ['🌸 গোলাপি দেয়াল','pink'],['🌿 সবুজ বাগান','green'],['🌙 ডার্ক লাক্স','dark'],
- ['✨ ঈদ/উৎসব','gold'],['🎨 নিজের রং','color'],['🖼️ নিজের ছবি','image']
+ ['✨ ঈদ/উৎসব','gold'],['🎨 প্রিমিয়াম রং','color'],['🖼️ নিজের ছবি','image']
 ];
-let ORIG=null, CUT=null, BGIMG=null, BG='window', busy=false, showOrig=false;
+const SW=[
+ ['Ivory','#f5efe6'],['Champagne','#e9dcc9'],['Sand','#d8c3a5'],['Rose Gold','#e8b4a0'],
+ ['Blush','#f0d6d2'],['Dusty Rose','#d4a5a5'],['Lavender','#d9d0e8'],['Powder Blue','#c9d6e3'],
+ ['Sage','#b7c4a8'],['Terracotta','#c46a4a'],['Gold','#c9a24a'],['Mocha','#8b6b57'],
+ ['Olive','#6b705c'],['Emerald','#1f4d3f'],['Navy','#1c2a44'],['Burgundy','#6d1f2f'],
+ ['Plum','#4a2c4a'],['Charcoal','#2b2b2f']
+];
+let RAW=null, ORIG=null, CUT=null, BGIMG=null, BG='window', busy=false, showOrig=false;
 
 const loadImg=u=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('ছবি পড়া যায়নি'));i.src=u});
 const toBlob=(c,t,q)=>new Promise(r=>c.toBlob(r,t,q));
@@ -118,14 +135,44 @@ async function cut(){
     const rb=await loadLib();
     const progress=(k,c,t)=>{if(t>0)setMsg(dotsH+(String(k).startsWith('fetch')?'টুল ডাউনলোড হচ্ছে ':'ছবি কাটা হচ্ছে ')+Math.round(c/t*100)+'%')};
     let blob;
-    try{blob=await rb(ORIG.blob,{model:'isnet_quint8',output:{format:'image/png'},progress})}
+    try{blob=await rb(ORIG.blob,{model:$('ql').value,output:{format:'image/png'},progress})}
     catch(e){blob=await rb(ORIG.blob,{output:{format:'image/png'},progress})}
-    CUT=await loadImg(URL.createObjectURL(blob));
-    setMsg('✅ মডেল আলাদা হয়েছে। এখন ব্যাকগ্রাউন্ড বাছুন।');
-    render();
+    RAW=await loadImg(URL.createObjectURL(blob));refine(true);
+    setMsg('✅ মডেল আলাদা হয়েছে। জামার কিনারা ঠিক না লাগলে "কিনারা পরিষ্কার" স্লাইডার নাড়ুন।');
   }catch(e){setMsg('সমস্যা হয়েছে: '+esc(e.message||e),'er')}
   busy=false;
 }
+
+/* ---------- কাটা অংশ পরিষ্কার করা (রং আসল ছবি থেকে, শুধু স্বচ্ছতা মডেল থেকে) ---------- */
+function refine(){
+  if(!RAW||!ORIG)return;
+  const w=RAW.width,h=RAW.height;
+  const c1=document.createElement('canvas');c1.width=w;c1.height=h;
+  const g1=c1.getContext('2d',{willReadFrequently:true});g1.drawImage(RAW,0,0);
+  const m=g1.getImageData(0,0,w,h).data;
+  const c2=document.createElement('canvas');c2.width=w;c2.height=h;
+  const g2=c2.getContext('2d',{willReadFrequently:true});g2.drawImage(ORIG.img,0,0,w,h);
+  const d=g2.getImageData(0,0,w,h), px=d.data;
+  const t=Number($('ed').value)/100, lo=0.12+0.33*t, hi=0.7-0.2*t, n=w*h;
+  const solid=new Uint8Array(n);
+  for(let i=0;i<n;i++){
+    let a=m[i*4+3]/255;a=Math.min(1,Math.max(0,(a-lo)/(hi-lo)));
+    px[i*4+3]=Math.round(a*255);solid[i]=a>0.5?1:0;
+  }
+  if($('hf').checked){
+    const out=new Uint8Array(n),st=[];
+    const push=i=>{if(!solid[i]&&!out[i]){out[i]=1;st.push(i)}};
+    for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}
+    for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}
+    while(st.length){const i=st.pop(),x=i%w,y=(i/w)|0;
+      if(x>0)push(i-1);if(x<w-1)push(i+1);if(y>0)push(i-w);if(y<h-1)push(i+w)}
+    for(let i=0;i<n;i++){if(!solid[i]&&!out[i])px[i*4+3]=255}
+  }
+  g2.putImageData(d,0,0);
+  CUT=c2;
+  render();
+}
+let _deb;const refineSoon=()=>{clearTimeout(_deb);_deb=setTimeout(refine,160)};
 
 /* ---------- ব্যাকগ্রাউন্ড আঁকা ---------- */
 const hasF=g=>'filter' in g;
@@ -224,22 +271,31 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
     [...$('pre').children].forEach(x=>x.classList.remove('on'));b.classList.add('on');
     BG=b.dataset.k;
     $('bc').style.display=BG==='color'?'block':'none';
+    $('sw').style.display=BG==='color'?'flex':'none';
     $('bi').style.display=BG==='image'?'block':'none';
     render();
   };
-  $('bc').oninput=render;
+  $('sw').innerHTML=SW.map((c,i)=>`<button type="button" title="${c[0]}" data-c="${c[1]}" class="${i===1?'on':''}" style="background:${c[1]}"></button>`).join('');
+  $('bc').value=SW[1][1];
+  $('sw').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+    [...$('sw').children].forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    $('bc').value=b.dataset.c;render()};
+  $('bc').oninput=()=>{[...$('sw').children].forEach(x=>x.classList.remove('on'));render()};
   $('bi').onchange=async e=>{
     const f=e.target.files[0];if(!f)return;
     try{BGIMG=await loadImg(URL.createObjectURL(f));render()}catch(err){A.toast(err.message)}
   };
   $('im').onchange=async e=>{
-    const f=e.target.files[0];CUT=null;showOrig=false;
+    const f=e.target.files[0];CUT=null;RAW=null;showOrig=false;
     if(!f)return;
     try{ORIG=await shrink(f);render();cut()}catch(err){setMsg(esc(err.message),'er')}
   };
   ['tn','tp','tt'].forEach(id=>$(id).addEventListener('input',render));
   ['sc','oy'].forEach(id=>$(id).addEventListener('input',render));
   $('rt').onchange=render;
+  $('ed').addEventListener('input',refineSoon);
+  $('hf').onchange=refine;
+  $('rc').onclick=cut;
   $('tg').onclick=()=>{showOrig=!showOrig;render()};
   $('dl').onclick=async()=>{
     const was=showOrig;showOrig=false;render();
