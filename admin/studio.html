@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Photo Studio</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.dg{padding:18px;display:flex;flex-direction:column;gap:12px}
+.dg label{font-size:12px;opacity:.7;margin-bottom:-6px}
+.dg input,.dg textarea,.dg select{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;color:inherit;padding:12px 14px;font:inherit;font-size:14px;outline:none}
+.dg select option{color:#111}
+.dg textarea{min-height:64px;resize:vertical}
+.dgb{border:0;border-radius:40px;padding:13px 22px;font:800 12px inherit;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;background:linear-gradient(135deg,#e8b4a0,#b8715a)}
+.dgb:disabled{opacity:.5}
+.dgb.g{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:inherit;border-radius:20px;padding:8px 13px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.chips button.on{background:linear-gradient(135deg,#e8b4a0,#b8715a);border-color:transparent;color:#fff}
+#cv{width:100%;border-radius:14px;display:none;background:#111}
+.note{font-size:12px;line-height:1.6;opacity:.75;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
+.er{color:#ff9aa8;font-size:13px;line-height:1.6}
+.dots{display:inline-flex;gap:5px;align-items:center;height:20px;padding:0 4px}
+.dots i{width:8px;height:8px;border-radius:50%;background:#e8b4a0;display:block;animation:dj 1.1s infinite ease-in-out}
+.dots i:nth-child(2){animation-delay:.18s}.dots i:nth-child(3){animation-delay:.36s}
+@keyframes dj{0%,70%,100%{transform:translateY(0);opacity:.45}35%{transform:translateY(-7px);opacity:1}}
+</style>
+</head>
+<body>
+<div id="page">
+  <section class="panel dg">
+    <label>১. জামার ছবি</label>
+    <input id="im" type="file" accept="image/*">
+
+    <label>২. কেমন ব্যাকগ্রাউন্ড চান?</label>
+    <div class="chips" id="pre"></div>
+    <textarea id="cu" placeholder="অথবা নিজে লিখুন (ইংরেজিতে ভালো কাজ করে), যেমন: soft pink wall with sunlight from a window"></textarea>
+
+    <label>৩. ছবির উপর লেখা (ঐচ্ছিক)</label>
+    <input id="tn" placeholder="পণ্যের নাম, যেমন: Mint Brocade Panjabi">
+    <div class="row">
+      <input id="tp" placeholder="দাম, যেমন: 3250" inputmode="numeric">
+      <input id="tt" placeholder="ট্যাগ, যেমন: NEW / -17%">
+    </div>
+    <label>ছবির মাপ</label>
+    <select id="rt"><option value="4:5">৪:৫ (Instagram/Facebook পোস্ট)</option><option value="1:1">১:১ (চৌকো)</option><option value="orig">আসল মাপ</option></select>
+
+    <button class="dgb" id="go" type="button">ব্যাকগ্রাউন্ড বদলাও</button>
+    <div id="msg"></div>
+
+    <canvas id="cv"></canvas>
+    <div class="row" id="act" style="display:none">
+      <button class="dgb g" id="tg" type="button">আসল ছবি দেখুন</button>
+      <button class="dgb" id="dl" type="button">Download</button>
+    </div>
+    <div class="note">⚠️ AI ছবি বানানোর পর জামার <b>রং, নকশা ও বর্ডার</b> আসল ছবির সাথে মিলিয়ে দেখুন। কাস্টমার যেন ছবি দেখে যা কেনে, হাতে তাই পায়। না মিললে আবার চেষ্টা করুন।</div>
+  </section>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+const PRESETS=[
+ ['☀️ জানালার আলো','a soft warm beige studio wall with a diagonal window-light shadow falling across it, clean minimal editorial fashion look'],
+ ['🤍 সাদা স্টুডিও','a clean seamless white studio backdrop with soft even light'],
+ ['🌿 বাগান','a softly blurred green garden in gentle daylight'],
+ ['🏛️ ক্লাসিক প্রাসাদ','an elegant classic palace interior, softly blurred, warm light'],
+ ['🌙 ডার্ক লাক্স','a dark luxury plum-brown studio backdrop with a gentle spotlight'],
+ ['✨ ঈদ/উৎসব','a festive warm golden bokeh background with soft lights']
+];
+let ORIG=null, AI=null, busy=false, showOrig=false, STYLE=PRESETS[0][1];
+
+const loadImg=u=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('ছবি পড়া যায়নি'));i.src=u});
+
+async function shrink(file){
+  const u=URL.createObjectURL(file), im=await loadImg(u);
+  const m=1024, k=Math.min(1,m/Math.max(im.width,im.height));
+  const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+  c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+  const url=c.toDataURL('image/jpeg',0.88);
+  URL.revokeObjectURL(u);
+  return{img:await loadImg(url),mime:'image/jpeg',data:url.split(',')[1]};
+}
+
+function render(){
+  const src=showOrig?ORIG:(AI||ORIG);
+  if(!src)return;
+  const W=1080, iw=src.img.width, ih=src.img.height, r=$('rt').value;
+  let H;
+  if(r==='orig')H=Math.round(W*ih/iw);
+  else{const [a,b]=r.split(':').map(Number);H=Math.round(W*b/a)}
+  const c=$('cv');c.width=W;c.height=H;c.style.display='block';
+  const g=c.getContext('2d');
+  const k=Math.max(W/iw,H/ih), dw=iw*k, dh=ih*k;
+  g.drawImage(src.img,(W-dw)/2,(H-dh)/2,dw,dh);
+
+  const name=$('tn').value.trim(), tag=$('tt').value.trim();
+  const pn=Number(($('tp').value||'').replace(/[^\d.]/g,'')), price=pn>0?'৳'+pn.toLocaleString('en-US'):'';
+  const SERIF='"Playfair Display",Georgia,"Noto Serif Bengali",serif';
+
+  if(name||price){
+    const gh=H*0.28, gr=g.createLinearGradient(0,H-gh,0,H);
+    gr.addColorStop(0,'rgba(10,6,12,0)');gr.addColorStop(1,'rgba(10,6,12,.85)');
+    g.fillStyle=gr;g.fillRect(0,H-gh,W,gh);
+    let y=H-60;
+    if(price){g.font='700 54px '+SERIF;g.fillStyle='#e8b4a0';g.textAlign='left';g.fillText(price,60,y);y-=74}
+    if(name){
+      let fs=62;g.font='600 '+fs+'px '+SERIF;
+      while(g.measureText(name).width>W-120&&fs>26){fs-=2;g.font='600 '+fs+'px '+SERIF}
+      g.fillStyle='#fff';g.textAlign='left';g.fillText(name,60,y);
+    }
+  }
+  if(tag){
+    g.font='700 30px sans-serif';
+    const tw=g.measureText(tag).width+44;
+    g.fillStyle='#b8715a';
+    g.beginPath();g.roundRect?g.roundRect(48,48,tw,56,28):g.rect(48,48,tw,56);g.fill();
+    g.fillStyle='#fff';g.textAlign='left';g.fillText(tag,70,87);
+  }
+  // ব্র্যান্ড নাম
+  g.save();g.font='600 34px '+SERIF;g.fillStyle='rgba(255,255,255,.9)';g.textAlign='right';
+  if('letterSpacing' in g)g.letterSpacing='8px';
+  g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=8;
+  g.fillText('AABHA',W-48,86);g.restore();
+  $('act').style.display=AI?'flex':'none';
+  $('tg').textContent=showOrig?'AI ছবি দেখুন':'আসল ছবি দেখুন';
+}
+
+function setMsg(h,cls){$('msg').className=cls||'';$('msg').innerHTML=h}
+
+async function gen(){
+  if(busy)return;
+  if(!ORIG){A.toast('আগে জামার ছবি দিন');return}
+  const style=($('cu').value.trim())||STYLE;
+  busy=true;$('go').disabled=true;showOrig=false;
+  setMsg('<span class="dots"><i></i><i></i><i></i></span> ছবি বানানো হচ্ছে, ২০-৪০ সেকেন্ড লাগতে পারে...');
+  try{
+    const ses=await sb.auth.getSession();
+    const url=(sb.supabaseUrl||'https://xjwuozdfuflfoqiuucik.supabase.co')+'/functions/v1/studio-image';
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ses.data.session.access_token,'apikey':sb.supabaseKey||'sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm'},
+      body:JSON.stringify({image:{mime:ORIG.mime,data:ORIG.data},style})});
+    const tx=await res.text();let j={};try{j=JSON.parse(tx)}catch(_){}
+    if(!res.ok||!j.image)throw new Error((j.error||j.message||tx||'error')+' (code '+res.status+')');
+    AI={img:await loadImg('data:'+(j.mime||'image/png')+';base64,'+j.image)};
+    setMsg('');render();
+  }catch(e){setMsg('সমস্যা হয়েছে: '+esc(e.message||e),'er')}
+  busy=false;$('go').disabled=false;
+}
+
+Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
+  $('pre').innerHTML=PRESETS.map((p,i)=>`<button type="button" data-i="${i}" class="${i?'':'on'}">${esc(p[0])}</button>`).join('');
+  $('pre').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+    [...$('pre').children].forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    STYLE=PRESETS[b.dataset.i][1];$('cu').value=''};
+  $('im').onchange=async e=>{
+    const f=e.target.files[0];AI=null;showOrig=false;
+    if(!f)return;
+    try{ORIG=await shrink(f);setMsg('');render()}catch(err){A.toast(err.message)}
+  };
+  ['tn','tp','tt'].forEach(id=>$(id).addEventListener('input',render));
+  $('rt').onchange=render;
+  $('go').onclick=gen;
+  $('tg').onclick=()=>{showOrig=!showOrig;render()};
+  $('dl').onclick=()=>{
+    showOrig=false;render();
+    $('cv').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aabha-'+Date.now()+'.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)},'image/jpeg',0.92);
+  };
+}});
+</script>
+</body>
+</html>
