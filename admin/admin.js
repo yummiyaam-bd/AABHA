@@ -45,6 +45,7 @@ const SPRITE='<svg width="0" height="0" style="position:absolute" aria-hidden="t
 /* [key, নাম, icon, ফাইল, দরকারি অনুমতি] */
 const NAV=[
  ['index','Dashboard','grid','index.html',null],
+ ['omni','OMNI AI','trend','omni.html',null],
  ['products','Products','tag','products.html','products'],
  ['stock','Stock','box','stock.html','products'],
  ['finance','Finance & Accounting','wallet','finance.html','expenses'],
