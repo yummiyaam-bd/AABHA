@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Marketing</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.mk{--bd:#eadfd6;--mut:#8a7d74}
+.mk *{box-sizing:border-box}
+.mk-card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:16px;min-width:0;margin-bottom:14px}
+.mk-card h4{margin:0 0 4px;font-size:15px}
+.mk-card .sub,.sub{color:var(--mut);font-size:13px}
+.mk-st{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.mk-st>div{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:12px 14px}
+.mk-st small{display:block;font-size:11px;color:var(--mut);margin-bottom:4px}
+.mk-st b{font-size:1.35rem}
+.mk-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
+.cx-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;align-items:center}
+.cb{flex:none;background:#fff;border:1px solid var(--bd);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
+.cb.on,.cb.pr{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
+.cb.red{color:#b83b4a}.cb.sm{padding:5px 11px;font-size:12px}
+.cb:disabled{opacity:.5}
+.mi{width:100%;background:#fff;border:1px solid var(--bd);border-radius:12px;color:inherit;padding:10px 12px;font:inherit;font-size:14px;outline:none}
+textarea.mi{resize:vertical}
+.mk-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.mk-f label{display:block;font-size:11px;color:var(--mut);margin-bottom:3px}
+.mk-f .w{grid-column:1/-1}
+.mk-i{border:1px solid var(--bd);border-radius:14px;padding:12px;margin-top:10px;background:#fffdfa}
+.mk-i .t{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.mk-i .t b{font-size:15px;word-break:break-all}
+.mk-i .m{font-size:12px;color:var(--mut);margin:5px 0 8px;line-height:1.6}
+.mk-i .a{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:10px;font-weight:800;padding:3px 9px;border-radius:12px;color:#fff;background:#6b7280;white-space:nowrap}
+.pill.on{background:#2f855a}.pill.exp{background:#b83b4a}.pill.soon{background:#d9a85f}.pill.off{background:#94a3b8}
+.hb{margin-bottom:10px}.hl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;gap:8px}
+.ht{height:7px;border-radius:7px;background:rgba(0,0,0,.08);overflow:hidden}
+.ht i{display:block;height:100%;background:linear-gradient(90deg,#e8b4a0,#b8715a)}
+.tip{padding:10px 12px;border-radius:12px;background:#fdf6ec;border:1px solid #f0dcc0;font-size:13px;margin-top:8px}
+.note{padding:12px;border-radius:14px;background:#fdecef;border:1px solid #e9a9b3;font-size:13px;margin-bottom:12px}
+.sp{display:flex;gap:10px;align-items:center}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+#qr{margin-top:10px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="page" class="mk">
+
+  <div class="cx-row" id="tabs">
+    <button class="cb on" data-t="ov">ওভারভিউ</button>
+    <button class="cb" data-t="co">কুপন</button>
+    <button class="cb" data-t="of">অফার</button>
+    <button class="cb" data-t="ca">ক্যাম্পেইন</button>
+    <button class="cb" data-t="so">সোশ্যাল মিডিয়া</button>
+    <button class="cb" data-t="po">পোস্ট প্ল্যানার</button>
+    <button class="cb" data-t="wa">WhatsApp ব্রডকাস্ট</button>
+    <button class="cb" data-t="lk">লিংক ও QR</button>
+    <button class="cb" data-t="cal">ক্যালেন্ডার</button>
+  </div>
+  <div id="note"></div>
+
+  <!-- ওভারভিউ -->
+  <section id="s-ov">
+    <div class="mk-st" id="ov-st"></div>
+    <div class="mk-2">
+      <div class="mk-card"><h4>ক্যাম্পেইন: খরচ বনাম বিক্রি</h4><p class="sub">চলাকালীন সময়ের মোট বিক্রি (সব সোর্স মিলিয়ে)</p><div id="ov-ca" style="margin-top:10px"></div></div>
+      <div class="mk-card"><h4>ফলোয়ার</h4><p class="sub">প্ল্যাটফর্ম অনুযায়ী</p><div id="ov-fo" style="margin-top:10px"></div></div>
+    </div>
+    <div class="mk-card"><h4>💡 স্মার্ট পরামর্শ</h4><div id="ov-tips"></div></div>
+  </section>
+
+  <!-- কুপন -->
+  <section id="s-co" hidden>
+    <div class="mk-card">
+      <h4 id="co-h">নতুন কুপন</h4>
+      <div class="mk-f">
+        <div><label>কুপন কোড *</label><div class="sp"><input class="mi" id="c_code" maxlength="20" placeholder="WELCOME15"><button class="cb sm" data-a="co-gen" type="button">🎲</button></div></div>
+        <div><label>ধরন</label><select class="mi" id="c_kind"><option value="percent">শতাংশ ছাড় (%)</option><option value="fixed">নির্দিষ্ট টাকা ছাড় (৳)</option><option value="shipping">ফ্রি ডেলিভারি</option></select></div>
+        <div><label>মান (% বা ৳)</label><input class="mi" id="c_val" type="number" min="0" placeholder="15"></div>
+        <div><label>ন্যূনতম অর্ডার (৳)</label><input class="mi" id="c_min" type="number" min="0" placeholder="0"></div>
+        <div><label>সর্বোচ্চ ছাড় (৳)</label><input class="mi" id="c_max" type="number" min="0" placeholder="ঐচ্ছিক"></div>
+        <div><label>মোট ব্যবহারের সীমা</label><input class="mi" id="c_lim" type="number" min="1" placeholder="ঐচ্ছিক"></div>
+        <div><label>শুরুর তারিখ</label><input class="mi" id="c_st" type="date"></div>
+        <div><label>শেষ তারিখ</label><input class="mi" id="c_en" type="date"></div>
+        <div class="w"><label>নোট</label><input class="mi" id="c_note" maxlength="120" placeholder="যেমন: ঈদ ক্যাম্পেইন"></div>
+      </div>
+      <button class="cb pr" data-a="co-save">সেভ করুন</button> <button class="cb" data-a="co-reset" id="co-x" hidden>বাতিল</button>
+    </div>
+    <div id="co-list"></div>
+  </section>
+
+  <!-- অফার -->
+  <section id="s-of" hidden>
+    <div class="mk-card">
+      <h4 id="of-h">নতুন অফার / সেল</h4>
+      <div class="mk-f">
+        <div class="w"><label>অফারের নাম *</label><input class="mi" id="o_title" maxlength="80" placeholder="যেমন: ঈদ ফ্ল্যাশ সেল"></div>
+        <div><label>ধরন</label><select class="mi" id="o_kind"><option>ফ্ল্যাশ সেল</option><option>সিজনাল সেল</option><option>বান্ডেল অফার</option><option>১ কিনলে ১ ফ্রি</option><option>ফ্রি ডেলিভারি</option><option>প্রি-অর্ডার</option></select></div>
+        <div><label>ছাড় (%)</label><input class="mi" id="o_disc" type="number" min="0" max="100" placeholder="20"></div>
+        <div><label>শুরু</label><input class="mi" id="o_st" type="date"></div>
+        <div><label>শেষ</label><input class="mi" id="o_en" type="date"></div>
+        <div class="w"><label>ব্যানারের লেখা</label><input class="mi" id="o_banner" maxlength="140" placeholder="যেমন: শুধু আজকের জন্য ২০% ছাড়!"></div>
+      </div>
+      <button class="cb pr" data-a="of-save">সেভ করুন</button> <button class="cb" data-a="of-reset" id="of-x" hidden>বাতিল</button>
+    </div>
+    <div id="of-list"></div>
+  </section>
+
+  <!-- ক্যাম্পেইন -->
+  <section id="s-ca" hidden>
+    <div class="mk-card">
+      <h4 id="ca-h">নতুন ক্যাম্পেইন</h4>
+      <div class="mk-f">
+        <div class="w"><label>নাম *</label><input class="mi" id="m_name" maxlength="80" placeholder="যেমন: ঈদ কালেকশন - Facebook Ads"></div>
+        <div><label>চ্যানেল</label><select class="mi" id="m_ch"><option>Facebook</option><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>Google Ads</option><option>WhatsApp</option><option>SMS</option><option>Influencer</option><option>অন্যান্য</option></select></div>
+        <div><label>বাজেট (৳)</label><input class="mi" id="m_bud" type="number" min="0"></div>
+        <div><label>এ পর্যন্ত খরচ (৳)</label><input class="mi" id="m_sp" type="number" min="0"></div>
+        <div><label>শুরু</label><input class="mi" id="m_st" type="date"></div>
+        <div><label>শেষ</label><input class="mi" id="m_en" type="date"></div>
+        <div><label>অবস্থা</label><select class="mi" id="m_status"><option value="planned">পরিকল্পনা</option><option value="running">চলছে</option><option value="paused">বিরতি</option><option value="done">শেষ</option></select></div>
+        <div><label>লক্ষ্য</label><input class="mi" id="m_goal" maxlength="80" placeholder="যেমন: ১০০ অর্ডার"></div>
+        <div><label>কুপন (ঐচ্ছিক)</label><select class="mi" id="m_coupon"></select></div>
+        <div class="w"><label>নোট</label><input class="mi" id="m_note" maxlength="160"></div>
+      </div>
+      <button class="cb pr" data-a="ca-save">সেভ করুন</button> <button class="cb" data-a="ca-reset" id="ca-x" hidden>বাতিল</button>
+    </div>
+    <div id="ca-list"></div>
+  </section>
+
+  <!-- সোশ্যাল -->
+  <section id="s-so" hidden>
+    <p class="sub" style="margin:0 0 6px">আপনার Facebook Page, Instagram, TikTok এর লিংক ও ফলোয়ার এখানে রাখুন। ফলোয়ার আপডেট করলে বৃদ্ধি নিজে হিসাব হবে।</p>
+    <div id="so-list"></div>
+  </section>
+
+  <!-- পোস্ট প্ল্যানার -->
+  <section id="s-po" hidden>
+    <div class="mk-card">
+      <h4>ক্যাপশন জেনারেটর</h4>
+      <p class="sub">প্রোডাক্টের তথ্য দিন, বাংলা ক্যাপশন ও হ্যাশট্যাগ তৈরি হবে।</p>
+      <div class="mk-f">
+        <div><label>পোস্টের ধরন</label><select class="mi" id="g_type"><option value="new">নতুন প্রোডাক্ট</option><option value="sale">ছাড় / সেল</option><option value="eid">উৎসব / ঈদ</option><option value="review">কাস্টমার রিভিউ</option><option value="stock">স্টক শেষ হচ্ছে</option></select></div>
+        <div><label>প্রোডাক্টের নাম</label><input class="mi" id="g_name" placeholder="যেমন: কটন পাঞ্জাবি"></div>
+        <div><label>দাম (৳)</label><input class="mi" id="g_price" type="number" min="0"></div>
+        <div><label>কুপন</label><select class="mi" id="g_cp"></select></div>
+      </div>
+      <button class="cb" data-a="po-gen">✨ ক্যাপশন বানান</button>
+    </div>
+    <div class="mk-card">
+      <h4 id="po-h">নতুন পোস্ট</h4>
+      <div class="mk-f">
+        <div class="w"><label>কোথায় পোস্ট হবে</label>
+          <div class="cx-row" style="margin:0" id="p_pl"></div></div>
+        <div class="w"><label>ক্যাপশন *</label><textarea class="mi" id="p_cap" rows="6" placeholder="ক্যাপশন লিখুন বা উপরে জেনারেট করুন"></textarea></div>
+        <div><label>কখন পোস্ট করবেন</label><input class="mi" id="p_when" type="datetime-local"></div>
+        <div><label>অবস্থা</label><select class="mi" id="p_status"><option value="draft">ড্রাফট</option><option value="scheduled">নির্ধারিত</option><option value="posted">পোস্ট হয়েছে</option></select></div>
+        <div class="w"><label>ছবি/ভিডিওর লিংক বা নোট</label><input class="mi" id="p_media" maxlength="200"></div>
+      </div>
+      <p class="sub">সাধারণত সন্ধ্যা ৮-১০টায় বেশি মানুষ অনলাইনে থাকে। নিজের পেজের Insights দেখে সময় ঠিক করুন।</p>
+      <button class="cb pr" data-a="po-save">সেভ করুন</button>
+    </div>
+    <div id="po-list"></div>
+  </section>
+
+  <!-- WhatsApp -->
+  <section id="s-wa" hidden>
+    <div class="mk-card">
+      <h4>WhatsApp ব্রডকাস্ট হেল্পার</h4>
+      <p class="sub">অর্ডার করা গ্রাহকদের তালিকা থেকে এক ক্লিকে WhatsApp এ মেসেজ পাঠান। মেসেজ আপনি নিজে "Send" চাপবেন।</p>
+      <div class="mk-f">
+        <div><label>কাদের কাছে</label><select class="mi" id="w_aud"><option value="inactive">নিষ্ক্রিয় (৩০+ দিন)</option><option value="all">সব গ্রাহক</option><option value="vip">VIP</option><option value="new">নতুন (১৪ দিন)</option><option value="once">একবারই কিনেছেন</option></select></div>
+        <div><label>কুপন</label><select class="mi" id="w_cp"></select></div>
+        <div class="w"><label>মেসেজ ({name}, {coupon}, {link} ব্যবহার করা যাবে)</label><textarea class="mi" id="w_msg" rows="4">আসসালামু আলাইকুম {name}, AABHA থেকে আপনার জন্য বিশেষ অফার! কুপন কোড {coupon} ব্যবহার করে ছাড় পান। অর্ডার করুন: {link}</textarea></div>
+      </div>
+      <div class="a" style="display:flex;gap:6px;flex-wrap:wrap"><button class="cb" data-a="wa-copy">📋 সব নম্বর কপি</button><button class="cb" data-a="wa-csv">⬇ CSV</button></div>
+      <p class="sub" id="w_cnt" style="margin-top:8px"></p>
+    </div>
+    <div id="wa-list"></div>
+  </section>
+
+  <!-- লিংক ও QR -->
+  <section id="s-lk" hidden>
+    <div class="mk-card">
+      <h4>ট্র্যাকিং লিংক ও QR কোড</h4>
+      <p class="sub">কোন লিংক থেকে কতজন এল তা বুঝতে UTM লিংক ব্যবহার করুন। পোস্ট বা বিজ্ঞাপনে এই লিংক দিন।</p>
+      <div class="mk-f">
+        <div class="w"><label>আপনার ওয়েবসাইটের লিংক</label><input class="mi" id="l_base"></div>
+        <div><label>সোর্স</label><select class="mi" id="l_src"><option>facebook</option><option>instagram</option><option>tiktok</option><option>youtube</option><option>whatsapp</option><option>sms</option><option>google</option></select></div>
+        <div><label>মিডিয়াম</label><select class="mi" id="l_med"><option>social</option><option>cpc</option><option>influencer</option><option>message</option><option>qr</option></select></div>
+        <div><label>ক্যাম্পেইনের নাম</label><input class="mi" id="l_cam" placeholder="eid_sale"></div>
+        <div><label>কুপন (ঐচ্ছিক)</label><select class="mi" id="l_cp"></select></div>
+      </div>
+      <button class="cb pr" data-a="lk-build">লিংক বানান</button>
+      <div id="l_out" style="margin-top:12px" hidden>
+        <textarea class="mi" id="l_url" rows="3" readonly></textarea>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="cb" data-a="lk-copy">📋 কপি</button><button class="cb" data-a="lk-qr">QR বানান</button><a class="cb" id="l_dl" hidden download="qr.png">⬇ QR সেভ</a></div>
+        <div id="qr"></div>
+      </div>
+    </div>
+    <div class="tip">নোট: UTM লিংক কতজন ঢুকল তা আপনার Google Analytics বা Meta Pixel এ দেখা যাবে। এই অ্যাডমিন প্যানেলে সরাসরি দেখাবে না।</div>
+  </section>
+
+  <!-- ক্যালেন্ডার -->
+  <section id="s-cal" hidden>
+    <p class="sub" style="margin:0 0 6px">আসন্ন সেল ও উৎসব। আগে থেকে ক্যাম্পেইন প্ল্যান করুন। ঈদ ও রোজার তারিখ চাঁদ দেখার উপর নির্ভর করে, তাই আনুমানিক।</p>
+    <div id="cal-list"></div>
+  </section>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc, M=A.money;
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const dl=v=>v?new Date(v).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'}):'—';
+const tl=v=>v?new Date(v).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+const loc=v=>{if(!v)return'';const d=new Date(v);return ymd(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes())};
+const num=v=>(v===''||v==null)?null:+v;
+const dStart=v=>v?new Date(v+'T00:00:00').toISOString():null;
+const dEnd=v=>v?new Date(v+'T23:59:59').toISOString():null;
+const waNo=p=>{p=String(p||'').replace(/\D/g,'');if(p.startsWith('0'))p='88'+p;return p};
+const DAY=864e5;
+const PL=[['facebook','Facebook Page','#1877f2'],['instagram','Instagram','#e1306c'],['tiktok','TikTok','#222'],['youtube','YouTube','#ff0000'],['whatsapp','WhatsApp Business','#25d366']];
+const PLN={};PL.forEach(p=>PLN[p[0]]=p);
+const STN={planned:'পরিকল্পনা',running:'চলছে',paused:'বিরতি',done:'শেষ'};
+const PST={draft:'ড্রাফট',scheduled:'নির্ধারিত',posted:'পোস্ট হয়েছে'};
+let CO=[],OF=[],CA=[],SO=[],LG=[],PO=[],OR=[],TAB='ov',ERR=false;
+let EDIT={co:null,of:null,ca:null};
+let WA=[];
+
+const EVENTS=[
+ ['2026-11-11','১১.১১ সেল','অনলাইন শপিংয়ের বড় দিন। ১ সপ্তাহ আগে টিজার দিন।'],
+ ['2026-11-27','Black Friday','বছরের বড় সেলগুলোর একটি।'],
+ ['2026-11-30','Cyber Monday','Black Friday এর ফলোআপ সেল।'],
+ ['2026-12-12','১২.১২ সেল','বছরের শেষের সেল।'],
+ ['2026-12-16','বিজয় দিবস','বিজয় দিবস স্পেশাল পোস্ট ও অফার।'],
+ ['2026-12-31','নতুন বছরের সেল','ইয়ার-এন্ড ক্লিয়ারেন্স।'],
+ ['2027-02-08','রমজান শুরু (আনুমানিক)','ঈদ কালেকশনের প্রচার শুরুর ভালো সময়।'],
+ ['2027-02-13','পহেলা ফাল্গুন','বাসন্তী রঙের কালেকশন।'],
+ ['2027-02-14','ভ্যালেন্টাইন্স ডে','কাপল ও গিফট অফার।'],
+ ['2027-02-21','আন্তর্জাতিক মাতৃভাষা দিবস','সাদা-কালো কালেকশন, স্পেশাল পোস্ট।'],
+ ['2027-03-10','ঈদুল ফিতর (আনুমানিক)','২-৩ সপ্তাহ আগে থেকে ক্যাম্পেইন চালান। সবচেয়ে বড় সিজন।'],
+ ['2027-03-26','স্বাধীনতা দিবস','স্বাধীনতা দিবস স্পেশাল।'],
+ ['2027-04-14','পহেলা বৈশাখ','লাল-সাদা কালেকশন, ২ সপ্তাহ আগে থেকে প্রচার।'],
+ ['2027-05-17','ঈদুল আযহা (আনুমানিক)','২ সপ্তাহ আগে থেকে ক্যাম্পেইন চালান।']
+];
+
+/* ---------- helpers ---------- */
+const hb=(rows,fmt)=>{const mx=Math.max(1,...rows.map(r=>r.v));return rows.length?rows.map(r=>`<div class="hb"><div class="hl"><span>${esc(r.l)}</span><b>${fmt(r.v)}</b></div><div class="ht"><i style="width:${Math.max(2,r.v/mx*100)}%;${r.c?'background:'+r.c:''}"></i></div></div>`).join(''):'<p class="sub">এখনো তথ্য নেই</p>'};
+async function save(tbl,obj,id){
+  const r=id?await sb.from(tbl).update(obj).eq('id',id):await sb.from(tbl).insert(obj);
+  if(r.error){A.toast('সেভ হয়নি: '+r.error.message);return false}
+  A.toast('সেভ হয়েছে');return true;
+}
+async function del(tbl,id){
+  if(!confirm('মুছে ফেলবেন?'))return;
+  const r=await sb.from(tbl).delete().eq('id',id);
+  if(r.error){A.toast('মোছা যায়নি: '+r.error.message);return}
+  A.toast('মুছে ফেলা হয়েছে');load();
+}
+function copy(t){
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>A.toast('কপি হয়েছে'),()=>A.toast('কপি হয়নি'));
+  else A.toast('কপি হয়নি');
+}
+function dl_csv(name,rows){
+  const t='﻿'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=name;a.click();
+}
+function couponOpts(sel){return '<option value="">— কুপন ছাড়া —</option>'+CO.filter(c=>cst(c)[1]==='on').map(c=>`<option value="${esc(c.code)}"${c.code===sel?' selected':''}>${esc(c.code)}</option>`).join('')}
+function cst(c){
+  const n=Date.now();
+  if(!c.active)return['বন্ধ','off'];
+  if(c.ends_at&&new Date(c.ends_at)<n)return['মেয়াদ শেষ','exp'];
+  if(c.starts_at&&new Date(c.starts_at)>n)return['আসছে','soon'];
+  if(c.usage_limit!=null&&c.used_count>=c.usage_limit)return['শেষ','exp'];
+  return['সক্রিয়','on'];
+}
+const cdesc=c=>c.kind==='percent'?c.value+'% ছাড়':c.kind==='fixed'?M(c.value)+' ছাড়':'ফ্রি ডেলিভারি';
+const base=()=>{const b=$('l_base').value.trim();return b||'';};
+
+/* ---------- load ---------- */
+async function load(){
+  const q=t=>sb.from(t).select('*').order('created_at',{ascending:false});
+  const rs=await Promise.all([q('mk_coupons'),q('mk_offers'),q('mk_campaigns'),sb.from('mk_social').select('*'),sb.from('mk_social_log').select('*').order('created_at',{ascending:true}),sb.from('mk_posts').select('*').order('scheduled_at',{ascending:true,nullsFirst:false}),
+    sb.from('orders').select('id,total,status,created_at,phone,customer_name,user_id').order('created_at',{ascending:false}).limit(3000)]);
+  ERR=rs.slice(0,6).some(r=>r.error);
+  $('note').innerHTML=ERR?'<div class="note">কিছু টেবিল এখনো তৈরি হয়নি। Supabase → SQL Editor এ Marketing এর SQL একবার Run করুন। ('+esc((rs.find(r=>r.error)||{error:{message:''}}).error.message)+')</div>':'';
+  CO=rs[0].data||[];OF=rs[1].data||[];CA=rs[2].data||[];SO=rs[3].data||[];LG=rs[4].data||[];PO=rs[5].data||[];OR=rs[6].data||[];
+  paint();
+}
+function paint(){rOv();rCo();rOf();rCa();rSo();rPo();rWa();rCal();fillSel()}
+function fillSel(){
+  [['m_coupon'],['g_cp'],['w_cp'],['l_cp']].forEach(([id])=>{const e=$(id),v=e.value;e.innerHTML=couponOpts(v)});
+}
+
+/* ---------- campaign metrics ---------- */
+function met(c){
+  const from=c.starts_on?new Date(c.starts_on+'T00:00:00'):null;
+  const to=c.ends_on?new Date(c.ends_on+'T23:59:59'):new Date();
+  const os=from?OR.filter(o=>o.status!=='cancelled'&&new Date(o.created_at)>=from&&new Date(o.created_at)<=to):[];
+  const rev=os.reduce((s,o)=>s+(+o.total||0),0),sp=+c.spend||0;
+  return{n:os.length,rev,roas:sp>0?rev/sp:0,cpo:os.length&&sp?sp/os.length:0};
+}
+
+/* ---------- overview ---------- */
+function rOv(){
+  const act=CO.filter(c=>cst(c)[1]==='on').length;
+  const now=Date.now();
+  const ofa=OF.filter(o=>o.active&&(!o.starts_at||new Date(o.starts_at)<=now)&&(!o.ends_at||new Date(o.ends_at)>=now)).length;
+  const run=CA.filter(c=>c.status==='running').length;
+  const spend=CA.reduce((s,c)=>s+(+c.spend||0),0);
+  const fol=SO.reduce((s,x)=>s+(+x.followers||0),0);
+  const up=PO.filter(p=>p.status!=='posted'&&p.scheduled_at&&new Date(p.scheduled_at)>=now).length;
+  $('ov-st').innerHTML=[['সক্রিয় কুপন',act],['চলমান অফার',ofa],['চলমান ক্যাম্পেইন',run],['মোট বিজ্ঞাপন খরচ',M(spend)],['মোট ফলোয়ার',fol.toLocaleString('en-US')],['আসন্ন পোস্ট',up]].map(x=>`<div><small>${x[0]}</small><b>${x[1]}</b></div>`).join('');
+  const top=CA.slice().sort((a,b)=>(+b.spend||0)-(+a.spend||0)).slice(0,5);
+  $('ov-ca').innerHTML=top.length?top.map(c=>{const m=met(c);return`<div class="hb"><div class="hl"><span>${esc(c.name)}</span><b>${m.roas?m.roas.toFixed(1)+'× ROAS':'—'}</b></div><div class="ht"><i style="width:${Math.min(100,m.rev&&c.spend?m.rev/Math.max(m.rev,+c.spend)*100:5)}%"></i></div><div class="sub">খরচ ${M(c.spend)} · বিক্রি ${M(m.rev)}</div></div>`}).join(''):'<p class="sub">এখনো কোনো ক্যাম্পেইন নেই।</p>';
+  $('ov-fo').innerHTML=hb(SO.filter(s=>+s.followers>0).map(s=>({l:(PLN[s.platform]||[0,s.platform])[1],v:+s.followers,c:(PLN[s.platform]||[0,0,'#b8715a'])[2]})),v=>v.toLocaleString('en-US'));
+  const tips=[];
+  CO.forEach(c=>{if(cst(c)[1]==='on'&&c.ends_at){const d=(new Date(c.ends_at)-now)/DAY;if(d<=3&&d>=0)tips.push('কুপন <b>'+esc(c.code)+'</b> '+Math.ceil(d)+' দিনের মধ্যে শেষ হচ্ছে।')}if(cst(c)[1]==='on'&&c.usage_limit&&c.used_count/c.usage_limit>=.8)tips.push('কুপন <b>'+esc(c.code)+'</b> এর ৮০% ব্যবহার হয়ে গেছে।')});
+  CA.forEach(c=>{if(c.status==='running'&&!(+c.spend>0))tips.push('ক্যাম্পেইন <b>'+esc(c.name)+'</b> এ খরচ লেখা হয়নি, ROAS দেখতে খরচ আপডেট করুন।');const m=met(c);if(c.status==='running'&&m.roas&&m.roas<1)tips.push('ক্যাম্পেইন <b>'+esc(c.name)+'</b> এর ROAS ১ এর কম, খরচের চেয়ে বিক্রি কম।')});
+  if(!PO.some(p=>p.status!=='posted'&&p.scheduled_at&&new Date(p.scheduled_at)>=now&&new Date(p.scheduled_at)<=now+7*DAY))tips.push('আগামী ৭ দিনে কোনো পোস্ট প্ল্যান করা নেই। পোস্ট প্ল্যানার এ পোস্ট যোগ করুন।');
+  const ev=EVENTS.find(e=>new Date(e[0]+'T00:00:00')>=now);
+  if(ev){const d=Math.ceil((new Date(ev[0]+'T00:00:00')-now)/DAY);if(d<=30)tips.push('<b>'+esc(ev[1])+'</b> আসছে ('+d+' দিন বাকি)। ক্যালেন্ডার থেকে ক্যাম্পেইন প্ল্যান করুন।')}
+  if(!CO.length)tips.push('এখনো কোনো কুপন নেই। প্রথম অর্ডারের জন্য WELCOME কুপন বানাতে পারেন।');
+  $('ov-tips').innerHTML=tips.length?tips.map(t=>`<div class="tip">${t}</div>`).join(''):'<p class="sub">এখন কোনো পরামর্শ নেই। সব ঠিক আছে।</p>';
+}
+
+/* ---------- coupons ---------- */
+function rCo(){
+  $('co-list').innerHTML=CO.length?CO.map(c=>{const s=cst(c);return`<div class="mk-i"><div class="t"><b>${esc(c.code)}</b><span class="pill ${s[1]}">${s[0]}</span></div>
+  <div class="m">${cdesc(c)}${c.min_order>0?' · ন্যূনতম '+M(c.min_order):''}${c.max_discount?' · সর্বোচ্চ '+M(c.max_discount):''}<br>ব্যবহার: ${c.used_count||0}${c.usage_limit?' / '+c.usage_limit:''} · ${dl(c.starts_at)} থেকে ${dl(c.ends_at)}${c.note?'<br>'+esc(c.note):''}</div>
+  <div class="a"><button class="cb sm" data-a="co-copy" data-id="${esc(c.code)}">কপি</button><button class="cb sm" data-a="co-edit" data-id="${c.id}">এডিট</button><button class="cb sm" data-a="co-tog" data-id="${c.id}">${c.active?'বন্ধ করুন':'চালু করুন'}</button><button class="cb sm red" data-a="co-del" data-id="${c.id}">মুছুন</button></div></div>`}).join(''):'<p class="sub">এখনো কোনো কুপন নেই।</p>';
+}
+function coReset(){EDIT.co=null;['c_code','c_val','c_min','c_max','c_lim','c_st','c_en','c_note'].forEach(i=>$(i).value='');$('c_kind').value='percent';$('co-h').textContent='নতুন কুপন';$('co-x').hidden=true}
+
+/* ---------- offers ---------- */
+function rOf(){
+  const now=Date.now();
+  $('of-list').innerHTML=OF.length?OF.map(o=>{let s=['চালু','on'];if(!o.active)s=['বন্ধ','off'];else if(o.ends_at&&new Date(o.ends_at)<now)s=['শেষ','exp'];else if(o.starts_at&&new Date(o.starts_at)>now)s=['আসছে','soon'];
+   return`<div class="mk-i"><div class="t"><b>${esc(o.title)}</b><span class="pill ${s[1]}">${s[0]}</span></div>
+  <div class="m">${esc(o.kind||'')}${o.discount?' · '+o.discount+'% ছাড়':''} · ${dl(o.starts_at)} থেকে ${dl(o.ends_at)}${o.banner?'<br>“'+esc(o.banner)+'”':''}</div>
+  <div class="a">${o.banner?`<button class="cb sm" data-a="of-copy" data-id="${o.id}">ব্যানার কপি</button>`:''}<button class="cb sm" data-a="of-edit" data-id="${o.id}">এডিট</button><button class="cb sm" data-a="of-tog" data-id="${o.id}">${o.active?'বন্ধ করুন':'চালু করুন'}</button><button class="cb sm red" data-a="of-del" data-id="${o.id}">মুছুন</button></div></div>`}).join(''):'<p class="sub">এখনো কোনো অফার নেই।</p>';
+}
+function ofReset(){EDIT.of=null;['o_title','o_disc','o_st','o_en','o_banner'].forEach(i=>$(i).value='');$('of-h').textContent='নতুন অফার / সেল';$('of-x').hidden=true}
+
+/* ---------- campaigns ---------- */
+function rCa(){
+  $('ca-list').innerHTML=CA.length?CA.map(c=>{const m=met(c),left=(+c.budget||0)-(+c.spend||0);return`<div class="mk-i"><div class="t"><b>${esc(c.name)}</b><span class="pill ${c.status==='running'?'on':c.status==='done'?'off':c.status==='paused'?'soon':''}">${STN[c.status]||c.status}</span></div>
+  <div class="m">${esc(c.channel||'')} · ${dl(c.starts_on)} থেকে ${dl(c.ends_on)}${c.goal?' · লক্ষ্য: '+esc(c.goal):''}${c.coupon_code?' · কুপন: '+esc(c.coupon_code):''}<br>
+  বাজেট ${M(c.budget)} · খরচ ${M(c.spend)}${+c.budget>0?' · বাকি '+M(left):''}<br>
+  চলাকালীন বিক্রি <b>${M(m.rev)}</b> (${m.n} অর্ডার)${m.roas?' · ROAS <b>'+m.roas.toFixed(2)+'×</b>':''}${m.cpo?' · প্রতি অর্ডারে খরচ '+M(Math.round(m.cpo)):''}${c.note?'<br>'+esc(c.note):''}</div>
+  <div class="a"><select class="mi" style="width:auto;padding:5px 8px;font-size:12px" data-a="ca-status" data-id="${c.id}">${Object.keys(STN).map(k=>`<option value="${k}"${k===c.status?' selected':''}>${STN[k]}</option>`).join('')}</select><button class="cb sm" data-a="ca-edit" data-id="${c.id}">এডিট</button><button class="cb sm red" data-a="ca-del" data-id="${c.id}">মুছুন</button></div></div>`}).join('')+'<p class="sub" style="margin-top:10px">ROAS = চলাকালীন মোট বিক্রি ÷ খরচ। এটি সব সোর্সের বিক্রি মিলিয়ে, শুধু এই ক্যাম্পেইনের না।</p>':'<p class="sub">এখনো কোনো ক্যাম্পেইন নেই।</p>';
+}
+function caReset(){EDIT.ca=null;['m_name','m_bud','m_sp','m_st','m_en','m_goal','m_note'].forEach(i=>$(i).value='');$('m_status').value='planned';$('m_ch').selectedIndex=0;$('m_coupon').value='';$('ca-h').textContent='নতুন ক্যাম্পেইন';$('ca-x').hidden=true}
+
+/* ---------- social ---------- */
+function rSo(){
+  const S={};SO.forEach(s=>S[s.platform]=s);
+  $('so-list').innerHTML=PL.map(p=>{
+    const s=S[p[0]]||{},logs=LG.filter(l=>l.platform===p[0]);
+    let gr='';
+    if(logs.length>=2){const cut=Date.now()-30*DAY,old=logs.find(l=>new Date(l.created_at)>=cut)||logs[0],d=(+s.followers||0)-(+old.followers||0);gr=`<br>বৃদ্ধি: <b style="color:${d>=0?'#2f855a':'#b83b4a'}">${d>=0?'+':''}${d}</b> (${dl(old.created_at)} থেকে)`}
+    return`<div class="mk-card"><div class="sp"><span class="dot" style="background:${p[2]}"></span><h4 style="margin:0">${p[1]}</h4></div>
+    <div class="mk-f"><div class="w"><label>পেজ / প্রোফাইল লিংক</label><input class="mi" id="so-u-${p[0]}" value="${esc(s.url||'')}" placeholder="https://"></div>
+    <div><label>ইউজারনেম / পেজের নাম</label><input class="mi" id="so-h-${p[0]}" value="${esc(s.handle||'')}"></div>
+    <div><label>বর্তমান ফলোয়ার</label><input class="mi" id="so-f-${p[0]}" type="number" min="0" value="${s.followers||''}"></div></div>
+    <p class="sub">${s.updated_at?'সর্বশেষ আপডেট: '+tl(s.updated_at):'এখনো সেভ করা হয়নি'}${gr}</p>
+    <div class="a" style="display:flex;gap:6px;margin-top:8px"><button class="cb pr sm" data-a="so-save" data-id="${p[0]}">সেভ</button>${s.url?`<a class="cb sm" target="_blank" rel="noopener" href="${esc(s.url)}">খুলুন ↗</a>`:''}</div></div>`}).join('');
+}
+
+/* ---------- posts ---------- */
+function rPo(){
+  if(!$('p_pl').children.length)$('p_pl').innerHTML=PL.slice(0,4).map(p=>`<label class="cb" style="display:flex;gap:6px;align-items:center"><input type="checkbox" class="p-pl" value="${p[0]}"> ${p[1]}</label>`).join('');
+  $('po-list').innerHTML=PO.length?PO.map(p=>`<div class="mk-i"><div class="t"><b>${(p.platforms||[]).map(x=>esc((PLN[x]||[0,x])[1])).join(', ')||'প্ল্যাটফর্ম নেই'}</b><span class="pill ${p.status==='posted'?'on':p.status==='scheduled'?'soon':'off'}">${PST[p.status]||p.status}</span></div>
+  <div class="m">${p.scheduled_at?'🕒 '+tl(p.scheduled_at):'সময় ঠিক হয়নি'}${p.media?' · 📎 '+esc(p.media):''}</div>
+  <div style="white-space:pre-wrap;font-size:13px;margin-bottom:8px">${esc(p.caption)}</div>
+  <div class="a"><button class="cb sm" data-a="po-copy" data-id="${p.id}">কপি</button>${p.status!=='posted'?`<button class="cb sm" data-a="po-done" data-id="${p.id}">✓ পোস্ট হয়েছে</button>`:''}<button class="cb sm red" data-a="po-del" data-id="${p.id}">মুছুন</button></div></div>`).join(''):'<p class="sub">এখনো কোনো পোস্ট নেই।</p>';
+}
+function genCaption(){
+  const t=$('g_type').value,n=$('g_name').value.trim()||'আমাদের নতুন প্রোডাক্ট',pr=+$('g_price').value,cp=$('g_cp').value;
+  const price=pr?`\n💰 মাত্র ${M(pr)}`:'',code=cp?`\n🎟️ কুপন কোড: ${cp}`:'';
+  const tail='\n\n📦 সারা বাংলাদেশে হোম ডেলিভারি\n🛒 অর্ডার করতে ইনবক্স করুন বা ওয়েবসাইটে যান';
+  const T={
+   new:`✨ নতুন এসেছে! ✨\n\n${n}${price}${code}${tail}\n\n#AABHA #নতুনকালেকশন #OnlineShopBD #FashionBD`,
+   sale:`🔥 বিশেষ ছাড়! 🔥\n\n${n}${price}${code}\n\n⏳ অফার সীমিত সময়ের জন্য${tail}\n\n#AABHA #Sale #Offer #OnlineShopBD`,
+   eid:`🌙 উৎসবের আনন্দ হোক আরও রঙিন! 🌙\n\n${n}${price}${code}${tail}\n\n#AABHA #EidCollection #FestiveWear #FashionBD`,
+   review:`💛 আমাদের কাস্টমারদের ভালোবাসা 💛\n\n"${n}" নিয়ে আমাদের গ্রাহকরা খুশি।\n(এখানে কাস্টমারের রিভিউ বা স্ক্রিনশট দিন)${code}${tail}\n\n#AABHA #CustomerReview #HappyCustomer #BangladeshFashion`,
+   stock:`⚡ স্টক শেষ হওয়ার আগেই নিয়ে নিন! ⚡\n\n${n}${price}${code}\n\n⚠️ খুব অল্প স্টক বাকি${tail}\n\n#AABHA #LimitedStock #OnlineShopBD #FashionBD`
+  };
+  $('p_cap').value=T[t];A.toast('ক্যাপশন তৈরি হয়েছে, এডিট করে নিন');
+}
+
+/* ---------- WhatsApp ---------- */
+function buyers(){
+  const M2={},now=Date.now();
+  OR.forEach(o=>{if(o.status==='cancelled'||!o.phone)return;const k=waNo(o.phone);const c=M2[k]||(M2[k]={name:o.customer_name||'গ্রাহক',phone:o.phone,n:0,spent:0,last:o.created_at,first:o.created_at});c.n++;c.spent+=+o.total||0;if(o.created_at>c.last)c.last=o.created_at;if(o.created_at<c.first)c.first=o.created_at});
+  return Object.values(M2).map(c=>{c.idle=(now-new Date(c.last))/DAY;c.age=(now-new Date(c.first))/DAY;return c});
+}
+function rWa(){
+  const a=$('w_aud').value,all=buyers();
+  let L=all;
+  if(a==='inactive')L=all.filter(c=>c.idle>30);
+  else if(a==='vip')L=all.filter(c=>c.n>=5||c.spent>=20000);
+  else if(a==='new')L=all.filter(c=>c.age<=14);
+  else if(a==='once')L=all.filter(c=>c.n===1);
+  WA=L;
+  $('w_cnt').textContent=L.length+' জন গ্রাহক';
+  const cp=$('w_cp').value,link=base()||location.origin;
+  const msg=c=>$('w_msg').value.replace(/\{name\}/g,c.name).replace(/\{coupon\}/g,cp||'').replace(/\{link\}/g,link);
+  $('wa-list').innerHTML=L.length?L.slice(0,200).map(c=>`<div class="mk-i"><div class="t"><b>${esc(c.name)}</b><a class="cb sm pr" target="_blank" rel="noopener" href="https://wa.me/${waNo(c.phone)}?text=${encodeURIComponent(msg(c))}">WhatsApp এ পাঠান</a></div><div class="m">${esc(c.phone)} · ${c.n} অর্ডার · ${M(c.spent)} · শেষ অর্ডার ${dl(c.last)}</div></div>`).join(''):'<p class="sub">এই গ্রুপে কেউ নেই।</p>';
+}
+
+/* ---------- calendar ---------- */
+function rCal(){
+  const now=new Date(ymd(new Date())+'T00:00:00');
+  const L=EVENTS.filter(e=>new Date(e[0]+'T00:00:00')>=now);
+  $('cal-list').innerHTML=L.map((e,i)=>{const d=Math.round((new Date(e[0]+'T00:00:00')-now)/DAY);return`<div class="mk-i"><div class="t"><b>${esc(e[1])}</b><span class="pill ${d<=14?'soon':'off'}">${d===0?'আজ':d+' দিন বাকি'}</span></div><div class="m">${dl(e[0])} · ${esc(e[2])}</div><div class="a"><button class="cb sm" data-a="cal-plan" data-id="${EVENTS.indexOf(e)}">ক্যাম্পেইন প্ল্যান করুন</button></div></div>`}).join('')||'<p class="sub">কোনো আসন্ন ইভেন্ট নেই।</p>';
+}
+
+/* ---------- tabs ---------- */
+function setTab(t){
+  TAB=t;['ov','co','of','ca','so','po','wa','lk','cal'].forEach(k=>$('s-'+k).hidden=k!==t);
+  document.querySelectorAll('#tabs .cb').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  if(t==='wa')rWa();
+}
+
+/* ---------- actions ---------- */
+async function act(b){
+  const a=b.dataset.a,id=b.dataset.id;
+  if(a==='co-gen'){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<7;i++)s+=c[Math.floor(Math.random()*c.length)];$('c_code').value=s;return}
+  if(a==='co-reset')return coReset();
+  if(a==='co-save'){
+    const code=$('c_code').value.trim().toUpperCase().replace(/\s+/g,''),kind=$('c_kind').value,val=+$('c_val').value||0;
+    if(!code){A.toast('কুপন কোড লিখুন');return}
+    if(kind!=='shipping'&&!(val>0)){A.toast('ছাড়ের মান দিন');return}
+    if(kind==='percent'&&val>100){A.toast('শতাংশ ১০০ এর বেশি হতে পারে না');return}
+    const o={code,kind,value:kind==='shipping'?0:val,min_order:+$('c_min').value||0,max_discount:num($('c_max').value),usage_limit:num($('c_lim').value),starts_at:dStart($('c_st').value),ends_at:dEnd($('c_en').value),note:$('c_note').value.trim()};
+    if(!EDIT.co)o.active=true;
+    if(await save('mk_coupons',o,EDIT.co)){coReset();load()}return;
+  }
+  if(a==='co-edit'){const c=CO.find(x=>String(x.id)===id);if(!c)return;EDIT.co=c.id;$('c_code').value=c.code;$('c_kind').value=c.kind;$('c_val').value=c.value||'';$('c_min').value=c.min_order||'';$('c_max').value=c.max_discount||'';$('c_lim').value=c.usage_limit||'';$('c_st').value=c.starts_at?ymd(new Date(c.starts_at)):'';$('c_en').value=c.ends_at?ymd(new Date(c.ends_at)):'';$('c_note').value=c.note||'';$('co-h').textContent='কুপন এডিট';$('co-x').hidden=false;scrollTo(0,0);return}
+  if(a==='co-tog'){const c=CO.find(x=>String(x.id)===id);if(c&&await save('mk_coupons',{active:!c.active},c.id))load();return}
+  if(a==='co-del')return del('mk_coupons',id);
+  if(a==='co-copy')return copy(id);
+
+  if(a==='of-reset')return ofReset();
+  if(a==='of-save'){
+    const t=$('o_title').value.trim();if(!t){A.toast('অফারের নাম লিখুন');return}
+    const o={title:t,kind:$('o_kind').value,discount:num($('o_disc').value),starts_at:dStart($('o_st').value),ends_at:dEnd($('o_en').value),banner:$('o_banner').value.trim()};
+    if(!EDIT.of)o.active=true;
+    if(await save('mk_offers',o,EDIT.of)){ofReset();load()}return;
+  }
+  if(a==='of-edit'){const o=OF.find(x=>String(x.id)===id);if(!o)return;EDIT.of=o.id;$('o_title').value=o.title;$('o_kind').value=o.kind||'ফ্ল্যাশ সেল';$('o_disc').value=o.discount||'';$('o_st').value=o.starts_at?ymd(new Date(o.starts_at)):'';$('o_en').value=o.ends_at?ymd(new Date(o.ends_at)):'';$('o_banner').value=o.banner||'';$('of-h').textContent='অফার এডিট';$('of-x').hidden=false;scrollTo(0,0);return}
+  if(a==='of-tog'){const o=OF.find(x=>String(x.id)===id);if(o&&await save('mk_offers',{active:!o.active},o.id))load();return}
+  if(a==='of-del')return del('mk_offers',id);
+  if(a==='of-copy'){const o=OF.find(x=>String(x.id)===id);if(o)copy(o.banner);return}
+
+  if(a==='ca-reset')return caReset();
+  if(a==='ca-save'){
+    const n=$('m_name').value.trim();if(!n){A.toast('ক্যাম্পেইনের নাম লিখুন');return}
+    const o={name:n,channel:$('m_ch').value,budget:+$('m_bud').value||0,spend:+$('m_sp').value||0,starts_on:$('m_st').value||null,ends_on:$('m_en').value||null,status:$('m_status').value,goal:$('m_goal').value.trim(),coupon_code:$('m_coupon').value||null,note:$('m_note').value.trim()};
+    if(await save('mk_campaigns',o,EDIT.ca)){caReset();load()}return;
+  }
+  if(a==='ca-edit'){const c=CA.find(x=>String(x.id)===id);if(!c)return;EDIT.ca=c.id;$('m_name').value=c.name;$('m_ch').value=c.channel||'Facebook';$('m_bud').value=c.budget||'';$('m_sp').value=c.spend||'';$('m_st').value=c.starts_on||'';$('m_en').value=c.ends_on||'';$('m_status').value=c.status||'planned';$('m_goal').value=c.goal||'';$('m_coupon').value=c.coupon_code||'';$('m_note').value=c.note||'';$('ca-h').textContent='ক্যাম্পেইন এডিট';$('ca-x').hidden=false;scrollTo(0,0);return}
+  if(a==='ca-del')return del('mk_campaigns',id);
+
+  if(a==='so-save'){
+    const f=num($('so-f-'+id).value),old=SO.find(s=>s.platform===id);
+    const r=await sb.from('mk_social').upsert({platform:id,url:$('so-u-'+id).value.trim(),handle:$('so-h-'+id).value.trim(),followers:f||0,updated_at:new Date().toISOString()},{onConflict:'platform'});
+    if(r.error){A.toast('সেভ হয়নি: '+r.error.message);return}
+    if(f!=null&&(!old||+old.followers!==f))await sb.from('mk_social_log').insert({platform:id,followers:f});
+    A.toast('সেভ হয়েছে');load();return;
+  }
+
+  if(a==='po-gen')return genCaption();
+  if(a==='po-save'){
+    const cap=$('p_cap').value.trim(),pl=[...document.querySelectorAll('.p-pl:checked')].map(x=>x.value);
+    if(!cap){A.toast('ক্যাপশন লিখুন');return}
+    if(!pl.length){A.toast('অন্তত একটি প্ল্যাটফর্ম বাছুন');return}
+    const w=$('p_when').value;
+    if(await save('mk_posts',{platforms:pl,caption:cap,scheduled_at:w?new Date(w).toISOString():null,status:$('p_status').value,media:$('p_media').value.trim()})){$('p_cap').value='';$('p_media').value='';$('p_when').value='';document.querySelectorAll('.p-pl').forEach(x=>x.checked=false);load()}return;
+  }
+  if(a==='po-done'){if(await save('mk_posts',{status:'posted'},id))load();return}
+  if(a==='po-del')return del('mk_posts',id);
+  if(a==='po-copy'){const p=PO.find(x=>String(x.id)===id);if(p)copy(p.caption);return}
+
+  if(a==='wa-copy'){if(!WA.length){A.toast('কেউ নেই');return}copy(WA.map(c=>c.phone).join('\n'));return}
+  if(a==='wa-csv'){if(!WA.length){A.toast('কেউ নেই');return}dl_csv('whatsapp-list.csv',[['নাম','ফোন','অর্ডার','মোট কেনা']].concat(WA.map(c=>[c.name,c.phone,c.n,c.spent])));return}
+
+  if(a==='lk-build'){
+    const b=base();if(!b){A.toast('ওয়েবসাইটের লিংক দিন');return}
+    const p=new URLSearchParams();p.set('utm_source',$('l_src').value);p.set('utm_medium',$('l_med').value);
+    const c=$('l_cam').value.trim();if(c)p.set('utm_campaign',c);
+    const cp=$('l_cp').value;if(cp)p.set('coupon',cp);
+    $('l_url').value=b+(b.includes('?')?'&':'?')+p.toString();$('l_out').hidden=false;$('qr').innerHTML='';$('l_dl').hidden=true;return;
+  }
+  if(a==='lk-copy')return copy($('l_url').value);
+  if(a==='lk-qr'){
+    const url=$('l_url').value;if(!url)return;
+    const draw=()=>{$('qr').innerHTML='';try{new QRCode($('qr'),{text:url,width:200,height:200});setTimeout(()=>{const cv=$('qr').querySelector('canvas');if(cv){$('l_dl').href=cv.toDataURL('image/png');$('l_dl').hidden=false}},200)}catch(e){A.toast('QR বানানো যায়নি')}};
+    if(window.QRCode)draw();else{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';s.onload=draw;s.onerror=()=>A.toast('QR লাইব্রেরি লোড হয়নি');document.head.appendChild(s)}
+    return;
+  }
+
+  if(a==='cal-plan'){
+    const e=EVENTS[+id],d=new Date(e[0]+'T00:00:00'),lead=/ঈদ|রমজান|বৈশাখ/.test(e[1])?14:7;
+    caReset();$('m_name').value=e[1]+' ক্যাম্পেইন';$('m_st').value=ymd(new Date(d-lead*DAY));$('m_en').value=e[0];$('m_status').value='planned';setTab('ca');scrollTo(0,0);return;
+  }
+}
+
+Admin.boot({key:'marketing',title:'Marketing',perm:'reports',ready:async()=>{
+  A.onRefresh=load;
+  let b=location.href.split('#')[0].split('?')[0];b=b.replace(/\/admin\/[^\/]*$/,'/').replace(/\/[^\/]*\.html$/,'/');
+  $('l_base').value=b;
+  $('tabs').onclick=e=>{const x=e.target.closest('[data-t]');if(x)setTab(x.dataset.t)};
+  $('page').addEventListener('click',e=>{const x=e.target.closest('[data-a]');if(!x||x.tagName==='SELECT')return;act(x)});
+  $('page').addEventListener('change',async e=>{
+    const x=e.target;
+    if(x.dataset.a==='ca-status'){if(await save('mk_campaigns',{status:x.value},x.dataset.id))load()}
+    if(x.id==='w_aud'||x.id==='w_cp')rWa();
+  });
+  $('w_msg').addEventListener('input',rWa);
+  $('l_base').addEventListener('input',()=>{});
+  await load();
+}});
+</script>
+</body>
+</html>
