@@ -98,7 +98,7 @@ const SEGN={vip:'VIP',new:'নতুন',regular:'নিয়মিত',inactiv
 let CUS=[], OBY={}, NOTE={}, SUP=[], seg='all', q='', tab='cus', TH=null, OTARGET=null, SUPERR=false;
 
 const wa=p=>{p=String(p||'').replace(/\D/g,'');if(p.startsWith('0'))p='88'+p;return p};
-const top=(o,n)=>Object.entries(o||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);
+const topN=(o,n)=>Object.entries(o||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);
 const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()};
 const dshort=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 
@@ -119,7 +119,7 @@ async function load(){
   });
   items.forEach(it=>{
     const x=OBY[it.order_id];if(!x)return;const c=M[x.user_id||('p:'+x.phone)];if(!c)return;
-    const q=+it.qty||1;c.items[it.name]=(c.items[it.name]||0)+q;if(it.size)c.sizes[it.size]=(c.sizes[it.size]||0)+q;
+    const qt=+it.qty||1;c.items[it.name]=(c.items[it.name]||0)+qt;if(it.size)c.sizes[it.size]=(c.sizes[it.size]||0)+qt;
   });
   CUS=Object.values(M).map(c=>{
     const age=(now-new Date(c.first))/DAY,idle=(now-new Date(c.last))/DAY;
@@ -141,7 +141,7 @@ function paint(){
 
 function openCus(key){
   const c=CUS.find(x=>x.key===key);if(!c)return;
-  const fav=top(c.items,3),sz=top(c.sizes,1)[0];
+  const fav=topN(c.items,3),sz=topN(c.sizes,1)[0];
   $('dr').innerHTML=`<button class="cb" data-x="1">✕ বন্ধ করুন</button>
   <div style="display:flex;gap:12px;align-items:center;margin:14px 0"><div class="cr-av" style="width:56px;height:56px;font-size:1.4rem">${esc((c.name||'?').trim().charAt(0).toUpperCase())}</div><div><h2 style="margin:0">${esc(c.name)}</h2><span class="cr-p ${c.seg}">${SEGN[c.seg]}</span></div></div>
   <div class="cr-row"><a class="cb pr" href="tel:${esc(c.phone)}">📞 কল</a><a class="cb" target="_blank" rel="noopener" href="https://wa.me/${wa(c.phone)}">WhatsApp</a>${c.uid?`<button class="cb" data-chat="${esc(c.uid)}">💬 চ্যাট</button><button class="cb" data-offer="${esc(c.uid)}">🎁 অফার</button>`:''}</div>
