@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Finance & Accounting</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.gx{display:grid;grid-template-columns:1fr 1.7fr;gap:18px;align-items:start}
+.gx .panel{margin:0}
+.gx>div{display:grid;gap:18px;min-width:0}
+@media(max-width:900px){.gx{grid-template-columns:1fr}}
+.bk{margin-bottom:14px}
+.bkh{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.bkb{height:6px;border-radius:6px;background:rgba(0,0,0,.08);overflow:hidden}
+.bkb i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.fx-ctl{display:flex;gap:8px;flex-wrap:wrap;padding:14px 24px;align-items:center}
+.fx-ctl .in{max-width:170px}
+.fx-d{display:block;font-size:11px;margin-top:3px}
+.fx-up{color:#2f855a}.fx-dn{color:#b83b4a}
+.fx-ch{display:flex;gap:3px;align-items:flex-end;height:150px;padding:18px 24px 6px}
+.fx-ch>div{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.fx-ch .pr{display:flex;gap:2px;align-items:flex-end;width:100%;height:100%}
+.fx-ch .pr i{flex:1;border-radius:3px 3px 0 0;min-height:2px}
+.fx-ch .a{background:#2f855a}.fx-ch .b{background:#b8715a}
+.fx-ch span{font-size:9px;margin-top:4px;opacity:.7}
+.fx-lg{display:flex;gap:16px;padding:0 24px 16px;font-size:12px}
+.fx-lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.fx-st{padding:6px 24px 18px}
+.fx-st div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed rgba(0,0,0,.12);font-size:14px}
+.fx-st .h{font-weight:800;border-bottom:0;padding-top:14px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.fx-st .t{font-weight:800;border-bottom:2px solid rgba(0,0,0,.25)}
+.fx-st .big{font-size:16px;font-weight:800;border-bottom:0}
+.pos{color:#2f855a}.neg{color:#b83b4a}
+.fx-note{padding:0 24px 16px;font-size:12px;opacity:.7}
+</style>
+</head>
+<body>
+<div id="page">
+
+  <section class="panel" style="margin-bottom:18px">
+    <div class="ph"><div><h2>Finance &amp; Accounting</h2><small id="plabel"></small></div></div>
+    <div class="fx-ctl">
+      <select class="in" id="pm"><option value="month">মাসিক</option><option value="year">বাৎসরিক</option></select>
+      <input class="in" id="mo" type="month">
+      <input class="in" id="yr" type="number" min="2020" max="2100" hidden>
+      <select class="in" id="basis" style="max-width:240px">
+        <option value="all">আয়: বাতিল বাদে সব অর্ডার</option>
+        <option value="done">আয়: শুধু ডেলিভারড অর্ডার</option>
+      </select>
+      <button class="btn sm" id="csv" type="button">CSV</button>
+    </div>
+  </section>
+
+  <section class="cards">
+    <div class="stat"><div class="top"><label>মোট আয়</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="c_inc">৳0</b><span class="fx-d" id="d_inc"></span></div>
+    <div class="stat"><div class="top"><label>মোট ব্যয়</label><div class="ic"><svg class="i"><use href="#i-wallet"/></svg></div></div><b id="c_exp">৳0</b><span class="fx-d" id="d_exp"></span></div>
+    <div class="stat"><div class="top"><label>নিট লাভ / ক্ষতি</label><div class="ic"><svg class="i"><use href="#i-chart"/></svg></div></div><b id="c_pro">৳0</b><span class="fx-d" id="d_pro"></span></div>
+    <div class="stat"><div class="top"><label>লাভের হার</label><div class="ic"><svg class="i"><use href="#i-check"/></svg></div></div><b id="c_mar">0%</b></div>
+    <div class="stat"><div class="top"><label>অর্ডার (আয়ে ধরা)</label><div class="ic"><svg class="i"><use href="#i-bag"/></svg></div></div><b id="c_n">0</b></div>
+    <div class="stat"><div class="top"><label>গড় অর্ডার মূল্য</label><div class="ic"><svg class="i"><use href="#i-doc"/></svg></div></div><b id="c_avg">৳0</b></div>
+  </section>
+
+  <section class="panel" style="margin-bottom:18px">
+    <div class="ph"><div><h2>আয় বনাম ব্যয়</h2><small id="chsub"></small></div></div>
+    <div class="fx-ch" id="chart"></div>
+    <div class="fx-lg"><span><i style="background:#2f855a"></i>আয়</span><span><i style="background:#b8715a"></i>ব্যয়</span></div>
+  </section>
+
+  <div class="gx">
+    <div>
+      <section class="panel">
+        <div class="ph"><div><h2>আয়-ব্যয় বিবরণী</h2><small>Income Statement</small></div></div>
+        <div class="fx-st" id="stmt"></div>
+        <div class="fx-note" id="stnote"></div>
+      </section>
+
+      <section class="panel">
+        <div class="ph"><div><h2>নতুন ব্যয়</h2><small>যা খরচ হলো লিখে রাখুন</small></div></div>
+        <form class="f" id="ef" style="padding:20px 24px" autocomplete="off">
+          <div><label>খাত</label><select class="in" id="e_kind"></select></div>
+          <div><label>টাকা (৳) *</label><input class="in" id="e_amt" type="number" min="1" step="1" required></div>
+          <div><label>তারিখ</label><input class="in" id="e_date" type="date"></div>
+          <div><label>নোট</label><input class="in" id="e_note" maxlength="120" placeholder="যেমন: Steadfast কুরিয়ার"></div>
+          <button class="btn" type="submit" id="esv"><svg class="i"><use href="#i-plus"/></svg>যোগ করুন</button>
+        </form>
+      </section>
+    </div>
+
+    <div>
+      <section class="panel">
+        <div class="ph"><div><h2>ব্যয়ের খাত</h2><small>কোথায় কত খরচ</small></div></div>
+        <div id="bkd" style="padding:18px 24px 4px"></div>
+      </section>
+
+      <section class="panel">
+        <div class="ph"><div><h2 id="ledt">দৈনিক হিসাব</h2><small>আয়, ব্যয় ও লাভ</small></div></div>
+        <div class="tw"><table style="min-width:520px">
+          <thead><tr><th id="lh">তারিখ</th><th>আয়</th><th>ব্যয়</th><th>লাভ</th></tr></thead>
+          <tbody id="led"><tr><td colspan="4" class="empty">লোড হচ্ছে...</td></tr></tbody>
+        </table></div>
+      </section>
+
+      <section class="panel">
+        <div class="ph"><div><h2>ব্যয়ের তালিকা</h2><small>প্রতিটি এন্ট্রি</small></div></div>
+        <div class="tw"><table style="min-width:520px">
+          <thead><tr><th>তারিখ</th><th>খাত</th><th>টাকা</th><th></th></tr></thead>
+          <tbody id="rows"><tr><td colspan="4" class="empty">লোড হচ্ছে...</td></tr></tbody>
+        </table></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc, ic=A.ic;
+const KINDS=[['Courier','কুরিয়ার'],['Packaging','প্যাকেজিং'],['Marketing','বিজ্ঞাপন'],['Rent','ভাড়া'],['Salary','বেতন'],['Utilities','বিল'],['Purchase','মাল কেনা'],['Other','অন্যান্য']];
+const KL={};KINDS.forEach(k=>KL[k[0]]=k[1]);
+const kl=k=>KL[k]||k;
+const DONE=['delivered','completed','paid','done'];
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const M=n=>(n<0?'-':'')+A.money(Math.abs(Math.round(n)));
+const cls=n=>n>=0?'pos':'neg';
+let CO=[],CE=[],PO=[],PE=[],R=null,BK=[],SUM=null;
+
+const now=new Date();
+$('e_kind').innerHTML=KINDS.map(k=>`<option value="${k[0]}">${k[1]} (${k[0]})</option>`).join('');
+$('e_date').value=ymd(now);
+$('mo').value=ymd(now).slice(0,7);
+$('yr').value=now.getFullYear();
+
+const isYear=()=>$('pm').value==='year';
+const isInc=o=>o.status!=='cancelled'&&($('basis').value==='all'||DONE.includes(String(o.status).toLowerCase()));
+
+function range(){
+  if(isYear()){const y=+$('yr').value;if(!y)return null;return{from:new Date(y,0,1),to:new Date(y+1,0,1),pf:new Date(y-1,0,1)}}
+  const v=$('mo').value;if(!v)return null;const[y,m]=v.split('-').map(Number);
+  return{from:new Date(y,m-1,1),to:new Date(y,m,1),pf:new Date(y,m-2,1)};
+}
+async function all(fn){
+  let out=[],s=0;
+  for(;;){const r=await fn(s,s+999);if(r.error)throw r.error;const d=r.data||[];out=out.concat(d);if(d.length<1000)break;s+=1000}
+  return out;
+}
+
+async function load(){
+  R=range();if(!R)return;
+  try{
+    const[O,E]=await Promise.all([
+      all((a,b)=>sb.from('orders').select('id,total,status,created_at').gte('created_at',R.pf.toISOString()).lt('created_at',R.to.toISOString()).order('created_at',{ascending:true}).range(a,b)),
+      all((a,b)=>sb.from('expenses').select('*').gte('spent_on',ymd(R.pf)).lt('spent_on',ymd(R.to)).order('spent_on',{ascending:false}).order('id',{ascending:false}).range(a,b))
+    ]);
+    CO=O.filter(o=>new Date(o.created_at)>=R.from);PO=O.filter(o=>new Date(o.created_at)<R.from);
+    CE=E.filter(x=>x.spent_on>=ymd(R.from));PE=E.filter(x=>x.spent_on<ymd(R.from));
+  }catch(err){
+    const m=esc(err.message||err);
+    $('rows').innerHTML=`<tr><td colspan="4" class="empty" style="color:#b83b4a">ডেটা লোড হয়নি: ${m}</td></tr>`;
+    $('led').innerHTML=`<tr><td colspan="4" class="empty" style="color:#b83b4a">ডেটা লোড হয়নি: ${m}</td></tr>`;return;
+  }
+  paint();
+}
+
+function calc(O,E){
+  const io=O.filter(isInc);
+  const inc=io.reduce((s,o)=>s+(+o.total||0),0),exp=E.reduce((s,x)=>s+(+x.amount||0),0);
+  return{io,inc,exp,profit:inc-exp,n:io.length};
+}
+function delta(el,cur,prev,goodUp){
+  if(!prev){el.textContent='';return}
+  const p=Math.round((cur-prev)/Math.abs(prev)*100),up=p>=0,good=goodUp?up:!up;
+  el.className='fx-d '+(good?'fx-up':'fx-dn');
+  el.textContent=(up?'▲ ':'▼ ')+Math.abs(p)+'% '+(isYear()?'আগের বছরের তুলনায়':'আগের মাসের তুলনায়');
+}
+
+function buckets(io,E){
+  const yr=isYear(),B=[],ix={};
+  if(yr){for(let i=0;i<12;i++){ix[i]=B.length;B.push({l:new Date(R.from.getFullYear(),i,1).toLocaleDateString('en-GB',{month:'short'}),inc:0,exp:0,n:0})}}
+  else{const days=new Date(R.from.getFullYear(),R.from.getMonth()+1,0).getDate();for(let i=1;i<=days;i++){ix[i]=B.length;B.push({l:String(i),inc:0,exp:0,n:0})}}
+  io.forEach(o=>{const d=new Date(o.created_at),b=B[ix[yr?d.getMonth():d.getDate()]];if(b){b.inc+=+o.total||0;b.n++}});
+  E.forEach(x=>{const p=x.spent_on.split('-').map(Number),b=B[ix[yr?p[1]-1:p[2]]];if(b)b.exp+=+x.amount||0});
+  return B;
+}
+
+function paint(){
+  const yr=isYear();
+  const c=calc(CO,CE),p=calc(PO,PE);SUM=c;
+  const label=yr?R.from.getFullYear()+' সাল':R.from.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  $('plabel').textContent=label;
+  $('c_inc').textContent=M(c.inc);$('c_exp').textContent=M(c.exp);
+  $('c_pro').textContent=M(c.profit);$('c_pro').className=cls(c.profit);
+  $('c_mar').textContent=(c.inc?Math.round(c.profit/c.inc*100):0)+'%';
+  $('c_n').textContent=c.n;$('c_avg').textContent=M(c.n?c.inc/c.n:0);
+  delta($('d_inc'),c.inc,p.inc,true);delta($('d_exp'),c.exp,p.exp,false);delta($('d_pro'),c.profit,p.profit,true);
+
+  /* chart + daily ledger */
+  BK=buckets(c.io,CE);
+  const mx=Math.max(1,...BK.map(b=>Math.max(b.inc,b.exp)));
+  $('chsub').textContent=yr?'মাস অনুযায়ী':'দিন অনুযায়ী';
+  $('chart').innerHTML=BK.map(b=>`<div title="${esc(b.l)} — আয় ${M(b.inc)}, ব্যয় ${M(b.exp)}"><div class="pr"><i class="a" style="height:${b.inc?Math.max(3,b.inc/mx*100):0}%"></i><i class="b" style="height:${b.exp?Math.max(3,b.exp/mx*100):0}%"></i></div><span>${esc(b.l)}</span></div>`).join('');
+  $('ledt').textContent=yr?'মাসিক হিসাব':'দৈনিক হিসাব';$('lh').textContent=yr?'মাস':'তারিখ';
+  const act=BK.filter(b=>b.inc||b.exp);
+  $('led').innerHTML=act.length?act.map(b=>`<tr><td>${esc(b.l)}${yr?'':' '+esc(R.from.toLocaleDateString('en-GB',{month:'short'}))}</td><td>${M(b.inc)}${b.n?`<div class="sub">${b.n} অর্ডার</div>`:''}</td><td>${M(b.exp)}</td><td class="${cls(b.inc-b.exp)}"><b>${M(b.inc-b.exp)}</b></td></tr>`).join('')
+   +`<tr><td><b>মোট</b></td><td><b>${M(c.inc)}</b></td><td><b>${M(c.exp)}</b></td><td class="${cls(c.profit)}"><b>${M(c.profit)}</b></td></tr>`
+   :'<tr><td colspan="4" class="empty">এই সময়ে কোনো আয় বা ব্যয় নেই।</td></tr>';
+
+  /* expense breakdown */
+  const by={};CE.forEach(x=>by[x.kind]=(by[x.kind]||0)+Number(x.amount));
+  const ks=Object.keys(by).sort((a,b)=>by[b]-by[a]);
+  $('bkd').innerHTML=ks.length?ks.map(k=>{const pc=c.exp?Math.round(by[k]/c.exp*100):0;
+    return `<div class="bk"><div class="bkh"><span>${esc(kl(k))}</span><span>${M(by[k])} · ${pc}%</span></div><div class="bkb"><i style="width:${pc}%"></i></div></div>`}).join(''):'<div class="empty">কোনো ব্যয় নেই।</div>';
+
+  /* income statement */
+  const canc=CO.filter(o=>o.status==='cancelled').length,skip=CO.length-canc-c.n;
+  $('stmt').innerHTML=
+   `<div class="h">আয় (Revenue)</div>`+
+   `<div><span>বিক্রয় (${c.n} অর্ডার)</span><b>${M(c.inc)}</b></div>`+
+   `<div class="t"><span>মোট আয়</span><b>${M(c.inc)}</b></div>`+
+   `<div class="h">ব্যয় (Expenses)</div>`+
+   (ks.length?ks.map(k=>`<div><span>${esc(kl(k))}</span><b>${M(by[k])}</b></div>`).join(''):'<div><span>কোনো ব্যয় নেই</span><b>৳0</b></div>')+
+   `<div class="t"><span>মোট ব্যয়</span><b>${M(c.exp)}</b></div>`+
+   `<div class="big"><span>${c.profit>=0?'নিট লাভ':'নিট ক্ষতি'}</span><b class="${cls(c.profit)}">${M(c.profit)}</b></div>`;
+  $('stnote').textContent='বাতিল অর্ডার '+canc+' টা হিসাবে ধরা হয়নি'+(skip>0?'; ডেলিভারড হয়নি এমন '+skip+' টা অর্ডার আয়ে ধরা হয়নি।':'।');
+
+  /* expense list */
+  $('rows').innerHTML=CE.length?CE.map(x=>`<tr>
+    <td>${esc(new Date(x.spent_on+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}))}</td>
+    <td><b>${esc(kl(x.kind))}</b>${x.note?`<div class="sub">${esc(x.note)}</div>`:''}</td>
+    <td><b>${A.money(x.amount)}</b></td>
+    <td><button class="btn d sm" data-d="${esc(x.id)}">${ic('trash')}</button></td></tr>`).join('')
+    :'<tr><td colspan="4" class="empty">এই সময়ে কোনো ব্যয় নেই।</td></tr>';
+}
+
+function csv(){
+  if(!BK.length)return;
+  const rows=[[isYear()?'মাস':'তারিখ','আয়','ব্যয়','লাভ']].concat(BK.filter(b=>b.inc||b.exp).map(b=>[b.l,b.inc,b.exp,b.inc-b.exp]));
+  if(SUM)rows.push(['মোট',SUM.inc,SUM.exp,SUM.profit]);
+  const t='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download='finance-'+(isYear()?$('yr').value:$('mo').value)+'.csv';a.click();
+}
+
+$('pm').onchange=()=>{$('mo').hidden=isYear();$('yr').hidden=!isYear();load()};
+$('mo').onchange=load;$('yr').onchange=load;
+$('basis').onchange=()=>{if(R)paint()};
+$('csv').onclick=csv;
+
+$('ef').onsubmit=async e=>{
+  e.preventDefault();
+  const amt=+$('e_amt').value;
+  if(!(amt>0)){A.toast('সঠিক টাকা দিন');return}
+  const date=$('e_date').value||ymd(new Date());
+  const btn=$('esv');btn.disabled=true;
+  const r=await sb.from('expenses').insert({kind:$('e_kind').value,amount:amt,note:$('e_note').value.trim(),spent_on:date,by:A.user.id});
+  btn.disabled=false;
+  if(r.error){A.toast('সেভ হয়নি: '+r.error.message);return}
+  A.toast('ব্যয় যোগ হয়েছে');
+  $('e_amt').value='';$('e_note').value='';
+  if(isYear())$('yr').value=date.slice(0,4);else $('mo').value=date.slice(0,7);
+  load();
+};
+
+$('rows').onclick=async e=>{
+  const b=e.target.closest('[data-d]');if(!b)return;
+  if(!confirm('এই ব্যয় মুছে ফেলবেন?'))return;
+  const r=await sb.from('expenses').delete().eq('id',b.dataset.d);
+  if(r.error){A.toast('মোছা যায়নি: '+r.error.message);return}
+  A.toast('মুছে ফেলা হয়েছে');load();
+};
+
+Admin.boot({key:'expenses',title:'Finance & Accounting',perm:'expenses',ready:async()=>{A.onRefresh=load;await load()}});
+</script>
+</body>
+</html>
