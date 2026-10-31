@@ -9,152 +9,280 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>
 <style>
-.cr-st{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.cr-st div{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
-.cr-st small{display:block;font-size:11px;opacity:.7}.cr-st b{font-size:1.5rem}
-.cr-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}
-.cb{flex:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
+.crm{--bd:#eadfd6;--a1:#e8b4a0;--a2:#b8715a;--mut:#8a7d74;--card:#fff}
+.crm *{box-sizing:border-box}
+.cx-card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px;min-width:0}
+.cx-card h4{margin:0 0 10px;font-size:14px}
+.cx-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.cx-stats .cx-card small{display:block;font-size:11px;color:var(--mut);margin-bottom:4px}
+.cx-stats .cx-card b{font-size:1.45rem}
+.cx-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:16px}
+.cx-bars{display:flex;gap:4px;align-items:flex-end;height:90px}
+.cx-bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:9px;color:var(--mut)}
+.cx-bars i{display:block;width:100%;background:linear-gradient(#e8b4a0,#b8715a);border-radius:4px 4px 0 0;min-height:3px}
+.cx-bars span{margin-top:3px}
+.cx-donut{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.cx-ring{width:96px;height:96px;border-radius:50%;position:relative;flex:none}
+.cx-ring::after{content:attr(data-n);position:absolute;inset:18px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:15px}
+.cx-leg{font-size:12px;display:grid;gap:4px}
+.cx-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.cx-top{display:grid;gap:8px;font-size:13px}
+.cx-top div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--bd);padding-bottom:5px}
+.cx-top span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;align-items:center}
+.cb{flex:none;background:#fff;border:1px solid var(--bd);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
 .cb.on,.cb.pr{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
 .cb:disabled{opacity:.5}
-.cr-in{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;color:inherit;padding:11px 14px;font:inherit;font-size:14px;outline:none;margin-bottom:10px}
-select.cr-in option{color:#111}
-.cr-c{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);margin-bottom:8px;cursor:pointer}
+.cb.red{color:#b83b4a}
+.cr-in{width:100%;background:#fff;border:1px solid var(--bd);border-radius:14px;color:inherit;padding:11px 14px;font:inherit;font-size:14px;outline:none;margin-bottom:10px}
+.cr-c{display:flex;gap:12px;align-items:center;padding:11px;border-radius:16px;background:#fff;border:1px solid var(--bd);margin-bottom:8px;cursor:pointer}
 .cr-av{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff}
-.cr-c .m{flex:1;min-width:0}.cr-c b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cr-c small{opacity:.7;font-size:12px}
+.cr-c .m{flex:1;min-width:0}.cr-c b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cr-c small{color:var(--mut);font-size:12px}
 .cr-p{font-size:10px;font-weight:800;padding:3px 9px;border-radius:12px;background:#6b7280;color:#fff;white-space:nowrap}
-.cr-p.vip{background:#d9a85f}.cr-p.new{background:#2f855a}.cr-p.inactive{background:#b8715a}
-.cr-bars{display:flex;gap:4px;align-items:flex-end;height:70px;margin:8px 0 14px}
-.cr-bars i{flex:1;background:linear-gradient(#e8b4a0,#b8715a);border-radius:4px 4px 0 0;min-height:3px}
-.cr-dr{position:fixed;inset:0;z-index:80;background:#0d0b11;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 40px;display:none}
+.cr-p.vip{background:#d9a85f}.cr-p.new{background:#2f855a}.cr-p.inactive{background:#b8715a}.cr-p.lead{background:#94a3b8}
+.cr-un{background:#d9778a;color:#fff;border-radius:10px;font-size:10px;font-weight:800;padding:2px 7px}
+.ws>section{display:none}
+.ws[data-tab=cus] #t-cus,.ws[data-tab=sup] #t-sup,.ws[data-tab=off] #t-off,.ws[data-tab=add] #t-add{display:block}
+@media(min-width:1100px){
+ .ws{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;align-items:start}
+ .ws>#t-sup{display:block;grid-column:2;grid-row:1/span 3;position:sticky;top:10px}
+ .ws[data-tab=sup] #t-cus{display:block}
+ #tabs [data-t=sup]{display:none}
+}
+#sup-msgs{max-height:48vh;overflow-y:auto;padding:4px 2px}
+#sup-list{max-height:62vh;overflow-y:auto}
+.cr-msg{max-width:85%;padding:9px 13px;border-radius:14px;margin:6px 0;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.cr-msg.c{background:#f1e8e0;margin-right:auto}.cr-msg.s{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;margin-left:auto}
+.cr-msg small{display:block;font-size:10px;opacity:.7;margin-top:2px}
+.cr-note{padding:12px;border-radius:14px;background:#fdecef;border:1px solid #e9a9b3;font-size:13px;margin-bottom:12px}
+.sub{color:var(--mut);font-size:13px}
+.cx-bd{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:79;display:none}
+.cx-bd.on{display:block}
+.cr-dr{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);z-index:80;background:#fbf7f2;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 40px;display:none;box-shadow:-8px 0 30px rgba(0,0,0,.2)}
 .cr-dr.on{display:block}
 .cr-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
-.cr-g div{text-align:center;padding:10px 4px;border-radius:14px;background:rgba(255,255,255,.06)}
-.cr-g b{display:block;font-size:1.2rem}.cr-g small{font-size:10px;opacity:.7}
-.cr-h{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin:16px 0 6px}
-.cr-o{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px dashed rgba(255,255,255,.12)}
-.cr-msg{max-width:85%;padding:9px 13px;border-radius:14px;margin:6px 0;font-size:14px;white-space:pre-wrap;word-break:break-word}
-.cr-msg.c{background:rgba(255,255,255,.09);margin-right:auto}.cr-msg.s{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;margin-left:auto}
-.cr-msg small{display:block;font-size:10px;opacity:.7;margin-top:2px}
-.cr-un{background:#d9778a;color:#fff;border-radius:10px;font-size:10px;font-weight:800;padding:2px 7px}
-.cr-note{padding:12px;border-radius:14px;background:rgba(217,119,138,.12);border:1px solid rgba(217,119,138,.4);font-size:13px;margin-bottom:12px;white-space:pre-wrap}
+.cr-g div{text-align:center;padding:10px 4px;border-radius:14px;background:#fff;border:1px solid var(--bd)}
+.cr-g b{display:block;font-size:1.1rem}.cr-g small{font-size:10px;color:var(--mut)}
+.cr-h{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin:16px 0 6px}
+.cr-o{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px dashed var(--bd)}
+.tpl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
-<div id="page">
-  <div class="cr-row" id="tabs">
+<div id="page" class="crm">
+
+  <div class="cx-stats" id="stats"></div>
+
+  <div class="cx-charts">
+    <div class="cx-card"><h4>নতুন গ্রাহক (গত ১৪ দিন)</h4><div class="cx-bars" id="ch-new"></div></div>
+    <div class="cx-card"><h4>গ্রাহকের ধরন</h4><div class="cx-donut"><div class="cx-ring" id="ch-ring"></div><div class="cx-leg" id="ch-leg"></div></div></div>
+    <div class="cx-card"><h4>কে কতবার অর্ডার করেছে</h4><div class="cx-bars" id="ch-freq"></div></div>
+    <div class="cx-card"><h4>সেরা ৫ গ্রাহক (মোট কেনা)</h4><div class="cx-top" id="ch-top"></div></div>
+  </div>
+
+  <div class="cx-row" id="tabs">
     <button class="cb on" data-t="cus">গ্রাহক</button>
     <button class="cb" data-t="sup">সাপোর্ট চ্যাট <span class="cr-un" id="unc" hidden></span></button>
     <button class="cb" data-t="off">অফার পাঠান</button>
+    <button class="cb" data-t="add">+ নতুন গ্রাহক</button>
   </div>
 
-  <section id="t-cus">
-    <div class="cr-st" id="stats"></div>
-    <div class="panel" style="padding:14px;margin-bottom:12px"><b>নতুন গ্রাহক (গত ১৪ দিন)</b><div class="cr-bars" id="bars"></div></div>
-    <input class="cr-in" id="q" placeholder="নাম বা ফোন খুঁজুন...">
-    <div class="cr-row" id="segs">
-      <button class="cb on" data-s="all">সব</button><button class="cb" data-s="new">নতুন</button><button class="cb" data-s="regular">নিয়মিত</button><button class="cb" data-s="vip">VIP</button><button class="cb" data-s="inactive">নিষ্ক্রিয়</button>
-    </div>
-    <div id="list"><div class="empty">লোড হচ্ছে...</div></div>
-  </section>
+  <div class="ws" id="ws" data-tab="cus">
 
-  <section id="t-sup" hidden>
-    <div id="supnote"></div>
-    <div id="sup-list"></div>
-    <div id="sup-th" hidden>
-      <button class="cb" id="sup-back">← ফিরে যান</button>
-      <h3 id="sup-name" style="margin:12px 0"></h3>
-      <div id="sup-msgs"></div>
-      <textarea class="cr-in" id="sup-in" rows="2" placeholder="উত্তর লিখুন..."></textarea>
-      <button class="cb pr" id="sup-send">পাঠান</button>
-    </div>
-  </section>
+    <section id="t-cus">
+      <input class="cr-in" id="q" placeholder="নাম বা ফোন খুঁজুন...">
+      <div class="cx-row" id="segs">
+        <button class="cb on" data-s="all">সব</button><button class="cb" data-s="new">নতুন</button><button class="cb" data-s="regular">নিয়মিত</button><button class="cb" data-s="vip">VIP</button><button class="cb" data-s="inactive">নিষ্ক্রিয়</button><button class="cb" data-s="lead">অর্ডার নেই</button>
+      </div>
+      <div class="cx-row">
+        <select class="cr-in" id="sort" style="margin:0;max-width:220px">
+          <option value="recent">সাম্প্রতিক অর্ডার</option>
+          <option value="orders">বেশি অর্ডার</option>
+          <option value="spent">বেশি কেনাকাটা</option>
+        </select>
+        <button class="cb" id="csv">⬇ CSV</button>
+      </div>
+      <div id="list"><div class="empty">লোড হচ্ছে...</div></div>
+    </section>
 
-  <section id="t-off" hidden>
-    <div class="panel" style="padding:16px">
-      <b>পুরোনো গ্রাহককে অফার পাঠান</b>
-      <p class="sub" style="margin:6px 0 12px">গ্রাহকের অ্যাকাউন্টের "মেসেজ" অংশে অফারটা দেখা যাবে।</p>
-      <select class="cr-in" id="o-aud">
-        <option value="inactive">নিষ্ক্রিয় গ্রাহক (৩০ দিনের বেশি অর্ডার নেই)</option>
-        <option value="all">সব গ্রাহক</option>
-        <option value="vip">VIP গ্রাহক</option>
-        <option value="regular">নিয়মিত গ্রাহক</option>
-        <option value="new">নতুন গ্রাহক</option>
-        <option value="one" hidden>একজন গ্রাহক</option>
-      </select>
-      <p class="sub" id="o-cnt" style="margin:-4px 0 10px"></p>
-      <input class="cr-in" id="o-t" placeholder="শিরোনাম (যেমন: আপনার জন্য ১৫% ছাড়!)">
-      <textarea class="cr-in" id="o-b" rows="4" placeholder="মেসেজ (যেমন: কোড WELCOME15 দিয়ে এই সপ্তাহে ১৫% ছাড় পাবেন)"></textarea>
-      <button class="cb pr" id="o-send">অফার পাঠান</button>
-    </div>
-  </section>
+    <section id="t-sup">
+      <div class="cx-card">
+        <h4>💬 কাস্টমার সাপোর্ট চ্যাট</h4>
+        <div id="supnote"></div>
+        <div id="sup-list"></div>
+        <div id="sup-th" hidden>
+          <button class="cb" id="sup-back">← সব চ্যাট</button>
+          <h3 id="sup-name" style="margin:12px 0"></h3>
+          <div id="sup-msgs"></div>
+          <textarea class="cr-in" id="sup-in" rows="2" placeholder="উত্তর লিখুন..." style="margin-top:8px"></textarea>
+          <button class="cb pr" id="sup-send">পাঠান</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="t-off">
+      <div class="cx-card">
+        <h4>🎁 পুরোনো গ্রাহককে অফার পাঠান</h4>
+        <p class="sub" style="margin:0 0 12px">গ্রাহকের অ্যাকাউন্টের "মেসেজ" অংশে অফারটা দেখা যাবে।</p>
+        <select class="cr-in" id="o-aud">
+          <option value="inactive">নিষ্ক্রিয় গ্রাহক (৩০ দিনের বেশি অর্ডার নেই)</option>
+          <option value="all">সব গ্রাহক</option>
+          <option value="vip">VIP গ্রাহক</option>
+          <option value="regular">নিয়মিত গ্রাহক</option>
+          <option value="new">নতুন গ্রাহক</option>
+          <option value="lead">যারা এখনো অর্ডার করেননি</option>
+          <option value="one" hidden>একজন গ্রাহক</option>
+        </select>
+        <p class="sub" id="o-cnt" style="margin:-4px 0 10px"></p>
+        <div class="tpl" id="tpl">
+          <button class="cb" data-tp="0">আবার ফিরে আসুন</button>
+          <button class="cb" data-tp="1">VIP ছাড়</button>
+          <button class="cb" data-tp="2">প্রথম অর্ডারে ছাড়</button>
+        </div>
+        <input class="cr-in" id="o-t" placeholder="শিরোনাম (যেমন: আপনার জন্য ১৫% ছাড়!)">
+        <textarea class="cr-in" id="o-b" rows="4" placeholder="মেসেজ (যেমন: কোড WELCOME15 দিয়ে এই সপ্তাহে ১৫% ছাড় পাবেন)"></textarea>
+        <button class="cb pr" id="o-send">অফার পাঠান</button>
+      </div>
+    </section>
+
+    <section id="t-add">
+      <div class="cx-card">
+        <h4>নতুন গ্রাহক যোগ করুন</h4>
+        <p class="sub" style="margin:0 0 12px">ফোন বা Facebook/WhatsApp এ পাওয়া গ্রাহকের তথ্য এখানে সেভ রাখুন।</p>
+        <input class="cr-in" id="a-n" placeholder="নাম">
+        <input class="cr-in" id="a-p" placeholder="ফোন নম্বর" inputmode="tel">
+        <input class="cr-in" id="a-a" placeholder="ঠিকানা">
+        <textarea class="cr-in" id="a-note" rows="2" placeholder="নোট / পছন্দ (ঐচ্ছিক)"></textarea>
+        <button class="cb pr" id="a-save">সেভ করুন</button>
+      </div>
+    </section>
+
+  </div>
 </div>
 
+<div class="cx-bd" id="bd"></div>
 <div class="cr-dr" id="dr"></div>
 
 <script>
 const A=Admin, sb=A.sb, $=A.$, esc=A.esc, DAY=864e5;
-const SEGN={vip:'VIP',new:'নতুন',regular:'নিয়মিত',inactive:'নিষ্ক্রিয়'};
-let CUS=[], OBY={}, NOTE={}, SUP=[], seg='all', q='', tab='cus', TH=null, OTARGET=null, SUPERR=false;
+const SEGN={vip:'VIP',new:'নতুন',regular:'নিয়মিত',inactive:'নিষ্ক্রিয়',lead:'অর্ডার নেই'};
+const SEGC={vip:'#d9a85f',new:'#2f855a',regular:'#6b7280',inactive:'#b8715a',lead:'#94a3b8'};
+const TPL=[
+ ['আপনাকে মিস করছি! 💛','অনেকদিন হয়ে গেল। কোড COMEBACK10 দিয়ে আপনার পরের অর্ডারে ১০% ছাড় পাবেন।'],
+ ['VIP গ্রাহকদের জন্য বিশেষ ছাড়','আপনি আমাদের সেরা গ্রাহকদের একজন। কোড VIP15 দিয়ে ১৫% ছাড় পাবেন।'],
+ ['প্রথম অর্ডারে ছাড়','কোড WELCOME15 দিয়ে আপনার প্রথম অর্ডারে ১৫% ছাড় পাবেন।']
+];
+let CUS=[], OBY={}, NOTE={}, SUP=[], seg='all', q='', sort='recent', tab='cus', TH=null, OTARGET=null, SUPERR=false;
 
 const wa=p=>{p=String(p||'').replace(/\D/g,'');if(p.startsWith('0'))p='88'+p;return p};
 const topN=(o,n)=>Object.entries(o||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);
 const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()};
-const dshort=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const dshort=d=>d?new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'-';
+const ini=n=>esc((n||'?').trim().charAt(0).toUpperCase());
 
+/* ---------- data ---------- */
 async function load(){
   const o=await sb.from('orders').select('id,order_no,user_id,customer_name,phone,address,total,status,created_at').order('created_at',{ascending:false}).limit(2000);
-  if(o.error){$('list').innerHTML='<div class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: '+esc(o.error.message)+'</div>';return}
+  if(o.error){$('list').innerHTML='<div class="empty" style="color:#b83b4a">ডেটা লোড হয়নি: '+esc(o.error.message)+'</div>';return}
   const ords=o.data||[];OBY={};ords.forEach(x=>OBY[x.id]=x);
   const ids=ords.map(x=>x.id),ch=[];for(let i=0;i<ids.length;i+=100)ch.push(ids.slice(i,i+100));
   const ir=await Promise.all(ch.map(c=>sb.from('order_items').select('order_id,name,size,qty').in('order_id',c)));
   const items=ir.flatMap(r=>r.data||[]);
   const nr=await sb.from('crm_notes').select('*');NOTE={};(nr.data||[]).forEach(n=>NOTE[n.user_id]=n.note);
+  const cr=await sb.from('crm_contacts').select('*').order('created_at',{ascending:false});
+  const pr=await sb.from('profiles').select('*').limit(2000);
+
   const M={},now=Date.now();
   ords.forEach(x=>{
     if(x.status==='cancelled')return;
     const k=x.user_id||('p:'+x.phone);
-    const c=M[k]||(M[k]={key:k,uid:x.user_id||null,name:x.customer_name||'Anonymous',phone:x.phone||'',addr:x.address||'',orders:[],n:0,spent:0,last:x.created_at,first:x.created_at,items:{},sizes:{}});
+    const c=M[k]||(M[k]={key:k,uid:x.user_id||null,name:x.customer_name||'Anonymous',phone:x.phone||'',addr:x.address||'',orders:[],n:0,spent:0,last:x.created_at,first:x.created_at,items:{},sizes:{},joined:null,manual:false});
     c.orders.push(x);c.n++;c.spent+=+x.total||0;c.first=x.created_at;
   });
   items.forEach(it=>{
     const x=OBY[it.order_id];if(!x)return;const c=M[x.user_id||('p:'+x.phone)];if(!c)return;
     const qt=+it.qty||1;c.items[it.name]=(c.items[it.name]||0)+qt;if(it.size)c.sizes[it.size]=(c.sizes[it.size]||0)+qt;
   });
+  const phones={};Object.values(M).forEach(c=>{if(c.phone)phones[wa(c.phone)]=1});
+  /* যারা অ্যাকাউন্ট খুলেছে কিন্তু এখনো অর্ডার করেনি */
+  if(!pr.error)(pr.data||[]).forEach(p=>{
+    const id=p.id||p.user_id;if(!id||M[id])return;
+    M[id]={key:id,uid:id,name:p.full_name||p.name||p.display_name||p.email||'গ্রাহক',phone:p.phone||'',addr:p.address||'',orders:[],n:0,spent:0,last:p.created_at,first:p.created_at,items:{},sizes:{},joined:p.created_at,manual:false};
+    if(p.phone)phones[wa(p.phone)]=1;
+  });
+  /* হাতে যোগ করা গ্রাহক */
+  if(!cr.error)(cr.data||[]).forEach(p=>{
+    if(p.phone&&phones[wa(p.phone)])return;
+    M['c:'+p.id]={key:'c:'+p.id,cid:p.id,uid:null,name:p.name,phone:p.phone||'',addr:p.address||'',cnote:p.note||'',orders:[],n:0,spent:0,last:p.created_at,first:p.created_at,items:{},sizes:{},joined:p.created_at,manual:true};
+  });
   CUS=Object.values(M).map(c=>{
     const age=(now-new Date(c.first))/DAY,idle=(now-new Date(c.last))/DAY;
-    c.seg=(c.n>=5||c.spent>=20000)?'vip':age<=14?'new':idle>30?'inactive':'regular';return c;
+    c.seg=c.n===0?'lead':(c.n>=5||c.spent>=20000)?'vip':age<=14?'new':idle>30?'inactive':'regular';return c;
   });
   paint();
 }
 
+/* ---------- dashboard + list ---------- */
 function paint(){
-  const now=Date.now(),wk=CUS.filter(c=>(now-new Date(c.first))/DAY<=7).length,rep=CUS.filter(c=>c.n>=2).length;
-  $('stats').innerHTML=`<div><small>মোট গ্রাহক</small><b>${CUS.length}</b></div><div><small>এই সপ্তাহে নতুন</small><b>${wk}</b></div><div><small>আবার কিনেছেন</small><b>${CUS.length?Math.round(rep*100/CUS.length):0}%</b></div><div><small>নিষ্ক্রিয় (৩০+ দিন)</small><b>${CUS.filter(c=>c.seg==='inactive').length}</b></div>`;
-  const days=[],cnt={};CUS.forEach(c=>{const k=dkey(c.first);cnt[k]=(cnt[k]||0)+1});
-  for(let i=13;i>=0;i--)days.push(cnt[dkey(now-i*DAY)]||0);
-  const mx=Math.max(1,...days);$('bars').innerHTML=days.map(v=>`<i title="${v}" style="height:${Math.max(4,v/mx*100)}%"></i>`).join('');
-  const L=CUS.filter(c=>(seg==='all'||c.seg===seg)&&(!q||(c.name+' '+c.phone).toLowerCase().includes(q))).sort((a,b)=>new Date(b.last)-new Date(a.last));
-  $('list').innerHTML=L.length?L.slice(0,150).map(c=>`<div class="cr-c" data-c="${esc(c.key)}"><div class="cr-av">${esc((c.name||'?').trim().charAt(0).toUpperCase())}</div><div class="m"><b>${esc(c.name)}</b><small>${esc(c.phone)} · ${c.n} অর্ডার · ${A.money(c.spent)} · ${dshort(c.last)}</small></div><span class="cr-p ${c.seg}">${SEGN[c.seg]}</span></div>`).join(''):'<div class="empty">কোনো গ্রাহক নেই।</div>';
+  const now=Date.now(),buyers=CUS.filter(c=>c.n>0);
+  const wk=CUS.filter(c=>(now-new Date(c.first))/DAY<=7).length,rep=buyers.filter(c=>c.n>=2).length;
+  const rev=buyers.reduce((s,c)=>s+c.spent,0),un=SUP.filter(m=>m.sender==='customer'&&!m.read).length;
+  $('stats').innerHTML=
+   `<div class="cx-card"><small>মোট গ্রাহক</small><b>${CUS.length}</b></div>`+
+   `<div class="cx-card"><small>এই সপ্তাহে নতুন</small><b>${wk}</b></div>`+
+   `<div class="cx-card"><small>আবার কিনেছেন</small><b>${buyers.length?Math.round(rep*100/buyers.length):0}%</b></div>`+
+   `<div class="cx-card"><small>নিষ্ক্রিয় (৩০+ দিন)</small><b>${CUS.filter(c=>c.seg==='inactive').length}</b></div>`+
+   `<div class="cx-card"><small>মোট বিক্রি</small><b>${A.money(rev)}</b></div>`+
+   `<div class="cx-card"><small>নতুন সাপোর্ট মেসেজ</small><b id="st-un">${un}</b></div>`;
+
+  /* গত ১৪ দিনে নতুন গ্রাহক */
+  const days=[],lab=[],cnt={};CUS.forEach(c=>{const k=dkey(c.first);cnt[k]=(cnt[k]||0)+1});
+  for(let i=13;i>=0;i--){const d=now-i*DAY;days.push(cnt[dkey(d)]||0);lab.push(new Date(d).getDate())}
+  const mx=Math.max(1,...days);
+  $('ch-new').innerHTML=days.map((v,i)=>`<div title="${v}"><i style="height:${Math.max(4,v/mx*80)}%"></i><span>${lab[i]}</span></div>`).join('');
+
+  /* গ্রাহকের ধরন */
+  const sc={};CUS.forEach(c=>sc[c.seg]=(sc[c.seg]||0)+1);
+  let acc=0;const parts=Object.keys(SEGN).filter(k=>sc[k]).map(k=>{const s=acc,e=acc+sc[k]/CUS.length*100;acc=e;return SEGC[k]+' '+s+'% '+e+'%'});
+  const ring=$('ch-ring');ring.style.background=CUS.length?'conic-gradient('+parts.join(',')+')':'#eee';ring.dataset.n=CUS.length;
+  $('ch-leg').innerHTML=Object.keys(SEGN).map(k=>`<div><i style="background:${SEGC[k]}"></i>${SEGN[k]}: <b>${sc[k]||0}</b></div>`).join('');
+
+  /* কে কতবার অর্ডার করেছে */
+  const fb=[['১বার',0],['২বার',0],['৩-৪',0],['৫+',0]];
+  buyers.forEach(c=>{fb[c.n>=5?3:c.n>=3?2:c.n-1][1]++});
+  const fm=Math.max(1,...fb.map(f=>f[1]));
+  $('ch-freq').innerHTML=fb.map(f=>`<div title="${f[1]}"><b style="font-size:11px;color:inherit">${f[1]}</b><i style="height:${Math.max(4,f[1]/fm*70)}%"></i><span>${f[0]}</span></div>`).join('');
+
+  /* সেরা ৫ */
+  const tp=buyers.slice().sort((a,b)=>b.spent-a.spent).slice(0,5);
+  $('ch-top').innerHTML=tp.length?tp.map((c,i)=>`<div><span>${i+1}. ${esc(c.name)} <small class="sub">(${c.n})</small></span><b>${A.money(c.spent)}</b></div>`).join(''):'<span class="sub">এখনো তথ্য নেই</span>';
+
+  /* তালিকা */
+  const L=CUS.filter(c=>(seg==='all'||c.seg===seg)&&(!q||(c.name+' '+c.phone).toLowerCase().includes(q)));
+  L.sort(sort==='orders'?(a,b)=>b.n-a.n:sort==='spent'?(a,b)=>b.spent-a.spent:(a,b)=>new Date(b.last)-new Date(a.last));
+  $('list').innerHTML=L.length?L.slice(0,150).map(c=>`<div class="cr-c" data-c="${esc(c.key)}"><div class="cr-av">${ini(c.name)}</div><div class="m"><b>${esc(c.name)}</b><small>${esc(c.phone)||'ফোন নেই'} · ${c.n} অর্ডার · ${A.money(c.spent)} · ${dshort(c.last)}</small></div><span class="cr-p ${c.seg}">${SEGN[c.seg]}</span></div>`).join(''):'<div class="empty">কোনো গ্রাহক নেই।</div>';
   offCount();
 }
 
+/* ---------- customer detail ---------- */
 function openCus(key){
   const c=CUS.find(x=>x.key===key);if(!c)return;
   const fav=topN(c.items,3),sz=topN(c.sizes,1)[0];
   $('dr').innerHTML=`<button class="cb" data-x="1">✕ বন্ধ করুন</button>
-  <div style="display:flex;gap:12px;align-items:center;margin:14px 0"><div class="cr-av" style="width:56px;height:56px;font-size:1.4rem">${esc((c.name||'?').trim().charAt(0).toUpperCase())}</div><div><h2 style="margin:0">${esc(c.name)}</h2><span class="cr-p ${c.seg}">${SEGN[c.seg]}</span></div></div>
-  <div class="cr-row"><a class="cb pr" href="tel:${esc(c.phone)}">📞 কল</a><a class="cb" target="_blank" rel="noopener" href="https://wa.me/${wa(c.phone)}">WhatsApp</a>${c.uid?`<button class="cb" data-chat="${esc(c.uid)}">💬 চ্যাট</button><button class="cb" data-offer="${esc(c.uid)}">🎁 অফার</button>`:''}</div>
+  <div style="display:flex;gap:12px;align-items:center;margin:14px 0"><div class="cr-av" style="width:56px;height:56px;font-size:1.4rem">${ini(c.name)}</div><div><h2 style="margin:0">${esc(c.name)}</h2><span class="cr-p ${c.seg}">${SEGN[c.seg]}</span></div></div>
+  <div class="cx-row">${c.phone?`<a class="cb pr" href="tel:${esc(c.phone)}">📞 কল</a><a class="cb" target="_blank" rel="noopener" href="https://wa.me/${wa(c.phone)}">WhatsApp</a>`:''}${c.uid?`<button class="cb" data-chat="${esc(c.uid)}">💬 চ্যাট</button><button class="cb" data-offer="${esc(c.uid)}">🎁 অফার</button>`:''}</div>
   <div class="cr-g"><div><b>${c.n}</b><small>অর্ডার</small></div><div><b>${A.money(c.spent)}</b><small>মোট কেনা</small></div><div><b>${A.money(Math.round(c.spent/Math.max(1,c.n)))}</b><small>গড় অর্ডার</small></div></div>
-  <div class="cr-h">যোগাযোগ</div><p style="margin:0">${esc(c.phone)}<br>${esc(c.addr)||'ঠিকানা নেই'}</p>
+  <div class="cr-h">যোগাযোগ</div><p style="margin:0">${esc(c.phone)||'ফোন নেই'}<br>${esc(c.addr)||'ঠিকানা নেই'}</p>
   <div class="cr-h">পছন্দ</div>
   <p style="margin:0">${fav.length?fav.map(f=>esc(f[0])+' ×'+f[1]).join('<br>'):'এখনো তথ্য নেই'}${sz?'<br>সাধারণত সাইজ: <b>'+esc(sz[0])+'</b>':''}</p>
   <div class="cr-h">নোট</div>
-  ${c.uid?`<textarea class="cr-in" id="nt" rows="3" placeholder="যেমন: ঈদের আগে পাঞ্জাবি কেনে, ফোন করলে ভালো সাড়া দেয়">${esc(NOTE[c.uid]||'')}</textarea><button class="cb pr" data-note="${esc(c.uid)}">নোট সেভ করুন</button>`:'<p class="sub">এই গ্রাহকের অ্যাকাউন্ট নেই, তাই নোট রাখা যায় না।</p>'}
+  ${c.uid?`<textarea class="cr-in" id="nt" rows="3" placeholder="যেমন: ঈদের আগে পাঞ্জাবি কেনে, ফোন করলে ভালো সাড়া দেয়">${esc(NOTE[c.uid]||'')}</textarea><button class="cb pr" data-note="${esc(c.uid)}">নোট সেভ করুন</button>`:(c.manual?`<p style="margin:0">${esc(c.cnote)||'নোট নেই'}</p><div style="margin-top:10px"><button class="cb red" data-del="${esc(c.cid)}">এই গ্রাহক মুছুন</button></div>`:'<p class="sub">এই গ্রাহকের অ্যাকাউন্ট নেই, তাই নোট রাখা যায় না।</p>')}
   <div class="cr-h">অর্ডার ইতিহাস</div>
-  ${c.orders.slice(0,15).map(o=>`<div class="cr-o"><span>#${esc(o.order_no)} · ${dshort(o.created_at)}</span><span>${A.money(o.total)} · ${esc(o.status)}</span></div>`).join('')}`;
-  $('dr').classList.add('on');
+  ${c.orders.length?c.orders.slice(0,15).map(o=>`<div class="cr-o"><span>#${esc(o.order_no)} · ${dshort(o.created_at)}</span><span>${A.money(o.total)} · ${esc(o.status)}</span></div>`).join(''):'<p class="sub">এখনো কোনো অর্ডার নেই।</p>'}`;
+  $('dr').classList.add('on');$('bd').classList.add('on');
 }
+function closeDr(){$('dr').classList.remove('on');$('bd').classList.remove('on')}
 
 /* ---------- support chat ---------- */
 async function loadSup(){
@@ -162,25 +290,27 @@ async function loadSup(){
   if(r.error){SUPERR=true;$('supnote').innerHTML='<div class="cr-note">সাপোর্ট চ্যাট এখনো চালু হয়নি। Supabase এর SQL Editor এ CRM এর SQL টা একবার Run করুন।</div>';$('sup-list').innerHTML='';return}
   SUPERR=false;$('supnote').innerHTML='';SUP=r.data||[];
   const un=SUP.filter(m=>m.sender==='customer'&&!m.read).length;$('unc').hidden=!un;$('unc').textContent=un;
+  const su=$('st-un');if(su)su.textContent=un;
   if(TH)drawThread();else drawSupList();
 }
 const nameOf=uid=>{const c=CUS.find(x=>x.uid===uid);return c?c.name:'গ্রাহক'};
 function drawSupList(){
   const G={};SUP.forEach(m=>{(G[m.user_id]||(G[m.user_id]={uid:m.user_id,last:m,un:0})).last=m;if(m.sender==='customer'&&!m.read)G[m.user_id].un++});
   const L=Object.values(G).sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
-  $('sup-list').innerHTML=L.length?L.map(g=>`<div class="cr-c" data-th="${esc(g.uid)}"><div class="cr-av">${esc(nameOf(g.uid).charAt(0).toUpperCase())}</div><div class="m"><b>${esc(nameOf(g.uid))}</b><small>${esc(g.last.body.slice(0,60))}</small></div>${g.un?`<span class="cr-un">${g.un}</span>`:''}</div>`).join(''):(SUPERR?'':'<div class="empty">এখনো কোনো মেসেজ আসেনি।</div>');
+  $('sup-list').innerHTML=L.length?L.map(g=>`<div class="cr-c" data-th="${esc(g.uid)}"><div class="cr-av">${ini(nameOf(g.uid))}</div><div class="m"><b>${esc(nameOf(g.uid))}</b><small>${esc(g.last.body.slice(0,60))}</small></div>${g.un?`<span class="cr-un">${g.un}</span>`:''}</div>`).join(''):(SUPERR?'':'<div class="empty">এখনো কোনো মেসেজ আসেনি।</div>');
 }
 function drawThread(){
   const L=SUP.filter(m=>m.user_id===TH);
   $('sup-name').textContent=nameOf(TH);
   $('sup-msgs').innerHTML=L.map(m=>`<div class="cr-msg ${m.sender==='staff'?'s':'c'}">${esc(m.body)}<small>${A.fmtDate(m.created_at)}</small></div>`).join('')||'<div class="empty">মেসেজ নেই।</div>';
-  const box=$('sup-msgs');box.scrollTop=box.scrollHeight;window.scrollTo(0,document.body.scrollHeight);
+  const box=$('sup-msgs');box.scrollTop=box.scrollHeight;
 }
 async function openThread(uid){
   TH=uid;$('sup-list').hidden=true;$('sup-th').hidden=false;drawThread();
   await sb.from('support_messages').update({read:true}).eq('user_id',uid).eq('sender','customer').eq('read',false);
   loadSup();
 }
+function backList(){TH=null;$('sup-list').hidden=false;$('sup-th').hidden=true;drawSupList()}
 
 /* ---------- offers ---------- */
 function targets(){
@@ -188,36 +318,48 @@ function targets(){
   if(a==='one'&&OTARGET)return CUS.filter(c=>c.uid===OTARGET);
   return CUS.filter(c=>c.uid&&(a==='all'||c.seg===a));
 }
-function offCount(){const t=targets().filter(c=>c.uid);$('o-cnt').textContent=t.length+' জন গ্রাহকের অ্যাকাউন্ট আছে, তাদের কাছে যাবে।'}
+function offCount(){$('o-cnt').textContent=targets().filter(c=>c.uid).length+' জন গ্রাহকের অ্যাকাউন্ট আছে, তাদের কাছে যাবে।'}
 
 function setTab(t){
-  tab=t;['cus','sup','off'].forEach(k=>$('t-'+k).hidden=k!==t);
+  tab=t;$('ws').dataset.tab=t;
   document.querySelectorAll('#tabs .cb').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  if(t==='sup'){TH=null;$('sup-list').hidden=false;$('sup-th').hidden=true;loadSup()}
+  if(t==='sup')loadSup();
   if(t==='off')offCount();
 }
+function exportCsv(){
+  const rows=[['নাম','ফোন','ঠিকানা','অর্ডার','মোট কেনা','ধরন']].concat(CUS.map(c=>[c.name,c.phone,c.addr,c.n,c.spent,SEGN[c.seg]]));
+  const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='customers.csv';a.click();
+}
 
+/* ---------- boot ---------- */
 Admin.boot({key:'crm',title:'CRM',perm:'orders',ready:async()=>{
   A.onRefresh=()=>{load();loadSup()};
   $('tabs').onclick=e=>{const b=e.target.closest('[data-t]');if(b)setTab(b.dataset.t)};
   $('segs').onclick=e=>{const b=e.target.closest('[data-s]');if(!b)return;seg=b.dataset.s;document.querySelectorAll('#segs .cb').forEach(x=>x.classList.toggle('on',x===b));paint()};
   $('q').oninput=e=>{q=e.target.value.toLowerCase().trim();paint()};
+  $('sort').onchange=e=>{sort=e.target.value;paint()};
+  $('csv').onclick=exportCsv;
   $('list').onclick=e=>{const c=e.target.closest('[data-c]');if(c)openCus(c.dataset.c)};
+  $('bd').onclick=closeDr;
   $('dr').onclick=async e=>{
     const t=e.target.closest('button');if(!t)return;
-    if(t.dataset.x)$('dr').classList.remove('on');
-    if(t.dataset.chat){$('dr').classList.remove('on');setTab('sup');await loadSup();openThread(t.dataset.chat)}
-    if(t.dataset.offer){OTARGET=t.dataset.offer;$('dr').classList.remove('on');const s=$('o-aud');s.querySelector('[value=one]').hidden=false;s.value='one';setTab('off');$('o-cnt').textContent='শুধু '+nameOf(OTARGET)+' কে যাবে।'}
+    if(t.dataset.x)closeDr();
+    if(t.dataset.chat){closeDr();setTab('sup');await loadSup();openThread(t.dataset.chat)}
+    if(t.dataset.offer){OTARGET=t.dataset.offer;closeDr();const s=$('o-aud');s.querySelector('[value=one]').hidden=false;s.value='one';setTab('off');$('o-cnt').textContent='শুধু '+nameOf(OTARGET)+' কে যাবে।'}
     if(t.dataset.note){const r=await sb.from('crm_notes').upsert({user_id:t.dataset.note,note:$('nt').value,updated_at:new Date().toISOString()});
       if(r.error)A.toast('নোট সেভ হয়নি। SQL Run করেছেন?');else{NOTE[t.dataset.note]=$('nt').value;A.toast('নোট সেভ হয়েছে')}}
+    if(t.dataset.del){if(!confirm('এই গ্রাহক মুছে ফেলবেন?'))return;const r=await sb.from('crm_contacts').delete().eq('id',t.dataset.del);
+      if(r.error){A.toast('মোছা যায়নি: '+r.error.message);return}closeDr();A.toast('মুছে ফেলা হয়েছে');load()}
   };
   $('sup-list').onclick=e=>{const c=e.target.closest('[data-th]');if(c)openThread(c.dataset.th)};
-  $('sup-back').onclick=()=>{TH=null;$('sup-list').hidden=false;$('sup-th').hidden=true;drawSupList()};
+  $('sup-back').onclick=backList;
   $('sup-send').onclick=async()=>{
     const v=$('sup-in').value.trim();if(!v||!TH)return;$('sup-send').disabled=true;
     const r=await sb.from('support_messages').insert({user_id:TH,sender:'staff',body:v});$('sup-send').disabled=false;
     if(r.error){A.toast('পাঠানো যায়নি: '+r.error.message);return}$('sup-in').value='';loadSup();
   };
+  $('tpl').onclick=e=>{const b=e.target.closest('[data-tp]');if(!b)return;const t=TPL[+b.dataset.tp];$('o-t').value=t[0];$('o-b').value=t[1]};
   $('o-aud').onchange=()=>{if($('o-aud').value!=='one')OTARGET=null;offCount()};
   $('o-send').onclick=async()=>{
     const t=$('o-t').value.trim(),b=$('o-b').value.trim(),u=targets().filter(c=>c.uid).map(c=>c.uid);
@@ -228,8 +370,17 @@ Admin.boot({key:'crm',title:'CRM',perm:'orders',ready:async()=>{
     if(r.error){A.toast('পাঠানো যায়নি। CRM এর SQL Run করেছেন?');return}
     A.toast(r.data+' জনকে অফার পাঠানো হয়েছে');$('o-t').value='';$('o-b').value='';
   };
+  $('a-save').onclick=async()=>{
+    const n=$('a-n').value.trim(),p=$('a-p').value.trim();
+    if(!n){A.toast('নাম লিখুন');return}
+    $('a-save').disabled=true;
+    const r=await sb.from('crm_contacts').insert({name:n,phone:p,address:$('a-a').value.trim(),note:$('a-note').value.trim()});
+    $('a-save').disabled=false;
+    if(r.error){A.toast('সেভ হয়নি। crm_contacts এর SQL Run করেছেন?');return}
+    ['a-n','a-p','a-a','a-note'].forEach(i=>$(i).value='');A.toast('গ্রাহক যোগ হয়েছে');setTab('cus');load();
+  };
   await load();loadSup();
-  setInterval(()=>{if(tab==='sup'&&!document.hidden)loadSup()},10000);
+  setInterval(()=>{if(!document.hidden&&(tab==='sup'||innerWidth>=1100))loadSup()},10000);
   setInterval(()=>{if(!document.hidden)loadSup()},60000);
 }});
 </script>
