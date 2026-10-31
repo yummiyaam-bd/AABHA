@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AABHA | OMNI AI</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+/* OMNI AI: শুধু এই পেজের ভেতরে প্রযোজ্য, বাকি admin অক্ষত */
+.om{--p1:#7c5cf0;--p2:#a78bfa;--bl:#dbeafe;--pk:#fce7f3;--pe:#ffedd5;--bd:rgba(124,92,240,.14);
+ padding:18px;border-radius:26px;background:linear-gradient(135deg,#ece8ff,#f6ecfb 45%,#e7f0ff 75%,#fff1e8);border:1px solid var(--bd)}
+.om *{box-sizing:border-box}
+.om-tabs{display:inline-flex;gap:4px;padding:5px;border-radius:40px;background:rgba(255,255,255,.7);margin-bottom:16px}
+.om-tabs button{border:0;background:transparent;padding:10px 20px;border-radius:30px;font:700 13px var(--sans);color:#5b5675;cursor:pointer;transition:.25s}
+.om-tabs button.on{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;box-shadow:0 8px 20px rgba(124,92,240,.3)}
+.om-g{display:grid;grid-template-columns:280px minmax(0,1fr) minmax(0,1.05fr);gap:16px;align-items:start}
+.om-c{background:rgba(255,255,255,.72);border:1px solid var(--bd);border-radius:22px;padding:18px;box-shadow:0 10px 30px rgba(124,92,240,.08);min-width:0}
+.om-c h3{margin:0 0 12px;font:600 1.15rem var(--serif)}
+.om[data-m=agent] .om-mid{display:none}.om[data-m=agent] .om-g{grid-template-columns:1fr 1fr}
+.ag{border:1px solid var(--bd);border-radius:16px;padding:11px 12px;margin-bottom:8px;background:#fff;cursor:pointer;transition:.25s}
+.ag:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(124,92,240,.12)}
+.ag-h{display:flex;gap:10px;align-items:center}.ag-i{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:20px;background:var(--bl);flex:none}
+.ag:nth-child(2n) .ag-i{background:var(--pk)}.ag:nth-child(3n) .ag-i{background:var(--pe)}
+.ag b{display:block;font-size:13.5px}.ag small{color:var(--mut);font-size:11.5px}
+.ag-s{margin-left:auto;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:12px;background:#dcfce7;color:#15803d;white-space:nowrap}
+.ag-s.w{background:#fef3c7;color:#b45309}.ag-s.x{background:#eee;color:#777}
+.ag-d{display:none;margin-top:10px;font-size:12px;color:#5b5675;line-height:1.5}.ag.open .ag-d{display:block}
+.ag-d p{margin:0 0 4px}
+.orb{width:84px;height:84px;margin:4px auto 10px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,#c4b5fd 35%,#7c5cf0 70%,#f0abfc);box-shadow:0 14px 40px rgba(124,92,240,.35);animation:fl 4s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-6px) scale(1.03)}}
+.hi{text-align:center;margin-bottom:10px}.hi h2{margin:0;font:600 1.5rem var(--serif)}.hi p{margin:4px 0 0;color:var(--mut);font-size:13px}
+.msgs{max-height:340px;overflow-y:auto;padding:4px 2px}
+.mg{max-width:88%;padding:10px 14px;border-radius:16px;margin:7px 0;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.mg.u{margin-left:auto;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff}.mg.a{background:#fff;border:1px solid var(--bd)}
+.mg.t{opacity:.6}
+.qa{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.qa button{border:1px solid var(--bd);background:#fff;border-radius:30px;padding:8px 14px;font:600 12px var(--sans);color:#4b4670;cursor:pointer;transition:.25s}
+.qa button:hover{background:var(--bl);border-color:var(--p2)}
+.inp{display:flex;gap:8px;margin-top:10px}
+.inp input{flex:1;border:1px solid var(--bd);border-radius:30px;padding:12px 16px;font:500 14px var(--sans);background:#fff;outline:none}.inp input:focus{border-color:var(--p2)}
+.inp button{width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;font-size:18px;cursor:pointer}
+.vc{text-align:center}.vc[hidden],.ch[hidden]{display:none}
+.mic{position:relative;width:128px;height:128px;margin:10px auto;border-radius:50%;border:0;font-size:46px;color:#fff;cursor:pointer;background:radial-gradient(circle at 35% 30%,#a78bfa,#6d49e8);box-shadow:0 0 0 14px rgba(124,92,240,.12),0 0 0 30px rgba(124,92,240,.07),0 18px 40px rgba(124,92,240,.4);transition:.3s}
+.mic.on{animation:pu 1.2s infinite}@keyframes pu{50%{transform:scale(1.07)}}
+.wv{display:flex;gap:3px;align-items:center;justify-content:center;height:46px;margin:6px 0}
+.wv i{width:4px;height:8px;border-radius:3px;background:linear-gradient(var(--p2),var(--p1));opacity:.45}
+.wv.on i{opacity:1;animation:wv .9s ease-in-out infinite;animation-delay:var(--d)}@keyframes wv{50%{height:40px}}
+.vt{font:600 1.1rem var(--serif);margin:4px 0}.vs{color:var(--mut);font-size:13px}
+.tr{margin:12px 0;padding:12px 14px;border-radius:16px;background:var(--pk);font-size:14px;min-height:46px;text-align:left}
+.vsay{margin:8px 0;padding:12px 14px;border-radius:16px;background:#fff;border:1px solid var(--bd);font-size:14px;text-align:left;min-height:46px;white-space:pre-wrap}
+.vr{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;font-size:12px;margin-top:8px;align-items:center}
+.vr button,.vr select{border:1px solid var(--bd);background:#fff;border-radius:20px;padding:6px 12px;font:600 12px var(--sans);cursor:pointer}
+.wsh{display:flex;justify-content:space-between;align-items:center}.wsh button{border:1px solid var(--bd);background:#fff;border-radius:20px;padding:5px 12px;font:600 11px var(--sans);cursor:pointer}
+#ws{display:grid;gap:12px;max-height:78vh;overflow-y:auto}
+.wb{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:14px;animation:in .5s}@keyframes in{from{opacity:0;transform:translateY(12px)}}
+.wb h4{margin:0 0 10px;font:600 1rem var(--serif)}
+.st{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.st div{padding:11px;border-radius:14px;background:linear-gradient(135deg,var(--bl),var(--pk))}.st small{display:block;font-size:10.5px;color:#5b5675;letter-spacing:.04em}
+.st b{display:block;font:600 1.35rem var(--serif);margin-top:3px}.st em{font-style:normal;font-size:11px;font-weight:800}.st em.up{color:#15803d}.st em.dn{color:#be123c}
+.ct{display:flex;gap:4px;align-items:flex-end;height:150px}.ct div{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.ct i{display:block;width:100%;border-radius:5px 5px 0 0;background:linear-gradient(var(--p2),var(--p1));min-height:2px;transition:height .8s}.ct i.f{background:repeating-linear-gradient(45deg,#d8ccff,#d8ccff 4px,#efe9ff 4px,#efe9ff 8px)}
+.ct span{font-size:8.5px;color:var(--mut);margin-top:4px}
+.wt{overflow-x:auto}.wt table{min-width:0;width:100%}.wt th{background:transparent}.wt td,.wt th{padding:9px 8px;font-size:12.5px}
+.empty2{text-align:center;color:var(--mut);padding:30px 10px;font-size:13px}
+@media(max-width:1100px){.om-g,.om[data-m=agent] .om-g{grid-template-columns:1fr}.om-ag{display:none}.om[data-m=agent] .om-ag{display:block}.om[data-m=agent] #wsc{display:none}.om{padding:12px}}
+</style>
+</head>
+<body>
+<div id="page">
+<div class="om" id="om" data-m="chat">
+  <div class="om-tabs" id="tabs"><button data-m="voice">🎙 Voice Mode</button><button data-m="chat" class="on">💬 Chat Mode</button><button data-m="agent">🤖 Agent Mode</button></div>
+  <div class="om-g">
+    <aside class="om-c om-ag"><h3>AI Agents</h3><div id="ags"></div></aside>
+    <main class="om-c om-mid">
+      <section class="vc" id="v-voice" hidden>
+        <div class="vt" id="vt">কথা বলতে মাইকে চাপুন</div><div class="vs">বাংলা, English বা মিশ্র ভাষায় বলুন</div>
+        <button class="mic" id="mic" aria-label="mic">🎙</button>
+        <div class="wv" id="wv"></div>
+        <div class="tr" id="tr">লাইভ ট্রান্সক্রিপশন এখানে দেখাবে…</div>
+        <div class="vsay" id="vsay">OMNI-র উত্তর এখানে আসবে…</div>
+        <div class="vr"><select id="lang"><option value="bn-BD">বাংলা</option><option value="en-US">English</option></select>
+          <label><input type="checkbox" id="spk" checked> 🔊 উত্তর শোনাও</label><button id="stopsp">⏹ থামাও</button></div>
+      </section>
+      <section class="ch" id="v-chat">
+        <div class="orb"></div>
+        <div class="hi"><h2 id="gr">Good Morning</h2><p>আজ কী জানতে চান? বিক্রি, স্টক, অর্ডার, আয়-ব্যয় বা ভবিষ্যৎ অনুমান।</p></div>
+        <div class="msgs" id="msgs"></div>
+      </section>
+      <div class="qa" id="qa"></div>
+      <div class="inp"><input id="ti" placeholder="যেকোনো কিছু জিজ্ঞেস করুন…" autocomplete="off"><button id="sd" aria-label="send">➤</button></div>
+    </main>
+    <aside class="om-c" id="wsc"><div class="wsh"><h3>Live Workspace</h3><button id="clr">মুছুন</button></div><div id="ws"><div class="empty2">প্রশ্ন করলে চার্ট, টেবিল ও কার্ড এখানে দেখাবে।</div></div></aside>
+  </div>
+</div>
+</div>
+<script>
+const A=Admin,sb=A.sb,$=A.$,esc=A.esc;
+const AG=[['ceo','👑','CEO Agent','Business Coordinator','সব এজেন্টের কাজ সমন্বয়'],['sales','📈','Sales Agent','Sales & Growth','বিক্রি, অর্ডার, পূর্বাভাস'],['inv','📦','Inventory Agent','Stock Management','স্টক ও সেরা পণ্য'],['fin','🧾','Finance Agent','Finance & Accounts','আয়, ব্যয়, লাভ'],['mkt','📣','Marketing Agent','Marketing Strategy','ফেলে যাওয়া কার্ট'],['sup','🎧','Customer Support Agent','Customer Care','শীঘ্রই আসছে']];
+const TA={sales_summary:'sales',sales_forecast:'sales',recent_orders:'sales',low_stock:'inv',top_products:'inv',finance_summary:'fin',abandoned_carts:'mkt'};
+const QA=['আজকের বিক্রি দেখাও','কম স্টকের পণ্য দেখাও','সাম্প্রতিক অর্ডার দেখাও','এই মাসের আয়-ব্যয় কেমন?','ফেলে যাওয়া কার্ট','আগামী ৭ দিনে কত বিক্রি হতে পারে?','সেরা বিক্রিত পণ্য'];
+const HIST=[],AS={},LOG={};let busy=false,rec=null,listening=false,fin='';
+AG.forEach(a=>{AS[a[0]]=a[0]==='sup'?'x':'';LOG[a[0]]=[]});
+
+function drawAg(){$('ags').innerHTML=AG.map(a=>{const s=AS[a[0]],l=LOG[a[0]];
+ return `<div class="ag" data-a="${a[0]}"><div class="ag-h"><div class="ag-i">${a[1]}</div><div><b>${a[2]}</b><small>${a[3]}</small></div><span class="ag-s ${s}">${s==='x'?'Soon':s==='w'?'Working…':'Ready'}</span></div>
+ <div class="ag-d"><p><b>কাজ:</b> ${a[4]}</p><p><b>সর্বশেষ:</b> ${l.length?esc(l[0]):'এখনো কোনো কাজ নেই'}</p>${l.slice(1,4).map(x=>'<p>• '+esc(x)+'</p>').join('')}</div></div>`}).join('')}
+$('ags').onclick=e=>{const c=e.target.closest('.ag');if(c)c.classList.toggle('open')};
+function setAg(ids,s){ids.forEach(i=>{if(AS[i]!=='x')AS[i]=s});const o=[...document.querySelectorAll('.ag.open')].map(x=>x.dataset.a);drawAg();o.forEach(i=>document.querySelector('.ag[data-a="'+i+'"]').classList.add('open'))}
+
+function setMode(m){$('om').dataset.m=m;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+ $('v-voice').hidden=m!=='voice';$('v-chat').hidden=m==='voice'}
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(b)setMode(b.dataset.m)};
+
+function addMsg(c,t){const d=document.createElement('div');d.className='mg '+c;d.textContent=t;$('msgs').appendChild(d);$('msgs').scrollTop=1e6;return d}
+function blk(b){let h='<div class="wb"><h4>'+esc(b.title||'')+'</h4>';
+ if(b.type==='stats')h+='<div class="st">'+b.items.map(i=>`<div><small>${esc(i.l)}</small><b>${esc(i.v)}</b>${i.d?`<em class="${i.d[0]==='-'?'dn':'up'}">${esc(i.d)}</em>`:''}</div>`).join('')+'</div>';
+ else if(b.type==='chart'){const mx=Math.max(1,...b.values);h+='<div class="ct">'+b.values.map((v,i)=>`<div title="${esc(b.labels[i])}: ${A.money(v)}"><i class="${b.fc!=null&&i>=b.fc?'f':''}" style="height:${v?Math.max(3,v/mx*100):0}%"></i><span>${esc(b.labels[i])}</span></div>`).join('')+'</div>'}
+ else if(b.type==='table')h+=b.rows.length?'<div class="wt"><table><thead><tr>'+b.cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+b.rows.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'<div class="empty2">কোনো তথ্য নেই।</div>';
+ return h+'</div>'}
+function showBlocks(bs){const w=$('ws');if(w.querySelector('.empty2'))w.innerHTML='';w.insertAdjacentHTML('afterbegin',bs.slice().reverse().map(blk).join(''));w.scrollTop=0}
+$('clr').onclick=()=>{$('ws').innerHTML='<div class="empty2">প্রশ্ন করলে চার্ট, টেবিল ও কার্ড এখানে দেখাবে।</div>'};
+
+function speak(t){if(!$('spk').checked||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=/[\u0980-\u09FF]/.test(t)?'bn-BD':'en-US';speechSynthesis.speak(u)}
+async function send(t){t=String(t||'').trim();if(!t||busy)return;busy=true;$('ti').value='';
+ addMsg('u',t);HIST.push({role:'user',content:t});const th=addMsg('a t','ভাবছি…');$('vsay').textContent='ভাবছি…';setAg(['ceo'],'w');
+ try{const r=await sb.functions.invoke('omni-ai',{body:{messages:HIST.slice(-12)}});
+  if(r.error||!r.data||r.data.error)throw new Error((r.data&&r.data.error)||'OMNI সার্ভারে সংযোগ হয়নি। Edge Function deploy ও ANTHROPIC_API_KEY সেট করেছেন?');
+  const d=r.data;th.className='mg a';th.textContent=d.reply||'(উত্তর নেই)';$('vsay').textContent=d.reply||'';HIST.push({role:'assistant',content:d.reply||''});
+  const ag=[...new Set((d.used||[]).map(u=>TA[u]).filter(Boolean))];
+  ag.forEach(i=>LOG[i].unshift(t.slice(0,60)+' — '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})));
+  if(ag.length>1)LOG.ceo.unshift('সমন্বয়: '+ag.length+' এজেন্ট — '+t.slice(0,40));
+  if(d.blocks&&d.blocks.length)showBlocks(d.blocks);
+  if(d.reply)speak(d.reply);
+ }catch(e){th.className='mg a';th.textContent='⚠️ '+e.message;$('vsay').textContent=th.textContent;HIST.pop()}
+ busy=false;setAg(AG.map(a=>a[0]),'');}
+$('sd').onclick=()=>send($('ti').value);$('ti').onkeydown=e=>{if(e.key==='Enter')send($('ti').value)};
+$('qa').innerHTML=QA.map(q=>'<button>'+esc(q)+'</button>').join('');$('qa').onclick=e=>{const b=e.target.closest('button');if(b)send(b.textContent)};
+
+/* ভয়েস: ব্রাউজারের Speech Recognition (Chrome/Edge); পরে চাইলে উন্নত STT/TTS সেবায় বদলানো যাবে */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+$('wv').innerHTML=Array.from({length:30},(_,i)=>`<i style="--d:${(i*0.07).toFixed(2)}s"></i>`).join('');
+function setL(on){listening=on;$('mic').classList.toggle('on',on);$('wv').classList.toggle('on',on);$('vt').textContent=on?'শুনছি… বলুন':'কথা বলতে মাইকে চাপুন'}
+$('mic').onclick=()=>{
+ if(listening){rec&&rec.stop();return}
+ if(!SR){A.toast('এই ব্রাউজারে ভয়েস চলে না। Chrome ব্যবহার করুন।');return}
+ if(window.speechSynthesis)speechSynthesis.cancel();fin='';
+ rec=new SR();rec.lang=$('lang').value;rec.interimResults=true;
+ rec.onresult=e=>{let t='';for(const r of e.results)t+=r[0].transcript;$('tr').textContent=t;fin=t};
+ rec.onerror=e=>{A.toast('মাইক সমস্যা: '+e.error)};
+ rec.onend=()=>{setL(false);if(fin){const t=fin;fin='';send(t)}};
+ try{rec.start();setL(true)}catch(e){}};
+$('stopsp').onclick=()=>window.speechSynthesis&&speechSynthesis.cancel();
+
+Admin.boot({key:'omni',title:'OMNI AI',ready:async()=>{
+ const h=new Date().getHours();$('gr').textContent=(h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening')+', '+(A.user.email||'').split('@')[0];
+ drawAg();}});
+</script>
+</body>
+</html>
