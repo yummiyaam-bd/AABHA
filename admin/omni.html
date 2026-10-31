@@ -126,7 +126,8 @@ function speak(t){if(!$('spk').checked||!window.speechSynthesis)return;speechSyn
 async function send(t){t=String(t||'').trim();if(!t||busy)return;busy=true;$('ti').value='';
  addMsg('u',t);HIST.push({role:'user',content:t});const th=addMsg('a t','ভাবছি…');$('vsay').textContent='ভাবছি…';setAg(['ceo'],'w');
  try{const r=await sb.functions.invoke('omni-ai',{body:{messages:HIST.slice(-12)}});
-  if(r.error||!r.data||r.data.error)throw new Error((r.data&&r.data.error)||'OMNI সার্ভারে সংযোগ হয়নি। Edge Function deploy ও ANTHROPIC_API_KEY সেট করেছেন?');
+  if(r.error){let m=r.error.message||'অজানা সমস্যা';try{const t=await r.error.context.text();try{const x=JSON.parse(t);m=x.error||x.message||t}catch(_){m=t||m}}catch(_){}throw new Error(m)}
+  if(!r.data||r.data.error)throw new Error((r.data&&r.data.error)||'খালি উত্তর এসেছে');
   const d=r.data;th.className='mg a';th.textContent=d.reply||'(উত্তর নেই)';$('vsay').textContent=d.reply||'';HIST.push({role:'assistant',content:d.reply||''});
   const ag=[...new Set((d.used||[]).map(u=>TA[u]).filter(Boolean))];
   ag.forEach(i=>LOG[i].unshift(t.slice(0,60)+' — '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})));
