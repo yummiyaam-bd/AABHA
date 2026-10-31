@@ -69,7 +69,7 @@ A.boot=async function(o){
 
   /* যে পেজ ফাইল আছে সেটাই লিংক হবে, নাহলে "Soon" */
   const vis=NAV.filter(n=>!n[4]||P[n[4]]);
-  const ok=await Promise.all(vis.map(n=>n[0]===o.key?true:fetch(n[3],{method:'HEAD',cache:'no-store'}).then(r=>r.ok).catch(()=>false)));
+  const ok=vis.map(()=>true);
   const items=vis.map((n,i)=>ok[i]
     ?'<a href="'+n[3]+'" class="'+(n[0]===o.key?'active':'')+'">'+A.ic(n[2])+n[1]+'</a>'
     :'<span class="soon">'+A.ic(n[2])+n[1]+'<em>Soon</em></span>').join('');
