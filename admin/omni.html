@@ -81,7 +81,7 @@
         <div class="tr" id="tr">লাইভ ট্রান্সক্রিপশন এখানে দেখাবে…</div>
         <div class="vsay" id="vsay">OMNI-র উত্তর এখানে আসবে…</div>
         <div class="vr"><select id="lang"><option value="bn-BD">বাংলা</option><option value="en-US">English</option></select>
-          <label><input type="checkbox" id="spk" checked> 🔊 উত্তর শোনাও</label><button id="stopsp">⏹ থামাও</button></div>
+          <select id="vsel" style="max-width:190px"></select><button id="vtest">🔈 টেস্ট</button><label><input type="checkbox" id="spk" checked> 🔊 উত্তর শোনাও</label><button id="stopsp">⏹ থামাও</button></div>
       </section>
       <section class="ch" id="v-chat">
         <div class="orb"></div>
@@ -122,10 +122,23 @@ function blk(b){let h='<div class="wb"><h4>'+esc(b.title||'')+'</h4>';
 function showBlocks(bs){const w=$('ws');if(w.querySelector('.empty2'))w.innerHTML='';w.insertAdjacentHTML('afterbegin',bs.slice().reverse().map(blk).join(''));w.scrollTop=0}
 $('clr').onclick=()=>{$('ws').innerHTML='<div class="empty2">প্রশ্ন করলে চার্ট, টেবিল ও কার্ড এখানে দেখাবে।</div>'};
 
-function speak(t){if(!$('spk').checked||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=/[\u0980-\u09FF]/.test(t)?'bn-BD':'en-US';speechSynthesis.speak(u)}
+const FEM=/female|woman|zira|samantha|susan|hazel|aria|jenny|sonia|libby|nabanita|tanishaa|sangeeta|heera|neerja|swara|google/i,MAL=/\bmale\b|david|mark|george|ravi|prabhat|pradeep|bashkar|guy|ryan|christopher/i;
+let VS=[];const isBn=l=>/^bn/i.test(l);
+function loadV(){if(!window.speechSynthesis)return;VS=speechSynthesis.getVoices().filter(v=>/^(bn|en)/i.test(v.lang));let sv='';try{sv=localStorage.getItem('omni_voice')||''}catch(e){}
+ $('vsel').innerHTML='<option value="">অটো (মেয়েলি কণ্ঠ)</option>'+VS.map(v=>`<option value="${esc(v.name)}"${v.name===sv?' selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}
+function pick(bn){const sv=$('vsel').value,pool=VS.filter(v=>isBn(v.lang)===bn);
+ if(sv){const x=pool.find(v=>v.name===sv);if(x)return x}
+ return pool.find(v=>FEM.test(v.name)&&!MAL.test(v.name))||pool.find(v=>!MAL.test(v.name))||pool[0]||null}
+function say(t){if(!window.speechSynthesis)return;speechSynthesis.cancel();
+ t=String(t).replace(/৳\s?([\d,\.]+)/g,'$1 টাকা').replace(/[*_#`>|~]/g,' ').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s*\n+\s*/g,'। ').trim();
+ (t.match(/[^।.!?]+[।.!?]*/g)||[t]).forEach(p=>{p=p.trim();if(!p)return;const bn=/[\u0980-\u09FF]/.test(p),u=new SpeechSynthesisUtterance(p),v=pick(bn);u.lang=bn?'bn-BD':'en-US';if(v){u.voice=v;u.lang=v.lang}u.rate=1.12;u.pitch=1.08;speechSynthesis.speak(u)})}
+function speak(t){if($('spk').checked)say(t)}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadV;loadV()}
+$('vsel').onchange=()=>{try{localStorage.setItem('omni_voice',$('vsel').value)}catch(e){}};
+$('vtest').onclick=()=>say('আসসালামু আলাইকুম, আমি ওমনি। আজকের বিক্রি দেখাবো?')
 async function send(t){t=String(t||'').trim();if(!t||busy)return;busy=true;$('ti').value='';
  addMsg('u',t);HIST.push({role:'user',content:t});const th=addMsg('a t','ভাবছি…');$('vsay').textContent='ভাবছি…';setAg(['ceo'],'w');
- try{const r=await sb.functions.invoke('omni-ai',{body:{messages:HIST.slice(-12)}});
+ try{const r=await Promise.race([sb.functions.invoke('omni-ai',{body:{messages:HIST.slice(-12)}}),new Promise((_,rj)=>setTimeout(()=>rj(new Error('৭০ সেকেন্ডে উত্তর আসেনি। Supabase → Edge Functions → omni-ai → Logs দেখুন।')),70000))]);
   if(r.error){let m=r.error.message||'অজানা সমস্যা';try{const t=await r.error.context.text();try{const x=JSON.parse(t);m=x.error||x.message||t}catch(_){m=t||m}}catch(_){}throw new Error(m)}
   if(!r.data||r.data.error)throw new Error((r.data&&r.data.error)||'খালি উত্তর এসেছে');
   const d=r.data;th.className='mg a';th.textContent=d.reply||'(উত্তর নেই)';$('vsay').textContent=d.reply||'';HIST.push({role:'assistant',content:d.reply||''});
