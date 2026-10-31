@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | CRM</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.cr-st{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.cr-st div{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.cr-st small{display:block;font-size:11px;opacity:.7}.cr-st b{font-size:1.5rem}
+.cr-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}
+.cb{flex:none;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
+.cb.on,.cb.pr{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
+.cb:disabled{opacity:.5}
+.cr-in{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;color:inherit;padding:11px 14px;font:inherit;font-size:14px;outline:none;margin-bottom:10px}
+select.cr-in option{color:#111}
+.cr-c{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);margin-bottom:8px;cursor:pointer}
+.cr-av{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff}
+.cr-c .m{flex:1;min-width:0}.cr-c b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cr-c small{opacity:.7;font-size:12px}
+.cr-p{font-size:10px;font-weight:800;padding:3px 9px;border-radius:12px;background:#6b7280;color:#fff;white-space:nowrap}
+.cr-p.vip{background:#d9a85f}.cr-p.new{background:#2f855a}.cr-p.inactive{background:#b8715a}
+.cr-bars{display:flex;gap:4px;align-items:flex-end;height:70px;margin:8px 0 14px}
+.cr-bars i{flex:1;background:linear-gradient(#e8b4a0,#b8715a);border-radius:4px 4px 0 0;min-height:3px}
+.cr-dr{position:fixed;inset:0;z-index:80;background:#0d0b11;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 40px;display:none}
+.cr-dr.on{display:block}
+.cr-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
+.cr-g div{text-align:center;padding:10px 4px;border-radius:14px;background:rgba(255,255,255,.06)}
+.cr-g b{display:block;font-size:1.2rem}.cr-g small{font-size:10px;opacity:.7}
+.cr-h{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin:16px 0 6px}
+.cr-o{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px dashed rgba(255,255,255,.12)}
+.cr-msg{max-width:85%;padding:9px 13px;border-radius:14px;margin:6px 0;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.cr-msg.c{background:rgba(255,255,255,.09);margin-right:auto}.cr-msg.s{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;margin-left:auto}
+.cr-msg small{display:block;font-size:10px;opacity:.7;margin-top:2px}
+.cr-un{background:#d9778a;color:#fff;border-radius:10px;font-size:10px;font-weight:800;padding:2px 7px}
+.cr-note{padding:12px;border-radius:14px;background:rgba(217,119,138,.12);border:1px solid rgba(217,119,138,.4);font-size:13px;margin-bottom:12px;white-space:pre-wrap}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="page">
+  <div class="cr-row" id="tabs">
+    <button class="cb on" data-t="cus">গ্রাহক</button>
+    <button class="cb" data-t="sup">সাপোর্ট চ্যাট <span class="cr-un" id="unc" hidden></span></button>
+    <button class="cb" data-t="off">অফার পাঠান</button>
+  </div>
+
+  <section id="t-cus">
+    <div class="cr-st" id="stats"></div>
+    <div class="panel" style="padding:14px;margin-bottom:12px"><b>নতুন গ্রাহক (গত ১৪ দিন)</b><div class="cr-bars" id="bars"></div></div>
+    <input class="cr-in" id="q" placeholder="নাম বা ফোন খুঁজুন...">
+    <div class="cr-row" id="segs">
+      <button class="cb on" data-s="all">সব</button><button class="cb" data-s="new">নতুন</button><button class="cb" data-s="regular">নিয়মিত</button><button class="cb" data-s="vip">VIP</button><button class="cb" data-s="inactive">নিষ্ক্রিয়</button>
+    </div>
+    <div id="list"><div class="empty">লোড হচ্ছে...</div></div>
+  </section>
+
+  <section id="t-sup" hidden>
+    <div id="supnote"></div>
+    <div id="sup-list"></div>
+    <div id="sup-th" hidden>
+      <button class="cb" id="sup-back">← ফিরে যান</button>
+      <h3 id="sup-name" style="margin:12px 0"></h3>
+      <div id="sup-msgs"></div>
+      <textarea class="cr-in" id="sup-in" rows="2" placeholder="উত্তর লিখুন..."></textarea>
+      <button class="cb pr" id="sup-send">পাঠান</button>
+    </div>
+  </section>
+
+  <section id="t-off" hidden>
+    <div class="panel" style="padding:16px">
+      <b>পুরোনো গ্রাহককে অফার পাঠান</b>
+      <p class="sub" style="margin:6px 0 12px">গ্রাহকের অ্যাকাউন্টের "মেসেজ" অংশে অফারটা দেখা যাবে।</p>
+      <select class="cr-in" id="o-aud">
+        <option value="inactive">নিষ্ক্রিয় গ্রাহক (৩০ দিনের বেশি অর্ডার নেই)</option>
+        <option value="all">সব গ্রাহক</option>
+        <option value="vip">VIP গ্রাহক</option>
+        <option value="regular">নিয়মিত গ্রাহক</option>
+        <option value="new">নতুন গ্রাহক</option>
+        <option value="one" hidden>একজন গ্রাহক</option>
+      </select>
+      <p class="sub" id="o-cnt" style="margin:-4px 0 10px"></p>
+      <input class="cr-in" id="o-t" placeholder="শিরোনাম (যেমন: আপনার জন্য ১৫% ছাড়!)">
+      <textarea class="cr-in" id="o-b" rows="4" placeholder="মেসেজ (যেমন: কোড WELCOME15 দিয়ে এই সপ্তাহে ১৫% ছাড় পাবেন)"></textarea>
+      <button class="cb pr" id="o-send">অফার পাঠান</button>
+    </div>
+  </section>
+</div>
+
+<div class="cr-dr" id="dr"></div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc, DAY=864e5;
+const SEGN={vip:'VIP',new:'নতুন',regular:'নিয়মিত',inactive:'নিষ্ক্রিয়'};
+let CUS=[], OBY={}, NOTE={}, SUP=[], seg='all', q='', tab='cus', TH=null, OTARGET=null, SUPERR=false;
+
+const wa=p=>{p=String(p||'').replace(/\D/g,'');if(p.startsWith('0'))p='88'+p;return p};
+const top=(o,n)=>Object.entries(o||{}).sort((a,b)=>b[1]-a[1]).slice(0,n);
+const dkey=d=>{d=new Date(d);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()};
+const dshort=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+
+async function load(){
+  const o=await sb.from('orders').select('id,order_no,user_id,customer_name,phone,address,total,status,created_at').order('created_at',{ascending:false}).limit(2000);
+  if(o.error){$('list').innerHTML='<div class="empty" style="color:var(--bad)">ডেটা লোড হয়নি: '+esc(o.error.message)+'</div>';return}
+  const ords=o.data||[];OBY={};ords.forEach(x=>OBY[x.id]=x);
+  const ids=ords.map(x=>x.id),ch=[];for(let i=0;i<ids.length;i+=100)ch.push(ids.slice(i,i+100));
+  const ir=await Promise.all(ch.map(c=>sb.from('order_items').select('order_id,name,size,qty').in('order_id',c)));
+  const items=ir.flatMap(r=>r.data||[]);
+  const nr=await sb.from('crm_notes').select('*');NOTE={};(nr.data||[]).forEach(n=>NOTE[n.user_id]=n.note);
+  const M={},now=Date.now();
+  ords.forEach(x=>{
+    if(x.status==='cancelled')return;
+    const k=x.user_id||('p:'+x.phone);
+    const c=M[k]||(M[k]={key:k,uid:x.user_id||null,name:x.customer_name||'Anonymous',phone:x.phone||'',addr:x.address||'',orders:[],n:0,spent:0,last:x.created_at,first:x.created_at,items:{},sizes:{}});
+    c.orders.push(x);c.n++;c.spent+=+x.total||0;c.first=x.created_at;
+  });
+  items.forEach(it=>{
+    const x=OBY[it.order_id];if(!x)return;const c=M[x.user_id||('p:'+x.phone)];if(!c)return;
+    const q=+it.qty||1;c.items[it.name]=(c.items[it.name]||0)+q;if(it.size)c.sizes[it.size]=(c.sizes[it.size]||0)+q;
+  });
+  CUS=Object.values(M).map(c=>{
+    const age=(now-new Date(c.first))/DAY,idle=(now-new Date(c.last))/DAY;
+    c.seg=(c.n>=5||c.spent>=20000)?'vip':age<=14?'new':idle>30?'inactive':'regular';return c;
+  });
+  paint();
+}
+
+function paint(){
+  const now=Date.now(),wk=CUS.filter(c=>(now-new Date(c.first))/DAY<=7).length,rep=CUS.filter(c=>c.n>=2).length;
+  $('stats').innerHTML=`<div><small>মোট গ্রাহক</small><b>${CUS.length}</b></div><div><small>এই সপ্তাহে নতুন</small><b>${wk}</b></div><div><small>আবার কিনেছেন</small><b>${CUS.length?Math.round(rep*100/CUS.length):0}%</b></div><div><small>নিষ্ক্রিয় (৩০+ দিন)</small><b>${CUS.filter(c=>c.seg==='inactive').length}</b></div>`;
+  const days=[],cnt={};CUS.forEach(c=>{const k=dkey(c.first);cnt[k]=(cnt[k]||0)+1});
+  for(let i=13;i>=0;i--)days.push(cnt[dkey(now-i*DAY)]||0);
+  const mx=Math.max(1,...days);$('bars').innerHTML=days.map(v=>`<i title="${v}" style="height:${Math.max(4,v/mx*100)}%"></i>`).join('');
+  const L=CUS.filter(c=>(seg==='all'||c.seg===seg)&&(!q||(c.name+' '+c.phone).toLowerCase().includes(q))).sort((a,b)=>new Date(b.last)-new Date(a.last));
+  $('list').innerHTML=L.length?L.slice(0,150).map(c=>`<div class="cr-c" data-c="${esc(c.key)}"><div class="cr-av">${esc((c.name||'?').trim().charAt(0).toUpperCase())}</div><div class="m"><b>${esc(c.name)}</b><small>${esc(c.phone)} · ${c.n} অর্ডার · ${A.money(c.spent)} · ${dshort(c.last)}</small></div><span class="cr-p ${c.seg}">${SEGN[c.seg]}</span></div>`).join(''):'<div class="empty">কোনো গ্রাহক নেই।</div>';
+  offCount();
+}
+
+function openCus(key){
+  const c=CUS.find(x=>x.key===key);if(!c)return;
+  const fav=top(c.items,3),sz=top(c.sizes,1)[0];
+  $('dr').innerHTML=`<button class="cb" data-x="1">✕ বন্ধ করুন</button>
+  <div style="display:flex;gap:12px;align-items:center;margin:14px 0"><div class="cr-av" style="width:56px;height:56px;font-size:1.4rem">${esc((c.name||'?').trim().charAt(0).toUpperCase())}</div><div><h2 style="margin:0">${esc(c.name)}</h2><span class="cr-p ${c.seg}">${SEGN[c.seg]}</span></div></div>
+  <div class="cr-row"><a class="cb pr" href="tel:${esc(c.phone)}">📞 কল</a><a class="cb" target="_blank" rel="noopener" href="https://wa.me/${wa(c.phone)}">WhatsApp</a>${c.uid?`<button class="cb" data-chat="${esc(c.uid)}">💬 চ্যাট</button><button class="cb" data-offer="${esc(c.uid)}">🎁 অফার</button>`:''}</div>
+  <div class="cr-g"><div><b>${c.n}</b><small>অর্ডার</small></div><div><b>${A.money(c.spent)}</b><small>মোট কেনা</small></div><div><b>${A.money(Math.round(c.spent/Math.max(1,c.n)))}</b><small>গড় অর্ডার</small></div></div>
+  <div class="cr-h">যোগাযোগ</div><p style="margin:0">${esc(c.phone)}<br>${esc(c.addr)||'ঠিকানা নেই'}</p>
+  <div class="cr-h">পছন্দ</div>
+  <p style="margin:0">${fav.length?fav.map(f=>esc(f[0])+' ×'+f[1]).join('<br>'):'এখনো তথ্য নেই'}${sz?'<br>সাধারণত সাইজ: <b>'+esc(sz[0])+'</b>':''}</p>
+  <div class="cr-h">নোট</div>
+  ${c.uid?`<textarea class="cr-in" id="nt" rows="3" placeholder="যেমন: ঈদের আগে পাঞ্জাবি কেনে, ফোন করলে ভালো সাড়া দেয়">${esc(NOTE[c.uid]||'')}</textarea><button class="cb pr" data-note="${esc(c.uid)}">নোট সেভ করুন</button>`:'<p class="sub">এই গ্রাহকের অ্যাকাউন্ট নেই, তাই নোট রাখা যায় না।</p>'}
+  <div class="cr-h">অর্ডার ইতিহাস</div>
+  ${c.orders.slice(0,15).map(o=>`<div class="cr-o"><span>#${esc(o.order_no)} · ${dshort(o.created_at)}</span><span>${A.money(o.total)} · ${esc(o.status)}</span></div>`).join('')}`;
+  $('dr').classList.add('on');
+}
+
+/* ---------- support chat ---------- */
+async function loadSup(){
+  const r=await sb.from('support_messages').select('*').order('created_at',{ascending:true}).limit(1500);
+  if(r.error){SUPERR=true;$('supnote').innerHTML='<div class="cr-note">সাপোর্ট চ্যাট এখনো চালু হয়নি। Supabase এর SQL Editor এ CRM এর SQL টা একবার Run করুন।</div>';$('sup-list').innerHTML='';return}
+  SUPERR=false;$('supnote').innerHTML='';SUP=r.data||[];
+  const un=SUP.filter(m=>m.sender==='customer'&&!m.read).length;$('unc').hidden=!un;$('unc').textContent=un;
+  if(TH)drawThread();else drawSupList();
+}
+const nameOf=uid=>{const c=CUS.find(x=>x.uid===uid);return c?c.name:'গ্রাহক'};
+function drawSupList(){
+  const G={};SUP.forEach(m=>{(G[m.user_id]||(G[m.user_id]={uid:m.user_id,last:m,un:0})).last=m;if(m.sender==='customer'&&!m.read)G[m.user_id].un++});
+  const L=Object.values(G).sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
+  $('sup-list').innerHTML=L.length?L.map(g=>`<div class="cr-c" data-th="${esc(g.uid)}"><div class="cr-av">${esc(nameOf(g.uid).charAt(0).toUpperCase())}</div><div class="m"><b>${esc(nameOf(g.uid))}</b><small>${esc(g.last.body.slice(0,60))}</small></div>${g.un?`<span class="cr-un">${g.un}</span>`:''}</div>`).join(''):(SUPERR?'':'<div class="empty">এখনো কোনো মেসেজ আসেনি।</div>');
+}
+function drawThread(){
+  const L=SUP.filter(m=>m.user_id===TH);
+  $('sup-name').textContent=nameOf(TH);
+  $('sup-msgs').innerHTML=L.map(m=>`<div class="cr-msg ${m.sender==='staff'?'s':'c'}">${esc(m.body)}<small>${A.fmtDate(m.created_at)}</small></div>`).join('')||'<div class="empty">মেসেজ নেই।</div>';
+  const box=$('sup-msgs');box.scrollTop=box.scrollHeight;window.scrollTo(0,document.body.scrollHeight);
+}
+async function openThread(uid){
+  TH=uid;$('sup-list').hidden=true;$('sup-th').hidden=false;drawThread();
+  await sb.from('support_messages').update({read:true}).eq('user_id',uid).eq('sender','customer').eq('read',false);
+  loadSup();
+}
+
+/* ---------- offers ---------- */
+function targets(){
+  const a=$('o-aud').value;
+  if(a==='one'&&OTARGET)return CUS.filter(c=>c.uid===OTARGET);
+  return CUS.filter(c=>c.uid&&(a==='all'||c.seg===a));
+}
+function offCount(){const t=targets().filter(c=>c.uid);$('o-cnt').textContent=t.length+' জন গ্রাহকের অ্যাকাউন্ট আছে, তাদের কাছে যাবে।'}
+
+function setTab(t){
+  tab=t;['cus','sup','off'].forEach(k=>$('t-'+k).hidden=k!==t);
+  document.querySelectorAll('#tabs .cb').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  if(t==='sup'){TH=null;$('sup-list').hidden=false;$('sup-th').hidden=true;loadSup()}
+  if(t==='off')offCount();
+}
+
+Admin.boot({key:'crm',title:'CRM',perm:'orders',ready:async()=>{
+  A.onRefresh=()=>{load();loadSup()};
+  $('tabs').onclick=e=>{const b=e.target.closest('[data-t]');if(b)setTab(b.dataset.t)};
+  $('segs').onclick=e=>{const b=e.target.closest('[data-s]');if(!b)return;seg=b.dataset.s;document.querySelectorAll('#segs .cb').forEach(x=>x.classList.toggle('on',x===b));paint()};
+  $('q').oninput=e=>{q=e.target.value.toLowerCase().trim();paint()};
+  $('list').onclick=e=>{const c=e.target.closest('[data-c]');if(c)openCus(c.dataset.c)};
+  $('dr').onclick=async e=>{
+    const t=e.target.closest('button');if(!t)return;
+    if(t.dataset.x)$('dr').classList.remove('on');
+    if(t.dataset.chat){$('dr').classList.remove('on');setTab('sup');await loadSup();openThread(t.dataset.chat)}
+    if(t.dataset.offer){OTARGET=t.dataset.offer;$('dr').classList.remove('on');const s=$('o-aud');s.querySelector('[value=one]').hidden=false;s.value='one';setTab('off');$('o-cnt').textContent='শুধু '+nameOf(OTARGET)+' কে যাবে।'}
+    if(t.dataset.note){const r=await sb.from('crm_notes').upsert({user_id:t.dataset.note,note:$('nt').value,updated_at:new Date().toISOString()});
+      if(r.error)A.toast('নোট সেভ হয়নি। SQL Run করেছেন?');else{NOTE[t.dataset.note]=$('nt').value;A.toast('নোট সেভ হয়েছে')}}
+  };
+  $('sup-list').onclick=e=>{const c=e.target.closest('[data-th]');if(c)openThread(c.dataset.th)};
+  $('sup-back').onclick=()=>{TH=null;$('sup-list').hidden=false;$('sup-th').hidden=true;drawSupList()};
+  $('sup-send').onclick=async()=>{
+    const v=$('sup-in').value.trim();if(!v||!TH)return;$('sup-send').disabled=true;
+    const r=await sb.from('support_messages').insert({user_id:TH,sender:'staff',body:v});$('sup-send').disabled=false;
+    if(r.error){A.toast('পাঠানো যায়নি: '+r.error.message);return}$('sup-in').value='';loadSup();
+  };
+  $('o-aud').onchange=()=>{if($('o-aud').value!=='one')OTARGET=null;offCount()};
+  $('o-send').onclick=async()=>{
+    const t=$('o-t').value.trim(),b=$('o-b').value.trim(),u=targets().filter(c=>c.uid).map(c=>c.uid);
+    if(!t||!b){A.toast('শিরোনাম আর মেসেজ লিখুন');return}
+    if(!u.length){A.toast('কোনো গ্রাহক নেই');return}
+    if(!confirm(u.length+' জন গ্রাহকের কাছে অফার পাঠাবেন?'))return;
+    $('o-send').disabled=true;const r=await sb.rpc('crm_send_offer',{p_users:u,p_title:t,p_body:b});$('o-send').disabled=false;
+    if(r.error){A.toast('পাঠানো যায়নি। CRM এর SQL Run করেছেন?');return}
+    A.toast(r.data+' জনকে অফার পাঠানো হয়েছে');$('o-t').value='';$('o-b').value='';
+  };
+  await load();loadSup();
+  setInterval(()=>{if(tab==='sup'&&!document.hidden)loadSup()},10000);
+  setInterval(()=>{if(!document.hidden)loadSup()},60000);
+}});
+</script>
+</body>
+</html>
