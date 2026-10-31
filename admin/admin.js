@@ -47,7 +47,7 @@ const NAV=[
  ['index','Dashboard','grid','index.html',null],
  ['products','Products','tag','products.html','products'],
  ['stock','Stock','box','stock.html','products'],
- ['expenses','Finance & Accounting','wallet','expenses.html','expenses'],
+ ['finance','Finance & Accounting','wallet','finance.html','expenses'],
  ['reports','Reports','chart','reports.html','reports'],
  ['carts','Abandoned Carts','cart','carts.html','reports'],
  ['audit','Audit Log','doc','audit.html','admin'],
