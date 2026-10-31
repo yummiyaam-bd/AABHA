@@ -270,7 +270,7 @@ $('rows').onclick=async e=>{
   A.toast('মুছে ফেলা হয়েছে');load();
 };
 
-Admin.boot({key:'expenses',title:'Finance & Accounting',perm:'expenses',ready:async()=>{A.onRefresh=load;await load()}});
+Admin.boot({key:'finance',title:'Finance & Accounting',perm:'expenses',ready:async()=>{A.onRefresh=load;await load()}});
 </script>
 </body>
 </html>
