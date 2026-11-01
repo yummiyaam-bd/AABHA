@@ -50,6 +50,7 @@ const NAV=[
  ['stock','Stock','box','stock.html','products'],
  ['finance','Finance & Accounting','wallet','finance.html','expenses'],
  ['marketing','Marketing','trend','marketing.html','reports'],
+ ['banners','Banner Manager','camera','banners.html','products'],
  ['reports','Reports','chart','reports.html','reports'],
  ['carts','Abandoned Carts','cart','carts.html','reports'],
  ['audit','Audit Log','doc','audit.html','admin'],
