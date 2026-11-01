@@ -216,7 +216,7 @@ $('mic').onclick=async()=>{
  if(listening){stopRec();return}
  if(busy)return;
  if(!navigator.mediaDevices||!window.MediaRecorder){vmsg('⚠️ এই ব্রাউজারে মাইক রেকর্ডিং চলে না। নিচের বক্সে লিখুন।');return}
- stopAudio();vmsg('মাইক চালু হচ্ছে…');
+ stopAudio();vmsg('মাইক চালু হচ্ছে…');sb.functions.invoke('omni-ai',{body:{ping:1}}).catch(()=>{});
  try{ST=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}
  catch(e){vmsg('⚠️ মাইকের অনুমতি পাওয়া যায়নি। ব্রাউজারের সাইট সেটিংসে মাইক Allow করুন।');return}
  const mt=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'].find(x=>MediaRecorder.isTypeSupported(x))||'';
@@ -238,7 +238,7 @@ $('stopsp').onclick=stopAudio;
 
 Admin.boot({key:'omni',title:'OMNI AI',ready:async()=>{
  const h=new Date().getHours();$('gr').textContent=(h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening')+', '+(A.user.email||'').split('@')[0];
- drawAg();renderAgent()}});
+ drawAg();renderAgent();sb.functions.invoke('omni-ai',{body:{ping:1}}).catch(()=>{})}});
 </script>
 </body>
 </html>
