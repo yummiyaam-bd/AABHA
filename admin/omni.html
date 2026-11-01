@@ -85,7 +85,7 @@
         <div class="wv" id="wv"></div>
         <div class="tr" id="tr">লাইভ ট্রান্সক্রিপশন এখানে দেখাবে…</div>
         <div class="vsay" id="vsay">OMNI-র উত্তর এখানে আসবে…</div>
-        <div class="vr"><select id="lang"><option value="bn-BD">বাংলা</option><option value="en-US">English</option></select>
+        <div class="vr">
           <select id="vsel" style="max-width:190px"></select><button id="vtest">🔈 টেস্ট</button><label><input type="checkbox" id="spk" checked> 🔊 উত্তর শোনাও</label><button id="stopsp">⏹ থামাও</button></div>
       </section>
       <section class="ch" id="v-chat">
@@ -193,22 +193,40 @@ async function send(t,ag){ag=ag||'ceo';t=String(t||'').trim();if(!t||busy)return
 $('sd').onclick=()=>send($('ti').value);$('ti').onkeydown=e=>{if(e.key==='Enter')send($('ti').value)};
 $('qa').innerHTML=QA.map(q=>'<button>'+esc(q)+'</button>').join('');$('qa').onclick=e=>{const b=e.target.closest('button');if(b)send(b.textContent)};
 
-/* ভয়েস ইনপুট: ব্রাউজারের Speech Recognition (Android Chrome-এ সবচেয়ে ভালো) */
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+/* ভয়েস ইনপুট: মাইকে রেকর্ড করে Gemini দিয়ে লেখায় রূপান্তর (সব ব্রাউজারে চলে) */
 $('wv').innerHTML=Array.from({length:30},(_,i)=>`<i style="--d:${(i*0.07).toFixed(2)}s"></i>`).join('');
 function setL(on){listening=on;$('mic').classList.toggle('on',on);$('wv').classList.toggle('on',on);$('vt').textContent=on?'শুনছি… বলুন':'কথা বলতে মাইকে চাপুন'}
 const vmsg=t=>{$('tr').textContent=t};
-const VE={'not-allowed':'মাইকের অনুমতি দেওয়া হয়নি। ব্রাউজারের সাইট সেটিংসে মাইক Allow করুন।','service-not-allowed':'এই ব্রাউজারে ভয়েস সার্ভিস বন্ধ। Chrome-এ খুলুন।','no-speech':'কিছু শুনতে পাইনি। আবার মাইক চেপে বলুন।','audio-capture':'মাইক পাওয়া যায়নি।','network':'ভয়েস সার্ভিসে ইন্টারনেট সমস্যা।','language-not-supported':'এই ভাষা এখানে চলে না, English বেছে দেখুন।','aborted':'বন্ধ হয়েছে।'};
-$('mic').onclick=()=>{
- if(listening){rec&&rec.stop();return}
- if(!SR){vmsg('⚠️ এই ব্রাউজারে ভয়েস ইনপুট চলে না। Chrome-এ খুলুন, অথবা নিচের বক্সে লিখুন।');return}
- stopAudio();fin='';vmsg('মাইক চালু হচ্ছে…');
- rec=new SR();rec.lang=$('lang').value;rec.interimResults=true;rec.maxAlternatives=1;
- rec.onstart=()=>{setL(true);vmsg('শুনছি… এখন বলুন')};
- rec.onresult=e=>{let t='';for(const r of e.results)t+=r[0].transcript;vmsg(t);fin=t};
- rec.onerror=e=>vmsg('⚠️ '+(VE[e.error]||('মাইক সমস্যা: '+e.error)));
- rec.onend=()=>{setL(false);if(fin){const t=fin;fin='';send(t)}};
- try{rec.start()}catch(e){vmsg('⚠️ মাইক চালু করা যায়নি: '+e.message)}};
+let MR=null,ST=null,AC=null,chunks=[];
+function stopRec(){try{MR&&MR.state!=='inactive'&&MR.stop()}catch(e){}}
+async function stt(blob){
+ const b64=await new Promise((res,rej)=>{const f=new FileReader();f.onload=()=>res(String(f.result).split(',')[1]);f.onerror=rej;f.readAsDataURL(blob)});
+ const r=await sb.functions.invoke('omni-ai',{body:{stt:b64,mime:(blob.type||'audio/webm').split(';')[0]}});
+ if(r.error){let m=r.error.message;try{const x=await r.error.context.text();try{m=JSON.parse(x).error||x}catch(_){m=x||m}}catch(_){}throw new Error(m)}
+ if(!r.data||r.data.error)throw new Error((r.data&&r.data.error)||'লেখায় রূপান্তর হয়নি');
+ return String(r.data.text||'').trim()}
+$('mic').onclick=async()=>{
+ if(listening){stopRec();return}
+ if(busy)return;
+ if(!navigator.mediaDevices||!window.MediaRecorder){vmsg('⚠️ এই ব্রাউজারে মাইক রেকর্ডিং চলে না। নিচের বক্সে লিখুন।');return}
+ stopAudio();vmsg('মাইক চালু হচ্ছে…');
+ try{ST=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}
+ catch(e){vmsg('⚠️ মাইকের অনুমতি পাওয়া যায়নি। ব্রাউজারের সাইট সেটিংসে মাইক Allow করুন।');return}
+ const mt=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'].find(x=>MediaRecorder.isTypeSupported(x))||'';
+ chunks=[];MR=new MediaRecorder(ST,mt?{mimeType:mt}:{});
+ MR.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+ let spoke=false,quiet=0,timer;const t0=Date.now();
+ try{AC=new (window.AudioContext||window.webkitAudioContext)();const src=AC.createMediaStreamSource(ST),an=AC.createAnalyser();an.fftSize=512;src.connect(an);const buf=new Uint8Array(an.fftSize);
+  timer=setInterval(()=>{an.getByteTimeDomainData(buf);let m=0;for(const v of buf)m=Math.max(m,Math.abs(v-128));
+   if(m>14){spoke=true;quiet=0}else if(spoke)quiet+=100;
+   if((spoke&&quiet>1500)||Date.now()-t0>25000)stopRec()},100)}catch(e){}
+ MR.onstop=async()=>{clearInterval(timer);ST.getTracks().forEach(x=>x.stop());try{AC&&AC.close()}catch(e){}setL(false);
+  const blob=new Blob(chunks,{type:MR.mimeType||mt||'audio/webm'});
+  if(!spoke&&blob.size<4000){vmsg('কিছু শুনতে পাইনি। আবার মাইক চেপে বলুন।');return}
+  vmsg('বুঝে নিচ্ছি…');
+  try{const text=await stt(blob);if(!text){vmsg('কিছু বুঝতে পারিনি। আবার বলুন।');return}vmsg(text);send(text)}
+  catch(e){vmsg('⚠️ '+e.message)}};
+ MR.start();setL(true);vmsg('শুনছি… এখন বলুন (থামলে নিজেই শেষ হবে)')};
 $('stopsp').onclick=stopAudio;
 
 Admin.boot({key:'omni',title:'OMNI AI',ready:async()=>{
