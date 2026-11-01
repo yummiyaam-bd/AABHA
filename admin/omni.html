@@ -155,19 +155,26 @@ function loadV(){if(!window.speechSynthesis)return;VS=speechSynthesis.getVoices(
 function pick(bn){const pool=VS.filter(v=>isBn(v.lang)===bn);return pool.find(v=>FEM.test(v.name)&&!MAL.test(v.name))||pool.find(v=>!MAL.test(v.name))||pool[0]||null}
 const clean=t=>String(t).replace(/৳\s?([\d,\.]+)/g,'$1 টাকা').replace(/[*_#`>|~]/g,' ').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s*\n+\s*/g,'। ').trim();
 let AUD=null;
-function stopAudio(){if(AUD){try{AUD.pause()}catch(e){}AUD=null}if(window.speechSynthesis)speechSynthesis.cancel()}
+let SAYTOK=0;
+function stopAudio(){SAYTOK++;const a=AUD;AUD=null;if(a){try{a.pause()}catch(e){}a._r&&a._r()}if(window.speechSynthesis)speechSynthesis.cancel()}
 function bsay(t){if(!window.speechSynthesis)return;
  (t.match(/[^।.!?]+[।.!?]*/g)||[t]).forEach(p=>{p=p.trim();if(!p)return;const bn=/[\u0980-\u09FF]/.test(p),u=new SpeechSynthesisUtterance(p),v=pick(bn);u.lang=bn?'bn-BD':'en-US';if(v){u.voice=v;u.lang=v.lang}u.rate=1.12;u.pitch=1.08;speechSynthesis.speak(u)})}
-async function ttsPlay(t){
+async function ttsGet(t){
  const r=await sb.functions.invoke('omni-ai',{body:{tts:t,voice:$('vsel').value}});
  if(r.error){let m=r.error.message;try{const x=await r.error.context.text();try{m=JSON.parse(x).error||x}catch(_){m=x||m}}catch(_){}throw new Error(m)}
  if(!r.data||r.data.error||!r.data.audio)throw new Error((r.data&&r.data.error)||'অডিও আসেনি');
  const bin=atob(r.data.audio),n=bin.length,buf=new ArrayBuffer(44+n),v=new DataView(buf),w=(o,x)=>{for(let i=0;i<x.length;i++)v.setUint8(o+i,x.charCodeAt(i))};
  w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,24000,true);v.setUint32(28,48000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n,true);
  const u8=new Uint8Array(buf,44);for(let i=0;i<n;i++)u8[i]=bin.charCodeAt(i);
- stopAudio();AUD=new Audio(URL.createObjectURL(new Blob([buf],{type:'audio/wav'})));AUD.playbackRate=1.05;await AUD.play()}
-async function say(t){stopAudio();t=clean(t);if(!t)return;
- try{await ttsPlay(t.slice(0,800))}catch(e){console.log('tts',e);$('vsay').dataset.err=e.message;A.toast('উন্নত কণ্ঠ চলেনি ('+String(e.message).slice(0,70)+'), সাধারণ কণ্ঠে বলছি');bsay(t)}}
+ return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}))}
+function playUrl(url){return new Promise((res,rej)=>{const a=new Audio(url);a.playbackRate=1.1;a._r=res;AUD=a;a.onended=()=>res();a.onerror=()=>rej(new Error('অডিও চলেনি'));a.play().catch(rej)})}
+async function say(t){stopAudio();t=clean(t);if(!t)return;const tok=SAYTOK;
+ const sn=(t.match(/[^।.!?]+[।.!?]*/g)||[t]).map(x=>x.trim()).filter(Boolean);
+ const parts=sn.length>1?[sn[0],sn.slice(1).join(' ')]:[t];
+ const ps=parts.map(p=>ttsGet(p.slice(0,800)));ps.forEach(p=>p.catch(()=>{}));
+ let i=0;
+ try{for(;i<ps.length;i++){const url=await ps[i];if(tok!==SAYTOK)return;await playUrl(url);if(tok!==SAYTOK)return}}
+ catch(e){if(tok!==SAYTOK)return;console.log('tts',e);A.toast('উন্নত কণ্ঠ চলেনি ('+String(e.message).slice(0,70)+'), সাধারণ কণ্ঠে বলছি');bsay(parts.slice(i).join(' '))}}
 function speak(t){if($('spk').checked)say(t)}
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadV;loadV()}
 $('vsel').innerHTML=[['Kore','মেয়ের কণ্ঠ: কোর (স্পষ্ট)'],['Zephyr','মেয়ের কণ্ঠ: জেফির (উজ্জ্বল)'],['Leda','মেয়ের কণ্ঠ: লেডা (কোমল)'],['Aoede','মেয়ের কণ্ঠ: আয়োডি (হালকা)']].map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
@@ -219,7 +226,7 @@ $('mic').onclick=async()=>{
  try{AC=new (window.AudioContext||window.webkitAudioContext)();const src=AC.createMediaStreamSource(ST),an=AC.createAnalyser();an.fftSize=512;src.connect(an);const buf=new Uint8Array(an.fftSize);
   timer=setInterval(()=>{an.getByteTimeDomainData(buf);let m=0;for(const v of buf)m=Math.max(m,Math.abs(v-128));
    if(m>14){spoke=true;quiet=0}else if(spoke)quiet+=100;
-   if((spoke&&quiet>1500)||Date.now()-t0>25000)stopRec()},100)}catch(e){}
+   if((spoke&&quiet>900)||Date.now()-t0>25000)stopRec()},100)}catch(e){}
  MR.onstop=async()=>{clearInterval(timer);ST.getTracks().forEach(x=>x.stop());try{AC&&AC.close()}catch(e){}setL(false);
   const blob=new Blob(chunks,{type:MR.mimeType||mt||'audio/webm'});
   if(!spoke&&blob.size<4000){vmsg('কিছু শুনতে পাইনি। আবার মাইক চেপে বলুন।');return}
