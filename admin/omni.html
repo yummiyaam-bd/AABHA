@@ -18,7 +18,7 @@
 .om-g{display:grid;grid-template-columns:280px minmax(0,1fr) minmax(0,1.05fr);gap:16px;align-items:start}
 .om-c{background:rgba(255,255,255,.72);border:1px solid var(--bd);border-radius:22px;padding:18px;box-shadow:0 10px 30px rgba(124,92,240,.08);min-width:0}
 .om-c h3{margin:0 0 12px;font:600 1.15rem var(--serif)}
-.om[data-m=agent] .om-mid{display:none}.om[data-m=agent] .om-g{grid-template-columns:1fr 1fr}
+
 .ag{border:1px solid var(--bd);border-radius:16px;padding:11px 12px;margin-bottom:8px;background:#fff;cursor:pointer;transition:.25s}
 .ag:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(124,92,240,.12)}
 .ag-h{display:flex;gap:10px;align-items:center}.ag-i{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:20px;background:var(--bl);flex:none}
@@ -64,12 +64,17 @@
 .ct span{font-size:8.5px;color:var(--mut);margin-top:4px}
 .wt{overflow-x:auto}.wt table{min-width:0;width:100%}.wt th{background:transparent}.wt td,.wt th{padding:9px 8px;font-size:12.5px}
 .empty2{text-align:center;color:var(--mut);padding:30px 10px;font-size:13px}
-@media(max-width:1100px){.om-g,.om[data-m=agent] .om-g{grid-template-columns:1fr}.om-ag{display:none}.om[data-m=agent] .om-ag{display:block}.om[data-m=agent] #wsc{display:none}.om{padding:12px}}
+@media(max-width:1100px){.om-g{grid-template-columns:minmax(0,1fr)}.om-ag{display:none}.om[data-m=agent] .om-ag{display:block}.om[data-m=agent][data-sel="1"] .om-ag{display:none}.om[data-m=agent][data-sel="0"] .om-mid,.om[data-m=agent][data-sel="0"] #wsc{display:none}.om{padding:12px}}
+@media(min-width:1101px){.abk{display:none}}
+[hidden]{display:none!important}.om{overflow-x:hidden}.om-c{min-width:0}.vr select,#vsel{width:100%;max-width:100%}
+.ag.sel{border-color:var(--p1);box-shadow:0 0 0 2px rgba(124,92,240,.18)}
+.abk{border:1px solid var(--bd);background:#fff;border-radius:20px;padding:6px 14px;font:700 12px var(--sans);cursor:pointer;margin-bottom:10px}
+.ah{display:flex;gap:12px;align-items:center}.ad{color:#5b5675;font-size:13px;margin:8px 0}.hh{margin:14px 0 6px;font:600 1rem var(--serif)}.lg p{margin:3px 0;font-size:12.5px}
 </style>
 </head>
 <body>
 <div id="page">
-<div class="om" id="om" data-m="chat">
+<div class="om" id="om" data-m="chat" data-sel="0">
   <div class="om-tabs" id="tabs"><button data-m="voice">🎙 Voice Mode</button><button data-m="chat" class="on">💬 Chat Mode</button><button data-m="agent">🤖 Agent Mode</button></div>
   <div class="om-g">
     <aside class="om-c om-ag"><h3>AI Agents</h3><div id="ags"></div></aside>
@@ -88,8 +93,9 @@
         <div class="hi"><h2 id="gr">Good Morning</h2><p>আজ কী জানতে চান? বিক্রি, স্টক, অর্ডার, আয়-ব্যয় বা ভবিষ্যৎ অনুমান।</p></div>
         <div class="msgs" id="msgs"></div>
       </section>
+      <section id="v-agent" hidden></section>
       <div class="qa" id="qa"></div>
-      <div class="inp"><input id="ti" placeholder="যেকোনো কিছু জিজ্ঞেস করুন…" autocomplete="off"><button id="sd" aria-label="send">➤</button></div>
+      <div class="inp" id="gin"><input id="ti" placeholder="যেকোনো কিছু জিজ্ঞেস করুন…" autocomplete="off"><button id="sd" aria-label="send">➤</button></div>
     </main>
     <aside class="om-c" id="wsc"><div class="wsh"><h3>Live Workspace</h3><button id="clr">মুছুন</button></div><div id="ws"><div class="empty2">প্রশ্ন করলে চার্ট, টেবিল ও কার্ড এখানে দেখাবে।</div></div></aside>
   </div>
@@ -97,23 +103,44 @@
 </div>
 <script>
 const A=Admin,sb=A.sb,$=A.$,esc=A.esc;
-const AG=[['ceo','👑','CEO Agent','Business Coordinator','সব এজেন্টের কাজ সমন্বয়'],['sales','📈','Sales Agent','Sales & Growth','বিক্রি, অর্ডার, পূর্বাভাস'],['inv','📦','Inventory Agent','Stock Management','স্টক ও সেরা পণ্য'],['fin','🧾','Finance Agent','Finance & Accounts','আয়, ব্যয়, লাভ'],['mkt','📣','Marketing Agent','Marketing Strategy','ফেলে যাওয়া কার্ট'],['sup','🎧','Customer Support Agent','Customer Care','শীঘ্রই আসছে']];
+const AG=[
+['ceo','👑','CEO Agent','Business Coordinator','সব এজেন্টের কাজ সমন্বয় করে, পুরো ব্যবসার সারাংশ দেয়',['আজকের বিক্রি দেখাও','কম স্টকের পণ্য দেখাও','এই মাসের আয়-ব্যয় কেমন?','আগামী ৭ দিনে কত বিক্রি হতে পারে?']],
+['sales','📈','Sales Agent','Sales & Growth','বিক্রি, অর্ডার ও ভবিষ্যৎ অনুমান',['আজকের বিক্রি দেখাও','গত ৭ দিনের বিক্রি','গত ৩০ দিনের বিক্রি','সাম্প্রতিক অর্ডার দেখাও','আগামী ৭ দিনে কত বিক্রি হতে পারে?']],
+['inv','📦','Inventory Agent','Stock Management','স্টক ও সেরা বিক্রিত পণ্য',['কম স্টকের পণ্য দেখাও','স্টক শেষ হয়ে গেছে এমন পণ্য','সেরা বিক্রিত পণ্য']],
+['fin','🧾','Finance Agent','Finance & Accounts','আয়, ব্যয়, লাভ-ক্ষতি',['এই মাসের আয়-ব্যয় কেমন?','লাভ কত হয়েছে?']],
+['mkt','📣','Marketing Agent','Marketing Strategy','ফেলে যাওয়া কার্ট ও ক্যাম্পেইনের ধারণা',['ফেলে যাওয়া কার্ট','ফেলে যাওয়া কার্টের গ্রাহকদের জন্য ক্যাম্পেইনের ধারণা দাও']],
+['sup','🎧','Customer Support Agent','Customer Care','গ্রাহকের মেসেজ ও সাপোর্ট (শীঘ্রই আসছে)',[]]];
 const TA={sales_summary:'sales',sales_forecast:'sales',recent_orders:'sales',low_stock:'inv',top_products:'inv',finance_summary:'fin',abandoned_carts:'mkt'};
 const QA=['আজকের বিক্রি দেখাও','কম স্টকের পণ্য দেখাও','সাম্প্রতিক অর্ডার দেখাও','এই মাসের আয়-ব্যয় কেমন?','ফেলে যাওয়া কার্ট','আগামী ৭ দিনে কত বিক্রি হতে পারে?','সেরা বিক্রিত পণ্য'];
-const HIST=[],AS={},LOG={};let busy=false,rec=null,listening=false,fin='';
+const HIST=[],HA={},AS={},LOG={};let busy=false,rec=null,listening=false,fin='',SEL=null;
 AG.forEach(a=>{AS[a[0]]=a[0]==='sup'?'x':'';LOG[a[0]]=[]});
+const gH=ag=>ag==='ceo'?HIST:(HA[ag]||(HA[ag]=[]));
 
-function drawAg(){$('ags').innerHTML=AG.map(a=>{const s=AS[a[0]],l=LOG[a[0]];
- return `<div class="ag" data-a="${a[0]}"><div class="ag-h"><div class="ag-i">${a[1]}</div><div><b>${a[2]}</b><small>${a[3]}</small></div><span class="ag-s ${s}">${s==='x'?'Soon':s==='w'?'Working…':'Ready'}</span></div>
- <div class="ag-d"><p><b>কাজ:</b> ${a[4]}</p><p><b>সর্বশেষ:</b> ${l.length?esc(l[0]):'এখনো কোনো কাজ নেই'}</p>${l.slice(1,4).map(x=>'<p>• '+esc(x)+'</p>').join('')}</div></div>`}).join('')}
-$('ags').onclick=e=>{const c=e.target.closest('.ag');if(c)c.classList.toggle('open')};
-function setAg(ids,s){ids.forEach(i=>{if(AS[i]!=='x')AS[i]=s});const o=[...document.querySelectorAll('.ag.open')].map(x=>x.dataset.a);drawAg();o.forEach(i=>document.querySelector('.ag[data-a="'+i+'"]').classList.add('open'))}
+function drawAg(){$('ags').innerHTML=AG.map(a=>{const s=AS[a[0]];return `<div class="ag${SEL===a[0]?' sel':''}" data-a="${a[0]}"><div class="ag-h"><div class="ag-i">${a[1]}</div><div><b>${a[2]}</b><small>${a[3]}</small></div><span class="ag-s ${s}">${s==='x'?'Soon':s==='w'?'Working…':'Ready'}</span></div></div>`}).join('')}
+function setAg(ids,s){ids.forEach(i=>{if(AS[i]!=='x')AS[i]=s});drawAg()}
+$('ags').onclick=e=>{const c=e.target.closest('.ag');if(c){setMode('agent');selAg(c.dataset.a)}};
+function selAg(id){SEL=id;$('om').dataset.sel='1';drawAg();renderAgent()}
+function renderAgent(){const a=AG.find(x=>x[0]===SEL),box=$('v-agent');
+ if(!a){box.innerHTML='<div class="empty2">বাঁ পাশ থেকে একটি এজেন্ট বেছে নিন।</div>';return}
+ const soon=a[0]==='sup';
+ box.innerHTML=`<button class="abk" id="abk">← সব এজেন্ট</button><div class="ah"><div class="ag-i" style="width:52px;height:52px;font-size:26px">${a[1]}</div><div><h3 style="margin:0">${a[2]}</h3><small class="sub">${a[3]} · ${soon?'শীঘ্রই আসছে':'প্রস্তুত'}</small></div></div>
+ <p class="ad">${a[4]}</p>
+ <div class="qa" id="aqa">${a[5].map(q=>'<button>'+esc(q)+'</button>').join('')}</div>
+ <div class="msgs" id="amsgs"></div>
+ <div class="inp"><input id="ati" placeholder="${soon?'এই এজেন্ট শীঘ্রই আসছে':esc(a[2])+'-কে জিজ্ঞেস করুন…'}" ${soon?'disabled':''} autocomplete="off"><button id="asd" ${soon?'disabled':''}>➤</button></div>
+ <h4 class="hh">সর্বশেষ কাজ</h4><div class="lg">${LOG[a[0]].length?LOG[a[0]].slice(0,6).map(x=>'<p>• '+esc(x)+'</p>').join(''):'<p class="sub">এখনো কোনো কাজ নেই</p>'}</div>`;
+ gH(a[0]).forEach(m=>addMsg(m.role==='user'?'u':'a',m.content,$('amsgs')));
+ $('abk').onclick=()=>{SEL=null;$('om').dataset.sel='0';drawAg();renderAgent()};
+ $('aqa').onclick=e=>{const b=e.target.closest('button');if(b)send(b.textContent,a[0])};
+ if(!soon){$('asd').onclick=()=>send($('ati').value,a[0]);$('ati').onkeydown=e=>{if(e.key==='Enter')send($('ati').value,a[0])}}}
 
 function setMode(m){$('om').dataset.m=m;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
- $('v-voice').hidden=m!=='voice';$('v-chat').hidden=m==='voice'}
+ const ag=m==='agent';$('v-voice').hidden=m!=='voice';$('v-chat').hidden=m!=='chat';$('qa').hidden=ag;$('gin').hidden=ag;$('v-agent').hidden=!ag;
+ if(ag){if(!SEL)$('om').dataset.sel='0';renderAgent()}
+ if(m!=='voice'&&window.speechSynthesis)speechSynthesis.cancel()}
 $('tabs').onclick=e=>{const b=e.target.closest('button');if(b)setMode(b.dataset.m)};
 
-function addMsg(c,t){const d=document.createElement('div');d.className='mg '+c;d.textContent=t;$('msgs').appendChild(d);$('msgs').scrollTop=1e6;return d}
+function addMsg(c,t,box){box=box||$('msgs');const d=document.createElement('div');d.className='mg '+c;d.textContent=t;box.appendChild(d);box.scrollTop=1e6;return d}
 function blk(b){let h='<div class="wb"><h4>'+esc(b.title||'')+'</h4>';
  if(b.type==='stats')h+='<div class="st">'+b.items.map(i=>`<div><small>${esc(i.l)}</small><b>${esc(i.v)}</b>${i.d?`<em class="${i.d[0]==='-'?'dn':'up'}">${esc(i.d)}</em>`:''}</div>`).join('')+'</div>';
  else if(b.type==='chart'){const mx=Math.max(1,...b.values);h+='<div class="ct">'+b.values.map((v,i)=>`<div title="${esc(b.labels[i])}: ${A.money(v)}"><i class="${b.fc!=null&&i>=b.fc?'f':''}" style="height:${v?Math.max(3,v/mx*100):0}%"></i><span>${esc(b.labels[i])}</span></div>`).join('')+'</div>'}
@@ -135,41 +162,47 @@ function say(t){if(!window.speechSynthesis)return;speechSynthesis.cancel();
 function speak(t){if($('spk').checked)say(t)}
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadV;loadV()}
 $('vsel').onchange=()=>{try{localStorage.setItem('omni_voice',$('vsel').value)}catch(e){}};
-$('vtest').onclick=()=>say('আসসালামু আলাইকুম, আমি ওমনি। আজকের বিক্রি দেখাবো?')
-async function send(t){t=String(t||'').trim();if(!t||busy)return;busy=true;$('ti').value='';
- addMsg('u',t);HIST.push({role:'user',content:t});const th=addMsg('a t','ভাবছি…');$('vsay').textContent='ভাবছি…';setAg(['ceo'],'w');
- try{const r=await Promise.race([sb.functions.invoke('omni-ai',{body:{messages:HIST.slice(-12)}}),new Promise((_,rj)=>setTimeout(()=>rj(new Error('৭০ সেকেন্ডে উত্তর আসেনি। Supabase → Edge Functions → omni-ai → Logs দেখুন।')),70000))]);
-  if(r.error){let m=r.error.message||'অজানা সমস্যা';try{const t=await r.error.context.text();try{const x=JSON.parse(t);m=x.error||x.message||t}catch(_){m=t||m}}catch(_){}throw new Error(m)}
+$('vtest').onclick=()=>say('আসসালামু আলাইকুম, আমি ওমনি। আজকের বিক্রি দেখাবো?');
+
+async function send(t,ag){ag=ag||'ceo';t=String(t||'').trim();if(!t||busy)return;busy=true;
+ const agentUI=$('om').dataset.m==='agent'&&SEL===ag&&ag!=='sup',box=agentUI?$('amsgs'):$('msgs');
+ if(agentUI)$('ati').value='';else $('ti').value='';
+ const H=gH(ag);addMsg('u',t,box);H.push({role:'user',content:t});const th=addMsg('a t','ভাবছি…',box);
+ if(!agentUI)$('vsay').textContent='ভাবছি…';setAg([ag],'w');let ok=false;
+ try{const r=await Promise.race([sb.functions.invoke('omni-ai',{body:{messages:H.slice(-12),agent:ag}}),new Promise((_,rj)=>setTimeout(()=>rj(new Error('৭০ সেকেন্ডে উত্তর আসেনি। Supabase → Edge Functions → omni-ai → Logs দেখুন।')),70000))]);
+  if(r.error){let m=r.error.message||'অজানা সমস্যা';try{const x=await r.error.context.text();try{const j=JSON.parse(x);m=j.error||j.message||x}catch(_){m=x||m}}catch(_){}throw new Error(m)}
   if(!r.data||r.data.error)throw new Error((r.data&&r.data.error)||'খালি উত্তর এসেছে');
-  const d=r.data;th.className='mg a';th.textContent=d.reply||'(উত্তর নেই)';$('vsay').textContent=d.reply||'';HIST.push({role:'assistant',content:d.reply||''});
-  const ag=[...new Set((d.used||[]).map(u=>TA[u]).filter(Boolean))];
-  ag.forEach(i=>LOG[i].unshift(t.slice(0,60)+' — '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})));
-  if(ag.length>1)LOG.ceo.unshift('সমন্বয়: '+ag.length+' এজেন্ট — '+t.slice(0,40));
+  const d=r.data;th.className='mg a';th.textContent=d.reply||'(উত্তর নেই)';if(!agentUI)$('vsay').textContent=d.reply||'';H.push({role:'assistant',content:d.reply||''});
+  const ags=[...new Set((d.used||[]).map(u=>TA[u]).filter(Boolean))],ent=t.slice(0,60)+' — '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  if(ag==='ceo'){ags.forEach(i=>LOG[i].unshift(ent));if(ags.length>1)LOG.ceo.unshift('সমন্বয়: '+ags.length+' এজেন্ট — '+t.slice(0,40))}else LOG[ag].unshift(ent);
   if(d.blocks&&d.blocks.length)showBlocks(d.blocks);
-  if(d.reply)speak(d.reply);
- }catch(e){th.className='mg a';th.textContent='⚠️ '+e.message;$('vsay').textContent=th.textContent;HIST.pop()}
- busy=false;setAg(AG.map(a=>a[0]),'');}
+  if(d.reply&&$('om').dataset.m==='voice')speak(d.reply);ok=true;
+ }catch(e){th.className='mg a';th.textContent='⚠️ '+e.message;if(!agentUI)$('vsay').textContent=th.textContent;H.pop()}
+ busy=false;setAg(AG.map(a=>a[0]),'');if(ok&&agentUI&&SEL===ag)renderAgent()}
 $('sd').onclick=()=>send($('ti').value);$('ti').onkeydown=e=>{if(e.key==='Enter')send($('ti').value)};
 $('qa').innerHTML=QA.map(q=>'<button>'+esc(q)+'</button>').join('');$('qa').onclick=e=>{const b=e.target.closest('button');if(b)send(b.textContent)};
 
-/* ভয়েস: ব্রাউজারের Speech Recognition (Chrome/Edge); পরে চাইলে উন্নত STT/TTS সেবায় বদলানো যাবে */
+/* ভয়েস ইনপুট: ব্রাউজারের Speech Recognition (Android Chrome-এ সবচেয়ে ভালো) */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 $('wv').innerHTML=Array.from({length:30},(_,i)=>`<i style="--d:${(i*0.07).toFixed(2)}s"></i>`).join('');
 function setL(on){listening=on;$('mic').classList.toggle('on',on);$('wv').classList.toggle('on',on);$('vt').textContent=on?'শুনছি… বলুন':'কথা বলতে মাইকে চাপুন'}
+const vmsg=t=>{$('tr').textContent=t};
+const VE={'not-allowed':'মাইকের অনুমতি দেওয়া হয়নি। ব্রাউজারের সাইট সেটিংসে মাইক Allow করুন।','service-not-allowed':'এই ব্রাউজারে ভয়েস সার্ভিস বন্ধ। Chrome-এ খুলুন।','no-speech':'কিছু শুনতে পাইনি। আবার মাইক চেপে বলুন।','audio-capture':'মাইক পাওয়া যায়নি।','network':'ভয়েস সার্ভিসে ইন্টারনেট সমস্যা।','language-not-supported':'এই ভাষা এখানে চলে না, English বেছে দেখুন।','aborted':'বন্ধ হয়েছে।'};
 $('mic').onclick=()=>{
  if(listening){rec&&rec.stop();return}
- if(!SR){A.toast('এই ব্রাউজারে ভয়েস চলে না। Chrome ব্যবহার করুন।');return}
- if(window.speechSynthesis)speechSynthesis.cancel();fin='';
- rec=new SR();rec.lang=$('lang').value;rec.interimResults=true;
- rec.onresult=e=>{let t='';for(const r of e.results)t+=r[0].transcript;$('tr').textContent=t;fin=t};
- rec.onerror=e=>{A.toast('মাইক সমস্যা: '+e.error)};
+ if(!SR){vmsg('⚠️ এই ব্রাউজারে ভয়েস ইনপুট চলে না। Chrome-এ খুলুন, অথবা নিচের বক্সে লিখুন।');return}
+ if(window.speechSynthesis)speechSynthesis.cancel();fin='';vmsg('মাইক চালু হচ্ছে…');
+ rec=new SR();rec.lang=$('lang').value;rec.interimResults=true;rec.maxAlternatives=1;
+ rec.onstart=()=>{setL(true);vmsg('শুনছি… এখন বলুন')};
+ rec.onresult=e=>{let t='';for(const r of e.results)t+=r[0].transcript;vmsg(t);fin=t};
+ rec.onerror=e=>vmsg('⚠️ '+(VE[e.error]||('মাইক সমস্যা: '+e.error)));
  rec.onend=()=>{setL(false);if(fin){const t=fin;fin='';send(t)}};
- try{rec.start();setL(true)}catch(e){}};
+ try{rec.start()}catch(e){vmsg('⚠️ মাইক চালু করা যায়নি: '+e.message)}};
 $('stopsp').onclick=()=>window.speechSynthesis&&speechSynthesis.cancel();
 
 Admin.boot({key:'omni',title:'OMNI AI',ready:async()=>{
  const h=new Date().getHours();$('gr').textContent=(h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening')+', '+(A.user.email||'').split('@')[0];
- drawAg();}});
+ drawAg();renderAgent()}});
 </script>
 </body>
 </html>
