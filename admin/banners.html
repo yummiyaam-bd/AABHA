@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Banner Manager</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.bn{--bd:#eadfd6;--mut:#8a7d74}
+.bn *{box-sizing:border-box}
+.bn-card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:16px;margin-bottom:14px;min-width:0}
+.bn-card h4{margin:0 0 4px;font-size:15px}
+.sub{color:var(--mut);font-size:13px}
+.cx-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;align-items:center}
+.cb{flex:none;background:#fff;border:1px solid var(--bd);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
+.cb.on,.cb.pr{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
+.cb.red{color:#b83b4a}.cb.sm{padding:5px 11px;font-size:12px}
+.cb:disabled{opacity:.5}
+.mi{width:100%;background:#fff;border:1px solid var(--bd);border-radius:12px;color:inherit;padding:10px 12px;font:inherit;font-size:14px;outline:none}
+.bn-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.bn-f label{display:block;font-size:11px;color:var(--mut);margin-bottom:3px}
+.bn-f .w{grid-column:1/-1}
+.bn-f input[type=color]{padding:2px;height:40px}
+.pill{font-size:10px;font-weight:800;padding:3px 9px;border-radius:12px;color:#fff;background:#6b7280;white-space:nowrap}
+.pill.on{background:#2f855a}.pill.exp{background:#b83b4a}.pill.soon{background:#d9a85f}.pill.off{background:#94a3b8}
+.bn-i{border:1px solid var(--bd);border-radius:14px;padding:12px;margin-top:10px;background:#fffdfa}
+.bn-i .t{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+.bn-i .m{font-size:12px;color:var(--mut);margin:8px 0}
+.bn-i .a{display:flex;gap:6px;flex-wrap:wrap}
+/* preview blocks */
+.pv-bar{padding:9px 14px;text-align:center;font-size:13px;border-radius:10px}
+.pv-bar a{color:inherit;text-decoration:underline;margin-left:8px;font-weight:700}
+.pv-sl,.pv-pr{position:relative;border-radius:14px;overflow:hidden;background-size:cover;background-position:center;display:flex;align-items:flex-end}
+.pv-sl{aspect-ratio:16/7;min-height:120px}
+.pv-pr{aspect-ratio:4/3;min-height:110px}
+.pv-sl .tx,.pv-pr .tx{width:100%;padding:14px;background:linear-gradient(transparent,rgba(0,0,0,.55))}
+.pv-sl h3,.pv-pr h3{margin:0 0 3px;font-size:17px}
+.pv-sl p,.pv-pr p{margin:0 0 8px;font-size:12px;opacity:.9}
+.pv-btn{display:inline-block;background:#fff;color:#222;border-radius:18px;padding:5px 13px;font-size:12px;font-weight:700}
+.pv-pop{max-width:300px;margin:0 auto;border-radius:16px;overflow:hidden;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+.pv-pop .im{aspect-ratio:16/9;background-size:cover;background-position:center}
+.pv-pop .tx{padding:14px}
+.pv-pop h3{margin:0 0 4px}.pv-pop p{margin:0 0 10px;font-size:13px}
+.th{width:76px;height:44px;border-radius:8px;background:#eee center/cover;flex:none;border:1px solid var(--bd)}
+.up{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="page" class="bn">
+
+  <div class="cx-row" id="tabs">
+    <button class="cb on" data-k="bar">অফার বার</button>
+    <button class="cb" data-k="slider">স্লাইডার</button>
+    <button class="cb" data-k="promo">প্রোমো ব্যানার</button>
+    <button class="cb" data-k="popup">পপআপ</button>
+  </div>
+  <div id="note"></div>
+
+  <div class="bn-card">
+    <h4 id="f-h"></h4>
+    <p class="sub" id="f-d"></p>
+    <div class="bn-f">
+      <div class="w"><label id="l-title">লেখা *</label><input class="mi" id="f_title" maxlength="140"></div>
+      <div class="w" id="w-sub"><label>ছোট লেখা (ঐচ্ছিক)</label><input class="mi" id="f_sub" maxlength="200"></div>
+      <div id="w-btn"><label>বাটনের লেখা</label><input class="mi" id="f_btn" maxlength="30" placeholder="এখনই কিনুন"></div>
+      <div><label>লিংক (কোথায় যাবে)</label><input class="mi" id="f_link" placeholder="products.html বা https://..."></div>
+      <div id="w-img" class="w"><label>ছবি</label>
+        <div class="up"><input class="mi" id="f_img" placeholder="ছবির লিংক বা আপলোড করুন" style="flex:1;min-width:180px"><label class="cb sm" style="margin:0;color:inherit;font-size:12px">⬆ আপলোড<input type="file" id="f_file" accept="image/*" hidden></label></div>
+        <p class="sub" id="f_imgnote" style="margin-top:4px"></p></div>
+      <div><label>ব্যাকগ্রাউন্ড রং</label><input class="mi" id="f_bg" type="color" value="#1c1a17"></div>
+      <div><label>লেখার রং</label><input class="mi" id="f_fg" type="color" value="#ffffff"></div>
+      <div><label>শুরু (ঐচ্ছিক)</label><input class="mi" id="f_st" type="date"></div>
+      <div><label>শেষ (ঐচ্ছিক)</label><input class="mi" id="f_en" type="date"></div>
+    </div>
+    <p class="sub" style="margin-bottom:6px">লাইভ প্রিভিউ</p>
+    <div id="pv" style="margin-bottom:12px"></div>
+    <button class="cb pr" id="f-save">সেভ করুন</button> <button class="cb" id="f-x" hidden>বাতিল</button>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const dl=v=>v?new Date(v).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'}):'—';
+const KIND={
+ bar:{n:'অফার বার',d:'ওয়েবসাইটের একদম উপরে একটা লাইনের ঘোষণা। একাধিক দিলে ৪ সেকেন্ড পর পর বদলাবে।',t:'ঘোষণার লেখা *',img:false,sub:false,btn:true},
+ slider:{n:'স্লাইডার',d:'হোমপেজের বড় ছবি স্লাইডার। ছবির মাপ প্রায় ১৬:৭ (যেমন ১৬০০×৭০০) ভালো।',t:'শিরোনাম *',img:true,sub:true,btn:true},
+ promo:{n:'প্রোমো ব্যানার',d:'হোমপেজের মাঝে ছোট ব্যানার (যেমন নতুন কালেকশন, ছাড়)। ছবির মাপ ৪:৩।',t:'শিরোনাম *',img:true,sub:true,btn:true},
+ popup:{n:'পপআপ',d:'ওয়েবসাইট খুললে ৩ সেকেন্ড পর একবার দেখাবে। একটাই সক্রিয় রাখুন।',t:'শিরোনাম *',img:true,sub:true,btn:true}
+};
+let K='bar',ROWS=[],EDIT=null;
+
+/* ---------- preview ---------- */
+function pvHtml(b){
+  const bg=b.bg_color||'#1c1a17',fg=b.text_color||'#fff';
+  const img=b.image_url?`background-image:url('${esc(b.image_url)}');`:'';
+  const btn=b.button_text?`<span class="pv-btn">${esc(b.button_text)}</span>`:'';
+  if(b.kind==='bar')return`<div class="pv-bar" style="background:${esc(bg)};color:${esc(fg)}">${esc(b.title||'ঘোষণার লেখা')}${btn?`<a>${esc(b.button_text)}</a>`:''}</div>`;
+  if(b.kind==='popup')return`<div class="pv-pop" style="background:${esc(bg)};color:${esc(fg)}">${b.image_url?`<div class="im" style="${img}"></div>`:''}<div class="tx"><h3>${esc(b.title||'শিরোনাম')}</h3>${b.subtitle?`<p>${esc(b.subtitle)}</p>`:''}${btn}</div></div>`;
+  const cls=b.kind==='slider'?'pv-sl':'pv-pr';
+  return`<div class="${cls}" style="${img}background-color:${esc(bg)};color:${esc(fg)}"><div class="tx"><h3>${esc(b.title||'শিরোনাম')}</h3>${b.subtitle?`<p>${esc(b.subtitle)}</p>`:''}${btn}</div></div>`;
+}
+function cur(){
+  return{kind:K,title:$('f_title').value.trim(),subtitle:$('f_sub').value.trim(),button_text:$('f_btn').value.trim(),link:$('f_link').value.trim(),image_url:$('f_img').value.trim(),bg_color:$('f_bg').value,text_color:$('f_fg').value};
+}
+function pv(){$('pv').innerHTML=pvHtml(cur())}
+
+function setKind(k){
+  K=k;const c=KIND[k];
+  document.querySelectorAll('#tabs .cb').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  $('f-h').textContent=(EDIT?'এডিট: ':'নতুন ')+c.n;$('f-d').textContent=c.d;$('l-title').textContent=c.t;
+  $('w-img').hidden=!c.img;$('w-sub').hidden=!c.sub;
+  $('f_imgnote').textContent=k==='slider'?'ফোনে কেটে যেতে পারে, তাই গুরুত্বপূর্ণ লেখা মাঝখানে রাখুন।':'';
+  reset(true);rList();pv();
+}
+function reset(keepKind){
+  EDIT=null;['f_title','f_sub','f_btn','f_link','f_img','f_st','f_en'].forEach(i=>$(i).value='');
+  $('f_bg').value=K==='bar'?'#b8715a':'#1c1a17';$('f_fg').value='#ffffff';
+  $('f-x').hidden=true;$('f-h').textContent='নতুন '+KIND[K].n;pv();
+}
+
+/* ---------- load / list ---------- */
+async function load(){
+  const r=await sb.from('site_banners').select('*').order('position',{ascending:true}).order('created_at',{ascending:false});
+  if(r.error){$('note').innerHTML='<div class="bn-card" style="background:#fdecef;border-color:#e9a9b3">টেবিল এখনো তৈরি হয়নি। Supabase → SQL Editor এ Banner এর SQL একবার Run করুন। ('+esc(r.error.message)+')</div>';ROWS=[]}
+  else{$('note').innerHTML='';ROWS=r.data||[]}
+  rList();
+}
+function status(b){
+  const n=Date.now();
+  if(!b.active)return['বন্ধ','off'];
+  if(b.ends_at&&new Date(b.ends_at)<n)return['মেয়াদ শেষ','exp'];
+  if(b.starts_at&&new Date(b.starts_at)>n)return['আসছে','soon'];
+  return['লাইভ','on'];
+}
+function rList(){
+  const L=ROWS.filter(b=>b.kind===K);
+  $('list').innerHTML=L.length?L.map((b,i)=>{const s=status(b);return`<div class="bn-i"><div class="t"><b>${esc(KIND[K].n)} #${i+1}</b><span class="pill ${s[1]}">${s[0]}</span></div>
+  ${pvHtml(b)}
+  <div class="m">${b.link?'লিংক: '+esc(b.link)+' · ':''}${dl(b.starts_at)} থেকে ${dl(b.ends_at)}</div>
+  <div class="a"><button class="cb sm" data-a="up" data-id="${b.id}"${i===0?' disabled':''}>↑</button><button class="cb sm" data-a="down" data-id="${b.id}"${i===L.length-1?' disabled':''}>↓</button><button class="cb sm" data-a="edit" data-id="${b.id}">এডিট</button><button class="cb sm" data-a="tog" data-id="${b.id}">${b.active?'বন্ধ করুন':'চালু করুন'}</button><button class="cb sm red" data-a="del" data-id="${b.id}">মুছুন</button></div></div>`}).join(''):'<p class="sub">এখনো কিছু নেই। উপরের ফর্ম থেকে বানান।</p>';
+}
+
+/* ---------- actions ---------- */
+async function save(){
+  const o=cur();
+  if(!o.title){A.toast('লেখা দিন');return}
+  o.starts_at=$('f_st').value?new Date($('f_st').value+'T00:00:00').toISOString():null;
+  o.ends_at=$('f_en').value?new Date($('f_en').value+'T23:59:59').toISOString():null;
+  if(KIND[K].img&&K!=='popup'&&!o.image_url&&!confirm('ছবি ছাড়া শুধু রং দিয়ে হবে। চালিয়ে যাবেন?'))return;
+  $('f-save').disabled=true;
+  let r;
+  if(EDIT)r=await sb.from('site_banners').update(o).eq('id',EDIT);
+  else{o.active=true;o.position=ROWS.filter(b=>b.kind===K).length;r=await sb.from('site_banners').insert(o)}
+  $('f-save').disabled=false;
+  if(r.error){A.toast('সেভ হয়নি: '+r.error.message);return}
+  A.toast('সেভ হয়েছে, ওয়েবসাইটে ১ মিনিটের মধ্যে দেখাবে');reset();load();
+}
+async function move(id,dir){
+  const L=ROWS.filter(b=>b.kind===K),i=L.findIndex(b=>String(b.id)===id),j=i+dir;
+  if(i<0||j<0||j>=L.length)return;
+  const a=L[i],b=L[j];
+  const ps=L.map(x=>x.id);ps[i]=b.id;ps[j]=a.id;
+  const rs=await Promise.all(ps.map((pid,idx)=>sb.from('site_banners').update({position:idx}).eq('id',pid)));
+  if(rs.some(r=>r.error)){A.toast('ক্রম বদলানো যায়নি');return}
+  load();
+}
+async function upload(file){
+  if(!file)return;
+  if(file.size>3*1024*1024){A.toast('ছবি ৩MB এর কম হতে হবে');return}
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const path=K+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+'.'+ext;
+  A.toast('আপলোড হচ্ছে...');
+  const r=await sb.storage.from('banners').upload(path,file,{cacheControl:'3600',upsert:false});
+  if(r.error){A.toast('আপলোড হয়নি: '+r.error.message);return}
+  $('f_img').value=sb.storage.from('banners').getPublicUrl(path).data.publicUrl;
+  A.toast('আপলোড হয়েছে');pv();
+}
+
+Admin.boot({key:'banners',title:'Banner Manager',perm:'products',ready:async()=>{
+  A.onRefresh=load;
+  $('tabs').onclick=e=>{const b=e.target.closest('[data-k]');if(b)setKind(b.dataset.k)};
+  ['f_title','f_sub','f_btn','f_img','f_bg','f_fg'].forEach(i=>$(i).addEventListener('input',pv));
+  $('f_file').addEventListener('change',e=>{upload(e.target.files[0]);e.target.value=''});
+  $('f-save').onclick=save;
+  $('f-x').onclick=()=>reset();
+  $('list').onclick=async e=>{
+    const b=e.target.closest('[data-a]');if(!b||b.disabled)return;
+    const a=b.dataset.a,id=b.dataset.id,row=ROWS.find(x=>String(x.id)===id);
+    if(a==='up')return move(id,-1);
+    if(a==='down')return move(id,1);
+    if(a==='tog'&&row){const r=await sb.from('site_banners').update({active:!row.active}).eq('id',row.id);if(r.error)A.toast('হয়নি: '+r.error.message);else load();return}
+    if(a==='del'){if(!confirm('মুছে ফেলবেন?'))return;const r=await sb.from('site_banners').delete().eq('id',id);if(r.error)A.toast('মোছা যায়নি: '+r.error.message);else{A.toast('মুছে ফেলা হয়েছে');load()}return}
+    if(a==='edit'&&row){
+      EDIT=row.id;$('f_title').value=row.title||'';$('f_sub').value=row.subtitle||'';$('f_btn').value=row.button_text||'';$('f_link').value=row.link||'';$('f_img').value=row.image_url||'';
+      $('f_bg').value=row.bg_color||'#1c1a17';$('f_fg').value=row.text_color||'#ffffff';
+      $('f_st').value=row.starts_at?ymd(new Date(row.starts_at)):'';$('f_en').value=row.ends_at?ymd(new Date(row.ends_at)):'';
+      $('f-h').textContent='এডিট: '+KIND[K].n;$('f-x').hidden=false;pv();scrollTo(0,0);
+    }
+  };
+  setKind('bar');
+  await load();
+}});
+</script>
+</body>
+</html>
