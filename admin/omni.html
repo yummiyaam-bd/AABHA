@@ -137,7 +137,7 @@ function renderAgent(){const a=AG.find(x=>x[0]===SEL),box=$('v-agent');
 function setMode(m){$('om').dataset.m=m;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
  const ag=m==='agent';$('v-voice').hidden=m!=='voice';$('v-chat').hidden=m!=='chat';$('qa').hidden=ag;$('gin').hidden=ag;$('v-agent').hidden=!ag;
  if(ag){if(!SEL)$('om').dataset.sel='0';renderAgent()}
- if(m!=='voice'&&window.speechSynthesis)speechSynthesis.cancel()}
+ if(m!=='voice')stopAudio()}
 $('tabs').onclick=e=>{const b=e.target.closest('button');if(b)setMode(b.dataset.m)};
 
 function addMsg(c,t,box){box=box||$('msgs');const d=document.createElement('div');d.className='mg '+c;d.textContent=t;box.appendChild(d);box.scrollTop=1e6;return d}
@@ -151,17 +151,28 @@ $('clr').onclick=()=>{$('ws').innerHTML='<div class="empty2">প্রশ্ন 
 
 const FEM=/female|woman|zira|samantha|susan|hazel|aria|jenny|sonia|libby|nabanita|tanishaa|sangeeta|heera|neerja|swara|google/i,MAL=/\bmale\b|david|mark|george|ravi|prabhat|pradeep|bashkar|guy|ryan|christopher/i;
 let VS=[];const isBn=l=>/^bn/i.test(l);
-function loadV(){if(!window.speechSynthesis)return;VS=speechSynthesis.getVoices().filter(v=>/^(bn|en)/i.test(v.lang));let sv='';try{sv=localStorage.getItem('omni_voice')||''}catch(e){}
- $('vsel').innerHTML='<option value="">অটো (মেয়েলি কণ্ঠ)</option>'+VS.map(v=>`<option value="${esc(v.name)}"${v.name===sv?' selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}
-function pick(bn){const sv=$('vsel').value,pool=VS.filter(v=>isBn(v.lang)===bn);
- if(sv){const x=pool.find(v=>v.name===sv);if(x)return x}
- return pool.find(v=>FEM.test(v.name)&&!MAL.test(v.name))||pool.find(v=>!MAL.test(v.name))||pool[0]||null}
-function say(t){if(!window.speechSynthesis)return;speechSynthesis.cancel();
- t=String(t).replace(/৳\s?([\d,\.]+)/g,'$1 টাকা').replace(/[*_#`>|~]/g,' ').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s*\n+\s*/g,'। ').trim();
+function loadV(){if(!window.speechSynthesis)return;VS=speechSynthesis.getVoices().filter(v=>/^(bn|en)/i.test(v.lang))}
+function pick(bn){const pool=VS.filter(v=>isBn(v.lang)===bn);return pool.find(v=>FEM.test(v.name)&&!MAL.test(v.name))||pool.find(v=>!MAL.test(v.name))||pool[0]||null}
+const clean=t=>String(t).replace(/৳\s?([\d,\.]+)/g,'$1 টাকা').replace(/[*_#`>|~]/g,' ').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s*\n+\s*/g,'। ').trim();
+let AUD=null;
+function stopAudio(){if(AUD){try{AUD.pause()}catch(e){}AUD=null}if(window.speechSynthesis)speechSynthesis.cancel()}
+function bsay(t){if(!window.speechSynthesis)return;
  (t.match(/[^।.!?]+[।.!?]*/g)||[t]).forEach(p=>{p=p.trim();if(!p)return;const bn=/[\u0980-\u09FF]/.test(p),u=new SpeechSynthesisUtterance(p),v=pick(bn);u.lang=bn?'bn-BD':'en-US';if(v){u.voice=v;u.lang=v.lang}u.rate=1.12;u.pitch=1.08;speechSynthesis.speak(u)})}
+async function ttsPlay(t){
+ const r=await sb.functions.invoke('omni-ai',{body:{tts:t,voice:$('vsel').value}});
+ if(r.error){let m=r.error.message;try{const x=await r.error.context.text();try{m=JSON.parse(x).error||x}catch(_){m=x||m}}catch(_){}throw new Error(m)}
+ if(!r.data||r.data.error||!r.data.audio)throw new Error((r.data&&r.data.error)||'অডিও আসেনি');
+ const bin=atob(r.data.audio),n=bin.length,buf=new ArrayBuffer(44+n),v=new DataView(buf),w=(o,x)=>{for(let i=0;i<x.length;i++)v.setUint8(o+i,x.charCodeAt(i))};
+ w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,24000,true);v.setUint32(28,48000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n,true);
+ const u8=new Uint8Array(buf,44);for(let i=0;i<n;i++)u8[i]=bin.charCodeAt(i);
+ stopAudio();AUD=new Audio(URL.createObjectURL(new Blob([buf],{type:'audio/wav'})));AUD.playbackRate=1.05;await AUD.play()}
+async function say(t){stopAudio();t=clean(t);if(!t)return;
+ try{await ttsPlay(t.slice(0,800))}catch(e){console.log('tts',e);$('vsay').dataset.err=e.message;A.toast('উন্নত কণ্ঠ চলেনি ('+String(e.message).slice(0,70)+'), সাধারণ কণ্ঠে বলছি');bsay(t)}}
 function speak(t){if($('spk').checked)say(t)}
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadV;loadV()}
-$('vsel').onchange=()=>{try{localStorage.setItem('omni_voice',$('vsel').value)}catch(e){}};
+$('vsel').innerHTML=[['Kore','মেয়ের কণ্ঠ: কোর (স্পষ্ট)'],['Zephyr','মেয়ের কণ্ঠ: জেফির (উজ্জ্বল)'],['Leda','মেয়ের কণ্ঠ: লেডা (কোমল)'],['Aoede','মেয়ের কণ্ঠ: আয়োডি (হালকা)']].map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
+try{const g=localStorage.getItem('omni_gv');if(g)$('vsel').value=g}catch(e){}
+$('vsel').onchange=()=>{try{localStorage.setItem('omni_gv',$('vsel').value)}catch(e){}};
 $('vtest').onclick=()=>say('আসসালামু আলাইকুম, আমি ওমনি। আজকের বিক্রি দেখাবো?');
 
 async function send(t,ag){ag=ag||'ceo';t=String(t||'').trim();if(!t||busy)return;busy=true;
@@ -169,7 +180,7 @@ async function send(t,ag){ag=ag||'ceo';t=String(t||'').trim();if(!t||busy)return
  if(agentUI)$('ati').value='';else $('ti').value='';
  const H=gH(ag);addMsg('u',t,box);H.push({role:'user',content:t});const th=addMsg('a t','ভাবছি…',box);
  if(!agentUI)$('vsay').textContent='ভাবছি…';setAg([ag],'w');let ok=false;
- try{const r=await Promise.race([sb.functions.invoke('omni-ai',{body:{messages:H.slice(-12),agent:ag}}),new Promise((_,rj)=>setTimeout(()=>rj(new Error('৭০ সেকেন্ডে উত্তর আসেনি। Supabase → Edge Functions → omni-ai → Logs দেখুন।')),70000))]);
+ try{const r=await Promise.race([sb.functions.invoke('omni-ai',{body:{messages:H.slice(-12),agent:ag,mode:$('om').dataset.m}}),new Promise((_,rj)=>setTimeout(()=>rj(new Error('৭০ সেকেন্ডে উত্তর আসেনি। Supabase → Edge Functions → omni-ai → Logs দেখুন।')),70000))]);
   if(r.error){let m=r.error.message||'অজানা সমস্যা';try{const x=await r.error.context.text();try{const j=JSON.parse(x);m=j.error||j.message||x}catch(_){m=x||m}}catch(_){}throw new Error(m)}
   if(!r.data||r.data.error)throw new Error((r.data&&r.data.error)||'খালি উত্তর এসেছে');
   const d=r.data;th.className='mg a';th.textContent=d.reply||'(উত্তর নেই)';if(!agentUI)$('vsay').textContent=d.reply||'';H.push({role:'assistant',content:d.reply||''});
@@ -191,14 +202,14 @@ const VE={'not-allowed':'মাইকের অনুমতি দেওয়�
 $('mic').onclick=()=>{
  if(listening){rec&&rec.stop();return}
  if(!SR){vmsg('⚠️ এই ব্রাউজারে ভয়েস ইনপুট চলে না। Chrome-এ খুলুন, অথবা নিচের বক্সে লিখুন।');return}
- if(window.speechSynthesis)speechSynthesis.cancel();fin='';vmsg('মাইক চালু হচ্ছে…');
+ stopAudio();fin='';vmsg('মাইক চালু হচ্ছে…');
  rec=new SR();rec.lang=$('lang').value;rec.interimResults=true;rec.maxAlternatives=1;
  rec.onstart=()=>{setL(true);vmsg('শুনছি… এখন বলুন')};
  rec.onresult=e=>{let t='';for(const r of e.results)t+=r[0].transcript;vmsg(t);fin=t};
  rec.onerror=e=>vmsg('⚠️ '+(VE[e.error]||('মাইক সমস্যা: '+e.error)));
  rec.onend=()=>{setL(false);if(fin){const t=fin;fin='';send(t)}};
  try{rec.start()}catch(e){vmsg('⚠️ মাইক চালু করা যায়নি: '+e.message)}};
-$('stopsp').onclick=()=>window.speechSynthesis&&speechSynthesis.cancel();
+$('stopsp').onclick=stopAudio;
 
 Admin.boot({key:'omni',title:'OMNI AI',ready:async()=>{
  const h=new Date().getHours();$('gr').textContent=(h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening')+', '+(A.user.email||'').split('@')[0];
