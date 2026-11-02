@@ -51,6 +51,7 @@ const NAV=[
  ['finance','Finance & Accounting','wallet','finance.html','expenses'],
  ['marketing','Marketing','trend','marketing.html','reports'],
  ['banners','Banner Manager','camera','banners.html','products'],
+ ['bstudio','Banner Studio','edit','bstudio.html','products'],
  ['reports','Reports','chart','reports.html','reports'],
  ['carts','Abandoned Carts','cart','carts.html','reports'],
  ['audit','Audit Log','doc','audit.html','admin'],
