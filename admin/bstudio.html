@@ -54,6 +54,27 @@ input[type=range]{width:100%}
 .res{font-size:13px;line-height:1.7;background:#faf6f2;border-radius:12px;padding:10px 12px;margin-top:8px;white-space:pre-wrap}
 .sv{display:flex;gap:6px;align-items:center;margin:6px 0}
 .sv .cb{flex:1;text-align:left}
+
+.gal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.gt{border:2px solid var(--bd);border-radius:14px;background:#fff;padding:5px;cursor:pointer;font:inherit;text-align:center;min-width:0}
+.gt.on{border-color:#b8715a;background:#fbf3ee}
+.gt canvas{width:100%;height:auto;display:block;border-radius:9px}
+.gt span{display:block;font-size:11px;color:var(--mut);margin-top:4px;line-height:1.3}
+#pvm{position:fixed;inset:0;background:rgba(10,6,8,.78);z-index:9999;overflow:auto;padding:16px;display:flex;justify-content:center}
+.pvbox{width:100%;max-width:380px}
+.phone{background:linear-gradient(160deg,#4a2230,#150c10 55%,#0d0b11);color:#f4e8e0;border-radius:26px;padding:14px 14px 26px;margin-top:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.fhd{display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,.14);border-radius:30px;padding:9px 16px;margin-bottom:16px;background:rgba(255,255,255,.06);font-size:12px}
+.fhd b{letter-spacing:.35em;color:#e8b4a0;font-family:Georgia,serif;font-size:15px}
+.pimg{overflow:hidden;margin:0 auto;background:#222}
+.pimg img{display:block;width:100%;height:100%;object-fit:cover}
+.pimg.harch{width:84%;aspect-ratio:4/5;border-radius:999px 999px 34px 34px}
+.pimg.hero{width:100%;aspect-ratio:3/2;border-radius:22px}
+.pimg.slider{width:100%;aspect-ratio:16/7;border-radius:14px}
+.pimg.promo{width:100%;aspect-ratio:4/3;border-radius:14px}
+.pimg.post{width:100%;border-radius:8px}
+.pimg.post img{height:auto}
+.ftx{margin-top:18px}.ftx small{letter-spacing:.35em;color:#e8b4a0;font-size:11px}.ftx h2{margin:2px 0;font:700 54px/1 Georgia,serif}.ftx p{margin:6px 0 0;font:italic 18px Georgia,serif;color:#e8b4a0}
+@media(min-width:900px){.gal{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:900px){
  .bs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:16px;align-items:start}
  .intro{grid-column:1/-1}
@@ -83,6 +104,7 @@ input[type=range]{width:100%}
       <button class="cb" id="b-zip">📦 সব সাইজ (ZIP)</button>
       <button class="cb" id="b-hero" hidden>📁 hero-banner.jpg</button>
       <button class="cb" id="b-pub" hidden>🌐 ওয়েবসাইটে দিন</button>
+      <button class="cb" id="b-prev">📱 সাইটে কেমন দেখাবে</button>
       <button class="cb" id="b-chk">🔍 সাইট চেক</button>
     </div>
     <p class="sub" id="pubnote" style="margin:-4px 2px 10px"></p>
@@ -139,8 +161,16 @@ input[type=range]{width:100%}
         <div><label>ট্যাগ স্টিকার (যেমন FREE DELIVERY)</label><input class="mi" id="t_tag" maxlength="20" placeholder="NEW"></div>
         <div><label>ট্যাগ কোথায়</label><select class="mi" id="x_tagpos"><option value="tr">উপরে ডানে</option><option value="tl">উপরে বামে</option><option value="br">নিচে ডানে</option><option value="bl">নিচে বামে</option></select></div>
         <div><label>ব্র্যান্ড লেখা</label><input class="mi" id="t_brand" maxlength="30" value="AABHA FASHION"></div>
-        <div><label>ওয়েবসাইটে ক্লিক করলে কোথায় যাবে (ঐচ্ছিক)</label><input class="mi" id="t_link" placeholder="#shop"></div>
+        <div><label>ব্যানারে ট্যাপ করলে কোথায় যাবে (#shop = প্রোডাক্ট সেকশন)</label><input class="mi" id="t_link" value="#shop"></div>
       </div>
+    </div>
+  </details>
+
+  <details class="bs-card" id="galc" open>
+    <summary>✨ ডিজাইন গ্যালারি (ট্যাপ করলেই লেগে যাবে)</summary>
+    <div class="in">
+      <div class="row"><button class="cb sm pr" id="g_shuf">🎲 অন্যরকম দেখান</button><span class="sub">আপনার ছবি আর লেখা দিয়েই বানানো</span></div>
+      <div class="gal" id="gal"></div>
     </div>
   </details>
 
@@ -196,6 +226,26 @@ input[type=range]{width:100%}
     </div>
   </details>
 
+  <details class="bs-card" id="htc">
+    <summary>🏠 হোমপেজের লেখা (ব্যানারের নিচের লেখা বদলান বা লুকান)</summary>
+    <div class="in">
+      <p class="sub" style="margin:0 0 6px">ওয়েবসাইটে ব্যানারের ঠিক নিচে যে লেখাগুলো আছে (WINTER 2026, STYLED ইত্যাদি) সেগুলো এখান থেকে বদলাবেন। ফাঁকা রাখলে আগের লেখাই থাকবে।</p>
+      <div class="bs-f">
+        <div><label>ছোট উপরের লেখা</label><input class="mi" id="h_eye" maxlength="40"></div>
+        <div><label>বড় শিরোনাম</label><input class="mi" id="h_h1" maxlength="30"></div>
+        <div class="w"><label>দ্বিতীয় লাইন</label><input class="mi" id="h_l2" maxlength="80"></div>
+        <div class="w"><label>প্যারাগ্রাফ</label><textarea class="mi" id="h_p" style="min-height:80px" maxlength="260"></textarea></div>
+        <div><label>বড় বাটনের লেখা</label><input class="mi" id="h_btn" maxlength="24"></div>
+        <div><label>বাটনের নিচের ছোট লেখা</label><input class="mi" id="h_small" maxlength="50"></div>
+        <div class="w"><label>বাটন কোথায় নেবে</label><input class="mi" id="h_link" maxlength="200" placeholder="#shop"></div>
+      </div>
+      <div class="row"><label class="cb sm" style="margin:0"><input type="checkbox" id="h_hide1"> শিরোনাম ও প্যারাগ্রাফ লুকান</label>
+      <label class="cb sm" style="margin:0"><input type="checkbox" id="h_hide2"> Call us, 7-day exchange, অফার বক্স লুকান</label></div>
+      <div class="row" style="margin-top:10px"><button class="cb pr" id="h_save">💾 সাইটে সেভ করুন</button><button class="cb" id="h_reset">↺ আগের লেখায় ফিরুন</button></div>
+      <div class="res" id="h_msg" hidden></div>
+    </div>
+  </details>
+
   <details class="bs-card">
     <summary>৭. ক্যাপশন (ফেসবুক/ইনস্টা পোস্টের লেখা)</summary>
     <div class="in">
@@ -217,12 +267,17 @@ input[type=range]{width:100%}
   </div>
 </div>
 
+<div id="pvm" hidden><div class="pvbox"><button class="cb pr" id="pvx">✕ বন্ধ করুন</button>
+  <div class="phone"><div class="fhd"><b>AABHA</b><span>BAG 3 &nbsp;☰</span></div><div id="pvimg"></div>
+  <div class="ftx"><small>WINTER 2026</small><h2>STYLED</h2><p>for every story you wear.</p></div></div>
+  <p class="sub" style="color:#ddd;text-align:center;margin-top:8px">এটা মোবাইলে সাইটের উপরে যেমন দেখাবে তার নমুনা</p></div></div>
+
 <script>
 const A=Admin, sb=A.sb, $=A.$;
 const cv=$('cv');let ctx=cv.getContext('2d');
 let IMG=null,IMG2=null,LOGO=null,TPL='elegant',RAF=0,FILT='none',THEMEI=0,LASTREG={w:1,h:1},LASTPUB=null;
 
-const TPLN={elegant:'এলিগ্যান্ট',full:'ফুল ফটো',split:'স্প্লিট',center:'সেন্টার',sale:'সেল ব্যাজ',arch:'খিলান',frame:'ফ্রেম',glass:'গ্লাস কার্ড',bold:'বোল্ড',duo:'ডুয়ো (২ ছবি)'};
+const TPLN={elegant:'এলিগ্যান্ট',full:'ফুল ফটো',split:'স্প্লিট',center:'সেন্টার',sale:'সেল ব্যাজ',arch:'খিলান',frame:'ফ্রেম',glass:'গ্লাস কার্ড',bold:'বোল্ড',luxe:'লাক্সারি',minimal:'মিনিমাল',magazine:'ম্যাগাজিন',duo:'ডুয়ো (২ ছবি)'};
 const FMT={
  harch:{n:'হিরো খিলান (৪:৫) · ওয়েবসাইটের উপরে',w:1200,h:1500,pub:'hero',arch:1},
  hero:{n:'হিরো চওড়া (৩:২) · ওয়েবসাইটের উপরে',w:1536,h:1024,pub:'hero'},
@@ -504,6 +559,35 @@ const TPLS={
   else{const g=ctx.createLinearGradient(0,H*.25,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.9)');ctx.fillStyle=g;ctx.fillRect(0,H*.25,W,H*.75);
     c.tsize=W*(tall?.15:.12);c.anchor='bottom';block(o,W*.07,W*.86,H*.4,H*.94,'left',c);ctx.fillStyle=t.ac;ctx.fillRect(0,H-H*.012,W,H*.012)}
  },
+ luxe(W,H,wide,o,t){
+  const tall=H/W>1.5,K=W/H>2?1.3:1,u=Math.min(W,H);
+  drawPhoto(0,0,W,H,t);
+  ctx.fillStyle='rgba(8,6,6,.5)';ctx.fillRect(0,0,W,H);
+  const g=ctx.createRadialGradient(W/2,H/2,u*.1,W/2,H/2,Math.max(W,H)*.75);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.45)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const gold=lum(t.ac)>.2?t.ac:'#d9b26f',m=u*.04;
+  ctx.strokeStyle=gold;ctx.lineWidth=Math.max(2,u*.004);ctx.strokeRect(m,m,W-2*m,H-2*m);ctx.lineWidth=Math.max(1,u*.0018);ctx.strokeRect(m*1.7,m*1.7,W-3.4*m,H-3.4*m);
+  const c=cols(t,'dark');c.brand=gold;c.price=gold;c.btnBg=gold;c.btnFg=ink(gold);c.shadow=1;
+  c.tsize=wide?H*.1*K:W*(tall?.1:.085);c.anchor='center';
+  block(o,W*.12,W*.76,H*.1,H*.9,'center',c);
+ },
+ minimal(W,H,wide,o,t){
+  const tall=H/W>1.5,K=W/H>2?1.3:1,m=Math.min(W,H)*.06;
+  ctx.fillStyle=t.bg;ctx.fillRect(0,0,W,H);
+  const c=cols(t,'light');c.outline=true;c.btnFg=t.ac;
+  if(wide){drawPhoto(W*.5,m,W*.5-m,H-2*m,t);c.tsize=H*.09*K;c.anchor='center';block(o,m*1.4,W*.42,H*.1,H*.9,'left',c)}
+  else{const ph=H*(tall?.58:.64);drawPhoto(m,m,W-2*m,ph,t);ctx.fillStyle=t.ac;ctx.fillRect(m,m+ph+m*.5,W*.08,Math.max(3,H*.004));c.tsize=W*(tall?.088:.07);c.anchor='top';block(o,m,W-2*m,m+ph+m*1.1,H-m,'left',c)}
+ },
+ magazine(W,H,wide,o,t){
+  const tall=H/W>1.5,K=W/H>2?1.3:1,u=Math.min(W,H);
+  drawPhoto(0,0,W,H,t);
+  const g=ctx.createLinearGradient(0,H*.35,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.82)');ctx.fillStyle=g;ctx.fillRect(0,H*.35,W,H*.65);
+  const word=(o.brand||'AABHA').split(/\s+/)[0].toUpperCase();
+  let fs=H*(wide?.3:.2);ctx.font=fT(fs,700);while(ctx.measureText(word).width>W*.94&&fs>10){fs*=.94;ctx.font=fT(fs,700)}
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=Math.max(2,u*.004);ctx.strokeStyle='rgba(255,255,255,.7)';ctx.strokeText(word,W/2,wide?H*.22:H*.15);ctx.textBaseline='alphabetic';
+  const c=cols(t,'dark');c.shadow=1;c.tsize=wide?H*.09*K:W*(tall?.088:.07);c.anchor='bottom';
+  const o2=Object.assign({},o,{brand:''});
+  if(wide)block(o2,W*.06,W*.5,H*.4,H*.92,'left',c);else block(o2,W*.07,W*.86,H*.5,H*.94,'left',c);
+ },
  duo(W,H,wide,o,t){
   const K=W/H>2?1.3:1,tall=H/W>1.5,gap=Math.min(W,H)*.012,c=cols(t,'light');
   ctx.fillStyle=t.bg;ctx.fillRect(0,0,W,H);
@@ -544,14 +628,15 @@ function deco(W,H,f,o,t){
 }
 
 function vals(){return{title:$('t_title').value.trim(),sub:$('t_sub').value.trim(),btn:$('t_btn').value.trim(),badge:$('t_badge').value.trim(),brand:$('t_brand').value.trim(),pnew:$('t_pnew').value.trim(),pold:$('t_pold').value.trim(),note:$('t_note').value.trim(),tag:$('t_tag').value.trim()}}
-function theme(){return{bg:$('c_bg').value,tx:$('c_tx').value,ac:$('c_ac').value}}
+let OV=null;
+function theme(){if(OV)return OV.theme;return{bg:$('c_bg').value,tx:$('c_tx').value,ac:$('c_ac').value}}
 
 function render(c,f){
   const prev=ctx;ctx=c.getContext('2d');
   if(c.width!==f.w)c.width=f.w;if(c.height!==f.h)c.height=f.h;
   ctx.clearRect(0,0,f.w,f.h);ctx.setLineDash([]);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.globalAlpha=1;
   const o=vals(),t=theme();
-  TPLS[TPL](f.w,f.h,f.w/f.h>1.25,o,t,f);
+  TPLS[OV?OV.tpl:TPL](f.w,f.h,f.w/f.h>1.25,o,t,f);
   deco(f.w,f.h,f,o,t);
   ctx=prev;
 }
@@ -562,6 +647,7 @@ function draw(){
   $('pubnote').textContent=p?(p==='hero'?(f.arch?'হিরো খিলানের জায়গায় ঠিক বসবে। আগের হিরো ছবি বন্ধ হবে (Banner Manager থেকে আবার চালু করা যাবে)।':'হিরোতে দিলে আগের হিরো ছবি বন্ধ হয়ে যাবে (Banner Manager থেকে আবার চালু করা যাবে)।'):'Banner Manager এ গিয়ে ক্রম, তারিখ বা মুছে ফেলা যাবে।'):'এই সাইজ সোশ্যাল মিডিয়ার জন্য, ডাউনলোড করে পোস্ট করুন।';
   $('gd').className='gd'+(f.arch?' arch':f.safe?' safe':' off')+($('guide').checked?'':' off');
   $('p2box').hidden=TPL!=='duo';
+  schedGallery();
 }
 function sched(){cancelAnimationFrame(RAF);RAF=requestAnimationFrame(draw)}
 function loadFonts(){
@@ -705,6 +791,65 @@ function makeCap(){
   $('cap').value=t;
 }
 
+/* ---------- home text (hero text block) ---------- */
+const HDEF={h_eye:'WINTER 2026',h_h1:'Styled',h_l2:'for every story you wear.',h_p:'Premium everyday and festive fashion with soft fabrics and clean fits. Pick your size, order in a minute, pay on delivery.',h_btn:'Shop Now',h_small:'Free delivery over ৳3000',h_link:'#shop'};
+let HROW=null;
+function hFill(r){
+  let x={};if(r){try{x=JSON.parse(r.style||'{}')}catch(e){}}
+  $('h_eye').value=r?(x.eye||''):HDEF.h_eye;$('h_h1').value=r?(r.title||''):HDEF.h_h1;$('h_l2').value=r?(x.l2||''):HDEF.h_l2;
+  $('h_p').value=r?(r.subtitle||''):HDEF.h_p;$('h_btn').value=r?(r.button_text||''):HDEF.h_btn;$('h_small').value=r?(x.small||''):HDEF.h_small;
+  $('h_link').value=r?(r.link||''):HDEF.h_link;$('h_hide1').checked=!!x.hide1;$('h_hide2').checked=!!x.hide2;
+}
+async function hLoad(){
+  try{
+    const r=await sb.from('site_banners').select('*').eq('kind','herotext').order('created_at',{ascending:false}).limit(1);
+    HROW=(r.data&&r.data[0])||null;
+  }catch(e){HROW=null}
+  hFill(HROW);
+}
+async function hSave(){
+  const btn=$('h_save');btn.disabled=true;const m=$('h_msg');m.hidden=true;
+  const row={kind:'herotext',title:$('h_h1').value.trim(),subtitle:$('h_p').value.trim(),button_text:$('h_btn').value.trim(),link:$('h_link').value.trim(),active:true,position:0,
+    style:JSON.stringify({eye:$('h_eye').value.trim(),l2:$('h_l2').value.trim(),small:$('h_small').value.trim(),hide1:$('h_hide1').checked,hide2:$('h_hide2').checked})};
+  try{
+    let r;
+    if(HROW)r=await sb.from('site_banners').update(row).eq('id',HROW.id).select();
+    else r=await sb.from('site_banners').insert(row).select();
+    if(r.error)throw r.error;
+    HROW=(r.data&&r.data[0])||HROW;
+    A.toast('সেভ হয়েছে। সাইট রিফ্রেশ করলে দেখাবে');
+  }catch(e){
+    const t=String(e.message||e);
+    A.toast('সেভ হয়নি');
+    m.hidden=false;m.textContent='সেভ হয়নি: '+t+(/kind|check|constraint|violat/i.test(t)?'\n\nSupabase SQL Editor এ এই লাইনটা একবার Run করুন, তারপর আবার সেভ করুন:\nalter table site_banners drop constraint if exists site_banners_kind_check;':'');
+  }
+  btn.disabled=false;
+}
+async function hReset(){
+  if(!confirm('সাইটের লেখা আগের অবস্থায় ফিরবে। ঠিক আছে?'))return;
+  try{if(HROW){await sb.from('site_banners').delete().eq('id',HROW.id);HROW=null}}catch(e){}
+  hFill(null);A.toast('আগের লেখায় ফেরানো হয়েছে');
+}
+
+/* ---------- design gallery ---------- */
+let GSEED=0,GT=0,GITEMS=[];
+function schedGallery(){clearTimeout(GT);GT=setTimeout(drawGallery,450)}
+function drawGallery(){
+  if(!$('galc').open)return;
+  const f=FMT[$('fmt').value],tw=300,th=Math.round(tw*f.h/f.w),keys=Object.keys(TPLN).filter(k=>k!=='duo'||IMG2);
+  GITEMS=[];keys.forEach((k,i)=>{for(let j=0;j<2;j++)GITEMS.push({k,th:(i*5+j*7+GSEED*3+j)%THEMES.length})});
+  const box=$('gal');
+  box.innerHTML=GITEMS.map((x,i)=>`<button class="gt${x.k===TPL&&x.th===THEMEI?' on':''}" data-i="${i}"><canvas></canvas><span>${TPLN[x.k]} · ${THEMES[x.th].n}</span></button>`).join('');
+  const cs=box.querySelectorAll('canvas'),keep=LASTREG;
+  GITEMS.forEach((x,i)=>{OV={tpl:x.k,theme:THEMES[x.th]};try{render(cs[i],{w:tw,h:th,arch:f.arch,safe:f.safe})}catch(e){}OV=null});
+  LASTREG=keep;
+}
+function showPreview(){
+  const k=$('fmt').value,f=FMT[k],cls=k==='harch'?'harch':k==='hero'?'hero':k==='slider'?'slider':k==='promo'?'promo':'post';
+  $('pvimg').innerHTML='<div class="pimg '+cls+'"><img alt="" src="'+cv.toDataURL('image/jpeg',.85)+'"></div>';
+  $('pvm').hidden=false;
+}
+
 Admin.boot({key:'bstudio',title:'Banner Studio',perm:'products',ready:async()=>{
   const tb=document.querySelector('.topbar');
   if(tb){const ps=getComputedStyle(tb).position;document.documentElement.style.setProperty('--tb',(ps==='sticky'||ps==='fixed')?tb.offsetHeight+'px':'0px')}
@@ -741,6 +886,11 @@ Admin.boot({key:'bstudio',title:'Banner Studio',perm:'products',ready:async()=>{
   $('b-dl').onclick=()=>download(false);$('b-png').onclick=()=>download(true);$('b-zip').onclick=zipAll;
   $('b-pub').onclick=publish;$('b-hero').onclick=async()=>{const x=await blobOf(cv,'image/jpeg',.92);if(x){save(x,'hero-banner.jpg');A.toast('hero-banner.jpg নামছে। GitHub এর মেইন ফোল্ডারে আপলোড করুন')}};$('b-chk').onclick=siteCheck;
   $('cap_go').onclick=makeCap;
+  $('h_save').onclick=hSave;$('h_reset').onclick=hReset;hLoad();
+  $('g_shuf').onclick=()=>{GSEED++;drawGallery()};
+  $('galc').addEventListener('toggle',()=>{if($('galc').open)drawGallery()});
+  $('gal').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;const x=GITEMS[+b.dataset.i];if(!x)return;setTpl(x.k);setTheme(x.th);window.scrollTo({top:0,behavior:'smooth'});A.toast('ডিজাইন লাগানো হয়েছে')};
+  $('b-prev').onclick=showPreview;$('pvx').onclick=()=>{$('pvm').hidden=true};$('pvm').addEventListener('click',e=>{if(e.target===$('pvm'))$('pvm').hidden=true});
   $('cap_cp').onclick=()=>{const c=$('cap');if(!c.value)makeCap();c.select();try{navigator.clipboard.writeText(c.value);A.toast('কপি হয়েছে')}catch(e){document.execCommand('copy');A.toast('কপি হয়েছে')}};
   $('sv_new').onclick=()=>{const n=prompt('ডিজাইনের নাম দিন','আমার ডিজাইন');if(!n)return;const a=getSaved();a.unshift({name:n.slice(0,30),state:getState()});putSaved(a.slice(0,12));showSaved();A.toast('সেভ হয়েছে')};
   $('saved').onclick=e=>{
