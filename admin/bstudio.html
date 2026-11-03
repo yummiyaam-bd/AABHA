@@ -10,21 +10,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>
 <style>
-.bs{--bd:#eadfd6;--mut:#8a7d74}
+.bs{--bd:rgba(22,40,40,.12)}
 .bs *{box-sizing:border-box}
-.bs-card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:14px 16px;margin-bottom:12px;min-width:0}
+.bs-card{background:var(--card);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:var(--shadow);border:1px solid var(--rim);border-radius:24px;padding:14px 16px;margin-bottom:12px;min-width:0}
 .bs-card>summary{cursor:pointer;font-weight:700;font-size:15px;list-style:none;display:flex;align-items:center;justify-content:space-between}
 .bs-card>summary::-webkit-details-marker{display:none}
 .bs-card>summary::after{content:'＋';color:var(--mut);font-weight:400}
 .bs-card[open]>summary::after{content:'－'}
-.bs-card>.in{margin-top:10px}
+.bs-card>.cbody{margin-top:10px}
 .bs-card h4{margin:0 0 4px;font-size:15px}
 .sub{color:var(--mut);font-size:13px}
-.cb{flex:none;background:#fff;border:1px solid var(--bd);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
-.cb.on,.cb.pr{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
+.cb{flex:none;background:rgba(255,255,255,.75);border:1px solid var(--bd);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
+.cb.on,.cb.pri{background:var(--ink);color:#fff;border-color:var(--ink)}
 .cb.sm{padding:5px 11px;font-size:12px}
 .cb:disabled{opacity:.5}
-.mi{width:100%;background:#fff;border:1px solid var(--bd);border-radius:12px;color:inherit;padding:10px 12px;font:inherit;font-size:14px;outline:none}
+.mi{width:100%;background:rgba(255,255,255,.75);border:1px solid var(--bd);border-radius:12px;color:inherit;padding:10px 12px;font:inherit;font-size:14px;outline:none}
 textarea.mi{min-height:150px;resize:vertical;line-height:1.5}
 input[type=color].mi{padding:2px;height:40px}
 input[type=range]{width:100%}
@@ -34,11 +34,11 @@ input[type=range]{width:100%}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pg{display:flex;gap:8px;flex-wrap:wrap}
 .tg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.th{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border:2px solid var(--bd);border-radius:14px;background:#fff;font:inherit;font-size:11.5px;cursor:pointer;line-height:1.2;text-align:center;min-width:0}
-.th.on{border-color:#b8715a;background:#fbf3ee}
-.th .sw{display:flex;height:22px;width:100%;max-width:70px;border-radius:11px;overflow:hidden;border:1px solid rgba(0,0,0,.12)}
-.th .sw i{flex:1}
-.pv{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:8px;margin-bottom:12px}
+.tcb{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border:2px solid var(--bd);border-radius:14px;background:#fff;font:inherit;font-size:11.5px;cursor:pointer;line-height:1.2;text-align:center;min-width:0}
+.tcb.on{border-color:var(--ac);background:rgba(240,138,36,.08)}
+.tcb .sw{display:flex;height:22px;width:100%;max-width:70px;border-radius:11px;overflow:hidden;border:1px solid rgba(0,0,0,.12)}
+.tcb .sw i{flex:1}
+.pv{background:var(--card);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--rim);box-shadow:var(--shadow);border-radius:24px;padding:8px;margin-bottom:12px}
 .cvw{position:relative;display:inline-block;line-height:0;overflow:hidden;border-radius:8px;background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/16px 16px;vertical-align:top;max-width:100%}
 .pvw{text-align:center}
 #cv{max-width:100%;width:auto;height:auto;max-height:36vh;display:block;touch-action:pan-y}
@@ -51,13 +51,13 @@ input[type=range]{width:100%}
 .act{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .act .cb{flex:1 1 auto;text-align:center}
 [hidden]{display:none!important}
-.res{font-size:13px;line-height:1.7;background:#faf6f2;border-radius:12px;padding:10px 12px;margin-top:8px;white-space:pre-wrap}
+.res{font-size:13px;line-height:1.7;background:rgba(255,255,255,.6);border-radius:12px;padding:10px 12px;margin-top:8px;white-space:pre-wrap}
 .sv{display:flex;gap:6px;align-items:center;margin:6px 0}
 .sv .cb{flex:1;text-align:left}
 
 .gal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
-.gt{border:2px solid var(--bd);border-radius:14px;background:#fff;padding:5px;cursor:pointer;font:inherit;text-align:center;min-width:0}
-.gt.on{border-color:#b8715a;background:#fbf3ee}
+.gt{border:2px solid var(--bd);border-radius:14px;background:rgba(255,255,255,.7);padding:5px;cursor:pointer;font:inherit;text-align:center;min-width:0}
+.gt.on{border-color:var(--ac);background:rgba(240,138,36,.08)}
 .gt canvas{width:100%;height:auto;display:block;border-radius:9px}
 .gt span{display:block;font-size:11px;color:var(--mut);margin-top:4px;line-height:1.3}
 #pvm{position:fixed;inset:0;background:rgba(10,6,8,.78);z-index:9999;overflow:auto;padding:16px;display:flex;justify-content:center}
@@ -99,7 +99,7 @@ input[type=range]{width:100%}
       <div class="pvw"><div class="cvw"><canvas id="cv" width="1200" height="1500"></canvas><div class="gd arch" id="gd"></div></div></div>
     </div>
     <div class="act" id="act">
-      <button class="cb pr" id="b-dl">⬇ JPG</button>
+      <button class="cb pri" id="b-dl">⬇ JPG</button>
       <button class="cb" id="b-png">⬇ PNG</button>
       <button class="cb" id="b-zip">📦 সব সাইজ (ZIP)</button>
       <button class="cb" id="b-hero" hidden>📁 hero-banner.jpg</button>
@@ -115,9 +115,9 @@ input[type=range]{width:100%}
 
   <details class="bs-card" open>
     <summary>১. ছবি</summary>
-    <div class="in">
+    <div class="cbody">
       <div class="row">
-        <label class="cb pr" style="margin:0">📷 ছবি বাছুন<input type="file" id="p_file" accept="image/*" hidden></label>
+        <label class="cb pri" style="margin:0">📷 ছবি বাছুন<input type="file" id="p_file" accept="image/*" hidden></label>
         <span class="sub" id="p_name">কোনো ছবি বাছা হয়নি</span>
       </div>
       <div class="row" style="margin-top:10px">
@@ -147,7 +147,7 @@ input[type=range]{width:100%}
 
   <details class="bs-card" open>
     <summary>২. লেখা</summary>
-    <div class="in">
+    <div class="cbody">
       <p class="lb">রেডিমেড লেখা (এক ট্যাপে বসে যাবে)</p>
       <div class="pg" id="quick"></div>
       <div class="bs-f">
@@ -168,15 +168,15 @@ input[type=range]{width:100%}
 
   <details class="bs-card" id="galc" open>
     <summary>✨ ডিজাইন গ্যালারি (ট্যাপ করলেই লেগে যাবে)</summary>
-    <div class="in">
-      <div class="row"><button class="cb sm pr" id="g_shuf">🎲 অন্যরকম দেখান</button><span class="sub">আপনার ছবি আর লেখা দিয়েই বানানো</span></div>
+    <div class="cbody">
+      <div class="row"><button class="cb sm pri" id="g_shuf">🎲 অন্যরকম দেখান</button><span class="sub">আপনার ছবি আর লেখা দিয়েই বানানো</span></div>
       <div class="gal" id="gal"></div>
     </div>
   </details>
 
   <details class="bs-card" open>
     <summary>৩. স্টাইল ও সাইজ</summary>
-    <div class="in">
+    <div class="cbody">
       <p class="lb">স্টাইল</p>
       <div class="pg" id="tpls"></div>
       <p class="lb" style="margin-top:12px">সাইজ</p>
@@ -186,7 +186,7 @@ input[type=range]{width:100%}
 
   <details class="bs-card" open>
     <summary>৪. রঙ ও থিম</summary>
-    <div class="in">
+    <div class="cbody">
       <div class="tg" id="themes"></div>
       <div class="bs-f">
         <div><label>ব্যাকগ্রাউন্ড</label><input class="mi" type="color" id="c_bg"></div>
@@ -202,7 +202,7 @@ input[type=range]{width:100%}
 
   <details class="bs-card">
     <summary>৫. ফন্ট, লেখার সেটিং ও বর্ডার</summary>
-    <div class="in">
+    <div class="cbody">
       <p class="lb">ফন্ট</p>
       <div class="pg" id="fonts"></div>
       <div class="bs-f">
@@ -217,7 +217,7 @@ input[type=range]{width:100%}
 
   <details class="bs-card">
     <summary>৬. লোগো</summary>
-    <div class="in">
+    <div class="cbody">
       <div class="row"><label class="cb" style="margin:0">🏷 লোগো বাছুন (PNG ভালো)<input type="file" id="l_file" accept="image/*" hidden></label><span class="sub" id="l_name">লোগো নেই</span><button class="cb sm" id="l_clr" hidden>মুছুন</button></div>
       <div class="bs-f">
         <div><label>কোথায়</label><select class="mi" id="x_logopos"><option value="tl">উপরে বামে</option><option value="tr">উপরে ডানে</option><option value="bl">নিচে বামে</option><option value="br">নিচে ডানে</option><option value="none">লুকান</option></select></div>
@@ -228,7 +228,7 @@ input[type=range]{width:100%}
 
   <details class="bs-card" id="htc">
     <summary>🏠 হোমপেজের লেখা (ব্যানারের নিচের লেখা বদলান বা লুকান)</summary>
-    <div class="in">
+    <div class="cbody">
       <p class="sub" style="margin:0 0 6px">ওয়েবসাইটে ব্যানারের ঠিক নিচে যে লেখাগুলো আছে (WINTER 2026, STYLED ইত্যাদি) সেগুলো এখান থেকে বদলাবেন। ফাঁকা রাখলে আগের লেখাই থাকবে।</p>
       <div class="bs-f">
         <div><label>ছোট উপরের লেখা</label><input class="mi" id="h_eye" maxlength="40"></div>
@@ -241,24 +241,24 @@ input[type=range]{width:100%}
       </div>
       <div class="row"><label class="cb sm" style="margin:0"><input type="checkbox" id="h_hide1"> শিরোনাম ও প্যারাগ্রাফ লুকান</label>
       <label class="cb sm" style="margin:0"><input type="checkbox" id="h_hide2"> Call us, 7-day exchange, অফার বক্স লুকান</label></div>
-      <div class="row" style="margin-top:10px"><button class="cb pr" id="h_save">💾 সাইটে সেভ করুন</button><button class="cb" id="h_reset">↺ আগের লেখায় ফিরুন</button></div>
+      <div class="row" style="margin-top:10px"><button class="cb pri" id="h_save">💾 সাইটে সেভ করুন</button><button class="cb" id="h_reset">↺ আগের লেখায় ফিরুন</button></div>
       <div class="res" id="h_msg" hidden></div>
     </div>
   </details>
 
   <details class="bs-card">
     <summary>৭. ক্যাপশন (ফেসবুক/ইনস্টা পোস্টের লেখা)</summary>
-    <div class="in">
+    <div class="cbody">
       <div class="row"><select class="mi" id="cap_lang" style="width:auto"><option value="bn">বাংলা</option><option value="en">English</option><option value="mix">মিক্স</option></select>
-      <button class="cb pr" id="cap_go">✍ বানান</button><button class="cb" id="cap_cp">📋 কপি</button></div>
+      <button class="cb pri" id="cap_go">✍ বানান</button><button class="cb" id="cap_cp">📋 কপি</button></div>
       <textarea class="mi" id="cap" style="margin-top:8px" placeholder="উপরের লেখা থেকে ক্যাপশন ও হ্যাশট্যাগ বানাবে"></textarea>
     </div>
   </details>
 
   <details class="bs-card">
     <summary>৮. আমার ডিজাইন সেভ</summary>
-    <div class="in">
-      <div class="row"><button class="cb pr" id="sv_new">💾 এই ডিজাইন সেভ করুন</button><button class="cb" id="rs">↺ সব রিসেট</button></div>
+    <div class="cbody">
+      <div class="row"><button class="cb pri" id="sv_new">💾 এই ডিজাইন সেভ করুন</button><button class="cb" id="rs">↺ সব রিসেট</button></div>
       <div id="saved" style="margin-top:6px"></div>
       <p class="sub">সেভ হয় এই ফোন/ব্রাউজারে (ছবি সেভ হয় না, শুধু লেখা, স্টাইল ও রং)।</p>
     </div>
@@ -267,7 +267,7 @@ input[type=range]{width:100%}
   </div>
 </div>
 
-<div id="pvm" hidden><div class="pvbox"><button class="cb pr" id="pvx">✕ বন্ধ করুন</button>
+<div id="pvm" hidden><div class="pvbox"><button class="cb pri" id="pvx">✕ বন্ধ করুন</button>
   <div class="phone"><div class="fhd"><b>AABHA</b><span>BAG 3 &nbsp;☰</span></div><div id="pvimg"></div>
   <div class="ftx"><small>WINTER 2026</small><h2>STYLED</h2><p>for every story you wear.</p></div></div>
   <p class="sub" style="color:#ddd;text-align:center;margin-top:8px">এটা মোবাইলে সাইটের উপরে যেমন দেখাবে তার নমুনা</p></div></div>
@@ -733,7 +733,7 @@ async function siteCheck(){
 
 /* ---------- UI helpers ---------- */
 function setTheme(i,silent){const t=THEMES[i];THEMEI=i;$('c_bg').value=t.bg;$('c_tx').value=t.tx;$('c_ac').value=t.ac;
-  document.querySelectorAll('#themes .th').forEach((b,j)=>b.classList.toggle('on',j===i));if(!silent)sched()}
+  document.querySelectorAll('#themes .tcb').forEach((b,j)=>b.classList.toggle('on',j===i));if(!silent)sched()}
 function setTpl(k){TPL=k;document.querySelectorAll('#tpls .cb').forEach(b=>b.classList.toggle('on',b.dataset.k===k));sched()}
 function setFilt(k){FILT=k;document.querySelectorAll('#filts .cb').forEach(b=>b.classList.toggle('on',b.dataset.k===k));sched()}
 function setFont(k){FONTK=k;document.querySelectorAll('#fonts .cb').forEach(b=>b.classList.toggle('on',b.dataset.k===k));loadFonts()}
@@ -744,7 +744,7 @@ function photoTheme(dark){
   for(let i=0;i<d.length;i+=4){const hs=rgb2hsl(d[i],d[i+1],d[i+2]),w=.3+hs[1]/100;r+=d[i]*w;g+=d[i+1]*w;b+=d[i+2]*w;n+=w}
   const h=rgb2hsl(r/n,g/n,b/n);const H=h[0];
   const t=dark?{bg:hsl2hex(H,38,11),tx:hsl2hex(H,25,93),ac:hsl2hex(H+8,60,66)}:{bg:hsl2hex(H,38,93),tx:hsl2hex(H,45,15),ac:hsl2hex(H,48,32)};
-  $('c_bg').value=t.bg;$('c_tx').value=t.tx;$('c_ac').value=t.ac;document.querySelectorAll('#themes .th').forEach(b=>b.classList.remove('on'));sched();
+  $('c_bg').value=t.bg;$('c_tx').value=t.tx;$('c_ac').value=t.ac;document.querySelectorAll('#themes .tcb').forEach(b=>b.classList.remove('on'));sched();
 }
 function loadImg(file,cb){const im=new Image();im.onload=()=>cb(im);im.onerror=()=>A.toast('ছবি পড়া যায়নি');im.src=URL.createObjectURL(file)}
 
@@ -771,7 +771,7 @@ function getState(){const s={TPL,FILT,FONTK,THEMEI,v:{}};[].concat(TXT,NUM,SEL,C
 function setState(s){TPL=s.TPL||TPL;FILT=s.FILT||'none';FONTK=s.FONTK||'classic';THEMEI=s.THEMEI;
   Object.keys(s.v||{}).forEach(i=>{const e=$(i);if(!e)return;if(e.type==='checkbox')e.checked=!!s.v[i];else e.value=s.v[i]});
   setTpl(TPL);setFilt(FILT);setFont(FONTK);
-  document.querySelectorAll('#themes .th').forEach((b,j)=>b.classList.toggle('on',j===THEMEI));sched()}
+  document.querySelectorAll('#themes .tcb').forEach((b,j)=>b.classList.toggle('on',j===THEMEI));sched()}
 function showSaved(){
   const a=getSaved();$('saved').innerHTML=a.length?a.map((d,i)=>`<div class="sv"><button class="cb" data-load="${i}">${A.esc(d.name)}</button><button class="cb sm" data-del="${i}">×</button></div>`).join(''):'<p class="sub">এখনো কিছু সেভ করা নেই।</p>';
 }
@@ -854,8 +854,8 @@ Admin.boot({key:'bstudio',title:'Banner Studio',perm:'products',ready:async()=>{
   const tb=document.querySelector('.topbar');
   if(tb){const ps=getComputedStyle(tb).position;document.documentElement.style.setProperty('--tb',(ps==='sticky'||ps==='fixed')?tb.offsetHeight+'px':'0px')}
   $('tpls').innerHTML=Object.keys(TPLN).map(k=>`<button class="cb${k===TPL?' on':''}" data-k="${k}">${TPLN[k]}</button>`).join('');
-  $('themes').innerHTML=THEMES.map((t,i)=>`<button class="th" data-i="${i}"><span class="sw"><i style="background:${t.bg}"></i><i style="background:${t.ac}"></i><i style="background:${t.tx}"></i></span>${t.n}</button>`).join('')
-    +'<button class="th" id="pt_l"><span class="sw"><i style="background:linear-gradient(90deg,#f6e9df,#cfae98)"></i></span>ছবি থেকে (হালকা)</button><button class="th" id="pt_d"><span class="sw"><i style="background:linear-gradient(90deg,#2a1a1a,#b98a7a)"></i></span>ছবি থেকে (গাঢ়)</button>';
+  $('themes').innerHTML=THEMES.map((t,i)=>`<button class="tcb" data-i="${i}"><span class="sw"><i style="background:${t.bg}"></i><i style="background:${t.ac}"></i><i style="background:${t.tx}"></i></span>${t.n}</button>`).join('')
+    +'<button class="tcb" id="pt_l"><span class="sw"><i style="background:linear-gradient(90deg,#f6e9df,#cfae98)"></i></span>ছবি থেকে (হালকা)</button><button class="tcb" id="pt_d"><span class="sw"><i style="background:linear-gradient(90deg,#2a1a1a,#b98a7a)"></i></span>ছবি থেকে (গাঢ়)</button>';
   $('fmt').innerHTML=Object.keys(FMT).map(k=>`<option value="${k}">${FMT[k].n}</option>`).join('');
   $('filts').innerHTML=Object.keys(FILTS).map(k=>`<button class="cb sm${k===FILT?' on':''}" data-k="${k}">${FILTS[k][0]}</button>`).join('');
   $('fonts').innerHTML=Object.keys(FONTS).map(k=>`<button class="cb sm${k===FONTK?' on':''}" data-k="${k}" style="font-family:${FONTS[k].f}">${FONTS[k].n}</button>`).join('');
