@@ -81,6 +81,7 @@ input[type=range]{width:100%}
       <button class="cb pr" id="b-dl">⬇ JPG</button>
       <button class="cb" id="b-png">⬇ PNG</button>
       <button class="cb" id="b-zip">📦 সব সাইজ (ZIP)</button>
+      <button class="cb" id="b-hero" hidden>📁 hero-banner.jpg</button>
       <button class="cb" id="b-pub" hidden>🌐 ওয়েবসাইটে দিন</button>
       <button class="cb" id="b-chk">🔍 সাইট চেক</button>
     </div>
@@ -556,7 +557,7 @@ function render(c,f){
 }
 function draw(){
   const f=FMT[$('fmt').value];render(cv,f);
-  const p=f.pub;$('b-pub').hidden=!p;
+  const p=f.pub;$('b-pub').hidden=!p;$('b-hero').hidden=p!=='hero';
   if(p)$('b-pub').textContent='🌐 ওয়েবসাইটে দিন ('+({hero:'হিরো',slider:'স্লাইডার',promo:'প্রোমো'})[p]+')';
   $('pubnote').textContent=p?(p==='hero'?(f.arch?'হিরো খিলানের জায়গায় ঠিক বসবে। আগের হিরো ছবি বন্ধ হবে (Banner Manager থেকে আবার চালু করা যাবে)।':'হিরোতে দিলে আগের হিরো ছবি বন্ধ হয়ে যাবে (Banner Manager থেকে আবার চালু করা যাবে)।'):'Banner Manager এ গিয়ে ক্রম, তারিখ বা মুছে ফেলা যাবে।'):'এই সাইজ সোশ্যাল মিডিয়ার জন্য, ডাউনলোড করে পোস্ট করুন।';
   $('gd').className='gd'+(f.arch?' arch':f.safe?' safe':' off')+($('guide').checked?'':' off');
@@ -738,7 +739,7 @@ Admin.boot({key:'bstudio',title:'Banner Studio',perm:'products',ready:async()=>{
   });
   $('l_clr').onclick=()=>{LOGO=null;$('l_name').textContent='লোগো নেই';$('l_clr').hidden=true;$('l_file').value='';sched()};
   $('b-dl').onclick=()=>download(false);$('b-png').onclick=()=>download(true);$('b-zip').onclick=zipAll;
-  $('b-pub').onclick=publish;$('b-chk').onclick=siteCheck;
+  $('b-pub').onclick=publish;$('b-hero').onclick=async()=>{const x=await blobOf(cv,'image/jpeg',.92);if(x){save(x,'hero-banner.jpg');A.toast('hero-banner.jpg নামছে। GitHub এর মেইন ফোল্ডারে আপলোড করুন')}};$('b-chk').onclick=siteCheck;
   $('cap_go').onclick=makeCap;
   $('cap_cp').onclick=()=>{const c=$('cap');if(!c.value)makeCap();c.select();try{navigator.clipboard.writeText(c.value);A.toast('কপি হয়েছে')}catch(e){document.execCommand('copy');A.toast('কপি হয়েছে')}};
   $('sv_new').onclick=()=>{const n=prompt('ডিজাইনের নাম দিন','আমার ডিজাইন');if(!n)return;const a=getSaved();a.unshift({name:n.slice(0,30),state:getState()});putSaved(a.slice(0,12));showSaved();A.toast('সেভ হয়েছে')};
