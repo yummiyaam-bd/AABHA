@@ -1,156 +1,277 @@
-/* AABHA site banners: offer bar, slider, promo, popup.
-   Use on the customer site:
-   <div id="aabha-slider"></div>   (where the slider should appear)
-   <div id="aabha-promo"></div>    (where promo banners should appear)
-   <script src="aabha-banners.js" defer></script>
-   Offer bar and popup need no placeholder. */
-(function(){
-var SB_URL="https://xjwuozdfuflfoqiuucik.supabase.co";
-var SB_KEY="sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0b11">
+<title>AABHA | Banner Manager</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.bn{--bd:#eadfd6;--mut:#8a7d74}
+.bn *{box-sizing:border-box}
+.bn-card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:16px;margin-bottom:14px;min-width:0}
+.bn-card h4{margin:0 0 4px;font-size:15px}
+.sub{color:var(--mut);font-size:13px}
+.cx-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;align-items:center}
+.cb{flex:none;background:#fff;border:1px solid var(--bd);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
+.cb.on,.cb.pr{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
+.cb.red{color:#b83b4a}.cb.sm{padding:5px 11px;font-size:12px}
+.cb:disabled{opacity:.5}
+.mi{width:100%;background:#fff;border:1px solid var(--bd);border-radius:12px;color:inherit;padding:10px 12px;font:inherit;font-size:14px;outline:none}
+.bn-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.bn-f label{display:block;font-size:11px;color:var(--mut);margin-bottom:3px}
+.bn-f .w{grid-column:1/-1}
+.bn-f input[type=color]{padding:2px;height:40px}
+.pill{font-size:10px;font-weight:800;padding:3px 9px;border-radius:12px;color:#fff;background:#6b7280;white-space:nowrap}
+.pill.on{background:#2f855a}.pill.exp{background:#b83b4a}.pill.soon{background:#d9a85f}.pill.off{background:#94a3b8}
+.bn-i{border:1px solid var(--bd);border-radius:14px;padding:12px;margin-top:10px;background:#fffdfa}
+.bn-i .t{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+.bn-i .m{font-size:12px;color:var(--mut);margin:8px 0}
+.bn-i .a{display:flex;gap:6px;flex-wrap:wrap}
+/* preview blocks */
+.pv-bar{padding:9px 14px;text-align:center;font-size:13px;border-radius:10px}
+.pv-bar a{color:inherit;text-decoration:underline;margin-left:8px;font-weight:700}
+.pv-sl{aspect-ratio:16/7;min-height:120px;border-radius:14px}.pv-pr{aspect-ratio:4/3;min-height:110px;border-radius:14px}
+.abc{position:relative;overflow:hidden;background-color:var(--c,#1c1a17);background-image:var(--im,none);background-size:cover;background-position:center;color:var(--t,#fff);display:flex;align-items:flex-end;text-decoration:none}.abc .tx{position:relative;width:100%;padding:18px 20px}.abc h3{margin:0 0 4px;font-size:clamp(17px,3.2vw,28px);line-height:1.25}.abc p{margin:0 0 10px;font-size:clamp(12px,2vw,15px);opacity:.92}.abc .ab-btn{display:inline-block;background:#fff;color:#222;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700}.abc.st-classic .tx{background:linear-gradient(transparent,rgba(0,0,0,.6));padding-top:34px}.abc.st-tint .tx{background:linear-gradient(transparent,var(--c) 72%);padding-top:46px}.abc.st-tint .ab-btn,.abc.st-panel .ab-btn,.abc.st-ribbon .ab-btn{background:var(--t);color:var(--c)}.abc.st-panel .tx{width:auto;max-width:80%;margin:14px;border-radius:14px;background:var(--c)}.abc.st-split{align-items:center;background-image:none}.abc.st-split::after{content:'';position:absolute;top:0;right:0;bottom:0;width:50%;background:var(--im,none) center/cover;clip-path:polygon(16% 0,100% 0,100% 100%,0 100%)}.abc.st-split .tx{width:56%;z-index:1}.abc.st-ribbon .tx{width:auto;max-width:92%;margin:0 0 20px;background:var(--c);border-radius:0 40px 40px 0;padding:10px 26px 12px 18px}.abc.st-center{align-items:center;justify-content:center;text-align:center}.abc.st-center::before{content:'';position:absolute;inset:0;background:var(--c);opacity:.62}.abc.st-center .tx{width:auto;max-width:86%;z-index:1}.abc.st-center .ab-btn{background:transparent;border:2px solid var(--t);color:var(--t)}.abc.st-plain .tx{display:none}
+.ab-btn{font-size:12px!important;padding:5px 13px!important}
+.pv-btn{display:inline-block;background:#fff;color:#222;border-radius:18px;padding:5px 13px;font-size:12px;font-weight:700}
+.au{border:1px solid var(--bd);border-radius:14px;padding:10px;margin-bottom:12px;background:#fffdfa}
+.au .t{font-size:12px;color:var(--mut);margin-bottom:6px}
+.pv-pop{max-width:300px;margin:0 auto;border-radius:16px;overflow:hidden;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+.pv-pop .im{aspect-ratio:16/9;background-size:cover;background-position:center}
+.pv-pop .tx{padding:14px}
+.pv-pop h3{margin:0 0 4px}.pv-pop p{margin:0 0 10px;font-size:13px}
+.th{width:76px;height:44px;border-radius:8px;background:#eee center/cover;flex:none;border:1px solid var(--bd)}
+.up{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="page" class="bn">
 
-function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function color(v,d){return /^#[0-9a-fA-F]{3,8}$/.test(v||'')?v:d}
-function safeUrl(u){u=String(u||'').trim();if(!u)return'';if(/^\s*javascript:/i.test(u))return'';return u}
-function imgUrl(u){u=String(u||'').trim();return /^(https?:)?\/\//i.test(u)||/^[\w\-\/\.]+$/.test(u)?u.replace(/'/g,'%27').replace(/"/g,'%22'):''}
+  <div class="cx-row" id="tabs">
+    <button class="cb on" data-k="hero">হিরো ছবি</button>
+    <button class="cb" data-k="bar">অফার বার</button>
+    <button class="cb" data-k="slider">স্লাইডার</button>
+    <button class="cb" data-k="promo">প্রোমো ব্যানার</button>
+    <button class="cb" data-k="popup">পপআপ</button>
+  </div>
+  <div id="note"></div>
 
-function css(){
-  if(document.getElementById('ab-css'))return;
-  var s=document.createElement('style');s.id='ab-css';
-  s.textContent=
-  '.ab-bar{position:relative;z-index:50;text-align:center;font:600 13px/1.4 inherit;padding:9px 38px;overflow:hidden}'+
-  '.ab-bar span{display:block}.ab-bar a{color:inherit;text-decoration:underline;font-weight:700;margin-left:8px}'+
-  '.ab-bar .x{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:inherit;font-size:18px;cursor:pointer;opacity:.7}'+
-  '.ab-sl{position:relative;overflow:hidden;border-radius:14px;margin:12px auto;max-width:1200px;touch-action:pan-y}'+
-  '.ab-sl .tr{display:flex;transition:transform .5s ease}'+
-  '.ab-sl .sd{flex:0 0 100%;aspect-ratio:16/7;min-height:170px}'+
-  '.ab-dots{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:6px;z-index:3}'+
-  '.ab-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer}.ab-dots i.on{background:#fff}'+
-  '.ab-prs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px auto;max-width:1200px}'+
-  '.ab-pr{border-radius:14px;aspect-ratio:4/3}'+
-  '.ab-btn{display:inline-block;background:#fff;color:#222;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700}'+
-  '.ab-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px}'+
-  '.ab-pop{position:relative;max-width:360px;width:100%;border-radius:18px;overflow:hidden;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.35)}'+
-  '.ab-pop .im{aspect-ratio:16/9;background-size:cover;background-position:center}.ab-pop .tx{padding:18px}'+
-  '.ab-pop h3{margin:0 0 6px}.ab-pop p{margin:0 0 12px;font-size:14px}'+
-  '.ab-pop .x{position:absolute;right:8px;top:6px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;font-size:18px;cursor:pointer}'+
-  '.abc{position:relative;overflow:hidden;background-color:var(--c,#1c1a17);background-image:var(--im,none);background-size:cover;background-position:center;color:var(--t,#fff);display:flex;align-items:flex-end;text-decoration:none}.abc .tx{position:relative;width:100%;padding:18px 20px}.abc h3{margin:0 0 4px;font-size:clamp(17px,3.2vw,28px);line-height:1.25}.abc p{margin:0 0 10px;font-size:clamp(12px,2vw,15px);opacity:.92}.abc .ab-btn{display:inline-block;background:#fff;color:#222;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700}.abc.st-classic .tx{background:linear-gradient(transparent,rgba(0,0,0,.6));padding-top:34px}.abc.st-tint .tx{background:linear-gradient(transparent,var(--c) 72%);padding-top:46px}.abc.st-tint .ab-btn,.abc.st-panel .ab-btn,.abc.st-ribbon .ab-btn{background:var(--t);color:var(--c)}.abc.st-panel .tx{width:auto;max-width:80%;margin:14px;border-radius:14px;background:var(--c)}.abc.st-split{align-items:center;background-image:none}.abc.st-split::after{content:\'\';position:absolute;top:0;right:0;bottom:0;width:50%;background:var(--im,none) center/cover;clip-path:polygon(16% 0,100% 0,100% 100%,0 100%)}.abc.st-split .tx{width:56%;z-index:1}.abc.st-ribbon .tx{width:auto;max-width:92%;margin:0 0 20px;background:var(--c);border-radius:0 40px 40px 0;padding:10px 26px 12px 18px}.abc.st-center{align-items:center;justify-content:center;text-align:center}.abc.st-center::before{content:\'\';position:absolute;inset:0;background:var(--c);opacity:.62}.abc.st-center .tx{width:auto;max-width:86%;z-index:1}.abc.st-center .ab-btn{background:transparent;border:2px solid var(--t);color:var(--t)}.abc.st-plain .tx{display:none}';
-  document.head.appendChild(s);
+  <div class="bn-card">
+    <h4 id="f-h"></h4>
+    <p class="sub" id="f-d"></p>
+    <div class="bn-f">
+      <div class="w"><label id="l-title">লেখা *</label><input class="mi" id="f_title" maxlength="140"></div>
+      <div class="w" id="w-sub"><label>ছোট লেখা (ঐচ্ছিক)</label><input class="mi" id="f_sub" maxlength="200"></div>
+      <div id="w-btn"><label>বাটনের লেখা</label><input class="mi" id="f_btn" maxlength="30" placeholder="এখনই কিনুন"></div>
+      <div><label>লিংক (কোথায় যাবে)</label><input class="mi" id="f_link" placeholder="products.html বা https://..."></div>
+      <div id="w-img" class="w"><label>ছবি</label>
+        <div class="up"><input class="mi" id="f_img" placeholder="ছবির লিংক বা আপলোড করুন" style="flex:1;min-width:180px"><label class="cb sm" style="margin:0;color:inherit;font-size:12px">⬆ আপলোড<input type="file" id="f_file" accept="image/*" hidden></label></div>
+        <p class="sub" id="f_imgnote" style="margin-top:4px"></p></div>
+      <div id="w-style"><label>ডিজাইন স্টাইল</label><select class="mi" id="f_style"><option value="classic">ক্লাসিক</option><option value="tint">রঙিন গ্রেডিয়েন্ট</option><option value="panel">রঙিন প্যানেল</option><option value="split">স্প্লিট</option><option value="ribbon">রিবন</option><option value="center">মাঝখানে</option><option value="plain">শুধু ছবি (লেখা ছাড়া)</option></select></div>
+      <div><label>ব্যাকগ্রাউন্ড রং</label><input class="mi" id="f_bg" type="color" value="#1c1a17"></div>
+      <div><label>লেখার রং</label><input class="mi" id="f_fg" type="color" value="#ffffff"></div>
+      <div><label>শুরু (ঐচ্ছিক)</label><input class="mi" id="f_st" type="date"></div>
+      <div><label>শেষ (ঐচ্ছিক)</label><input class="mi" id="f_en" type="date"></div>
+    </div>
+    <p class="sub" style="margin-bottom:6px">লাইভ প্রিভিউ</p>
+    <div id="pv" style="margin-bottom:12px"></div>
+    <button class="cb pr" id="f-save">সেভ করুন</button> <button class="cb" id="f-x" hidden>বাতিল</button>
+  </div>
+
+  <div class="bn-card" id="auto-card">
+    <h4>✨ অটো ডিজাইন</h4>
+    <p class="sub">উপরে ছবি আর শিরোনাম দিন, তারপর বাটনে চাপুন। ৫টা রঙিন ডিজাইন নিজে নিজে তৈরি হবে। পছন্দেরটায় "সেভ করুন" চাপুন।</p>
+    <button class="cb pr" id="auto-go" style="margin-top:8px">✨ ৫টা ডিজাইন বানান</button>
+    <div id="auto-out" style="margin-top:12px"></div>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<script>
+const A=Admin, sb=A.sb, $=A.$, esc=A.esc;
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const dl=v=>v?new Date(v).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'}):'—';
+const KIND={
+ hero:{n:'হিরো ছবি',d:'হোমপেজের একদম উপরের বড় ছবি (যেখানে এখন ফাঁকা কাঠামো আছে)। ছবি যেমন আছে তেমনই দেখাবে, ছবির লেখা কাটবে না। একটাই সক্রিয় রাখুন। বন্ধ করলে বা মুছলে সাইট আগের মতো হয়ে যাবে।',t:'ছবির নাম (শুধু আপনার জন্য)',img:true,sub:false,btn:false},
+ bar:{n:'অফার বার',d:'ওয়েবসাইটের একদম উপরে একটা লাইনের ঘোষণা। একাধিক দিলে ৪ সেকেন্ড পর পর বদলাবে।',t:'ঘোষণার লেখা *',img:false,sub:false,btn:true},
+ slider:{n:'স্লাইডার',d:'হোমপেজের বড় ছবি স্লাইডার। ছবির মাপ প্রায় ১৬:৭ (যেমন ১৬০০×৭০০) ভালো।',t:'শিরোনাম *',img:true,sub:true,btn:true},
+ promo:{n:'প্রোমো ব্যানার',d:'হোমপেজের মাঝে ছোট ব্যানার (যেমন নতুন কালেকশন, ছাড়)। ছবির মাপ ৪:৩।',t:'শিরোনাম *',img:true,sub:true,btn:true},
+ popup:{n:'পপআপ',d:'ওয়েবসাইট খুললে ৩ সেকেন্ড পর একবার দেখাবে। একটাই সক্রিয় রাখুন।',t:'শিরোনাম *',img:true,sub:true,btn:true}
+};
+let K='bar',ROWS=[],EDIT=null;
+
+/* ---------- preview ---------- */
+function pvHtml(b){
+  const bg=b.bg_color||'#1c1a17',fg=b.text_color||'#fff';
+  const img=b.image_url?`background-image:url('${esc(b.image_url)}');`:'';
+  const btn=b.button_text?`<span class="pv-btn">${esc(b.button_text)}</span>`:'';
+  if(b.kind==='hero')return`<div style="max-width:420px;border-radius:18px;overflow:hidden;border:1px solid var(--bd);background:#eee">${b.image_url?`<img src="${esc(b.image_url)}" style="width:100%;display:block" alt="">`:'<div style="padding:40px;text-align:center;color:#999">ছবি দিন</div>'}</div>`;
+  if(b.kind==='bar')return`<div class="pv-bar" style="background:${esc(bg)};color:${esc(fg)}">${esc(b.title||'ঘোষণার লেখা')}${btn?`<a>${esc(b.button_text)}</a>`:''}</div>`;
+  if(b.kind==='popup')return`<div class="pv-pop" style="background:${esc(bg)};color:${esc(fg)}">${b.image_url?`<div class="im" style="${img}"></div>`:''}<div class="tx"><h3>${esc(b.title||'শিরোনাম')}</h3>${b.subtitle?`<p>${esc(b.subtitle)}</p>`:''}${btn}</div></div>`;
+  const sty=b.style||'classic',cls=b.kind==='slider'?'pv-sl':'pv-pr';
+  return`<div class="${cls} abc st-${esc(sty)}" style="--c:${esc(bg)};--t:${esc(fg)};--im:${b.image_url?`url('${esc(b.image_url)}')`:'none'}"><div class="tx"><h3>${esc(b.title||'শিরোনাম')}</h3>${b.subtitle?`<p>${esc(b.subtitle)}</p>`:''}${b.button_text?`<span class="ab-btn">${esc(b.button_text)}</span>`:''}</div></div>`;
+}
+function cur(){
+  const o={kind:K,title:$('f_title').value.trim(),subtitle:$('f_sub').value.trim(),button_text:$('f_btn').value.trim(),link:$('f_link').value.trim(),image_url:$('f_img').value.trim(),bg_color:$('f_bg').value,text_color:$('f_fg').value};
+  if(K==='slider'||K==='promo')o.style=$('f_style').value;
+  return o;
+}
+function pv(){$('pv').innerHTML=pvHtml(cur())}
+
+function setKind(k){
+  K=k;const c=KIND[k];
+  document.querySelectorAll('#tabs .cb').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  $('f-h').textContent=(EDIT?'এডিট: ':'নতুন ')+c.n;$('f-d').textContent=c.d;$('l-title').textContent=c.t;
+  $('w-btn').hidden=(k==='hero');$('w-img').hidden=!c.img;$('auto-card').hidden=(k==='hero');$('w-sub').hidden=!c.sub;$('w-style').hidden=!(k==='slider'||k==='promo');$('auto-out').innerHTML='';
+  $('f_imgnote').textContent=k==='slider'?'ফোনে কেটে যেতে পারে, তাই গুরুত্বপূর্ণ লেখা মাঝখানে রাখুন।':'';
+  reset(true);rList();pv();
+}
+function reset(keepKind){
+  EDIT=null;['f_title','f_sub','f_btn','f_link','f_img','f_st','f_en'].forEach(i=>$(i).value='');
+  $('f_bg').value=K==='bar'?'#b8715a':'#1c1a17';$('f_fg').value='#ffffff';
+  $('f_style').value='classic';$('f-x').hidden=true;$('f-h').textContent='নতুন '+KIND[K].n;pv();
 }
 
-function card(b,base){
-  var l=safeUrl(b.link),el=document.createElement(l?'a':'div');if(l)el.href=l;
-  var st=/^(classic|tint|panel|split|ribbon|center|plain)$/.test(b.style)?b.style:'classic',im=imgUrl(b.image_url);
-  el.className=base+' abc st-'+st;
-  el.style.setProperty('--c',color(b.bg_color,'#1c1a17'));
-  el.style.setProperty('--t',color(b.text_color,'#fff'));
-  el.style.setProperty('--im',im?"url('"+im+"')":'none');
-  el.innerHTML='<div class="tx"><h3>'+esc(b.title)+'</h3>'+(b.subtitle?'<p>'+esc(b.subtitle)+'</p>':'')+(b.button_text?'<span class="ab-btn">'+esc(b.button_text)+'</span>':'')+'</div>';
-  return el;
+/* ---------- load / list ---------- */
+async function load(){
+  const r=await sb.from('site_banners').select('*').order('position',{ascending:true}).order('created_at',{ascending:false});
+  if(r.error){$('note').innerHTML='<div class="bn-card" style="background:#fdecef;border-color:#e9a9b3">টেবিল এখনো তৈরি হয়নি। Supabase → SQL Editor এ Banner এর SQL একবার Run করুন। ('+esc(r.error.message)+')</div>';ROWS=[]}
+  else{$('note').innerHTML='';ROWS=r.data||[]}
+  rList();
+}
+function status(b){
+  const n=Date.now();
+  if(!b.active)return['বন্ধ','off'];
+  if(b.ends_at&&new Date(b.ends_at)<n)return['মেয়াদ শেষ','exp'];
+  if(b.starts_at&&new Date(b.starts_at)>n)return['আসছে','soon'];
+  return['লাইভ','on'];
+}
+function rList(){
+  const L=ROWS.filter(b=>b.kind===K);
+  $('list').innerHTML=L.length?L.map((b,i)=>{const s=status(b);return`<div class="bn-i"><div class="t"><b>${esc(KIND[K].n)} #${i+1}</b><span class="pill ${s[1]}">${s[0]}</span></div>
+  ${pvHtml(b)}
+  <div class="m">${b.link?'লিংক: '+esc(b.link)+' · ':''}${dl(b.starts_at)} থেকে ${dl(b.ends_at)}</div>
+  <div class="a"><button class="cb sm" data-a="up" data-id="${b.id}"${i===0?' disabled':''}>↑</button><button class="cb sm" data-a="down" data-id="${b.id}"${i===L.length-1?' disabled':''}>↓</button><button class="cb sm" data-a="edit" data-id="${b.id}">এডিট</button><button class="cb sm" data-a="tog" data-id="${b.id}">${b.active?'বন্ধ করুন':'চালু করুন'}</button><button class="cb sm red" data-a="del" data-id="${b.id}">মুছুন</button></div></div>`}).join(''):'<p class="sub">এখনো কিছু নেই। উপরের ফর্ম থেকে বানান।</p>';
 }
 
-function bar(list){
-  if(!list.length)return;
-  try{if(sessionStorage.getItem('ab_bar_x'))return}catch(e){}
-  var d=document.createElement('div');d.className='ab-bar';
-  var i=0;
-  function show(){
-    var b=list[i%list.length];
-    d.style.background=color(b.bg_color,'#b8715a');d.style.color=color(b.text_color,'#fff');
-    var l=safeUrl(b.link);
-    d.firstChild.innerHTML=esc(b.title)+(b.button_text&&l?'<a href="'+esc(l)+'">'+esc(b.button_text)+'</a>':'');
+/* ---------- actions ---------- */
+async function saveObj(o){
+  o.starts_at=$('f_st').value?new Date($('f_st').value+'T00:00:00').toISOString():null;
+  o.ends_at=$('f_en').value?new Date($('f_en').value+'T23:59:59').toISOString():null;
+  let r;
+  if(EDIT)r=await sb.from('site_banners').update(o).eq('id',EDIT);
+  else{o.active=true;o.position=ROWS.filter(b=>b.kind===K).length;r=await sb.from('site_banners').insert(o)}
+  if(r.error){A.toast(/style/i.test(r.error.message)?'SQL এ style কলাম যোগ করুন (নিচের ALTER)':'সেভ হয়নি: '+r.error.message);return false}
+  A.toast('সেভ হয়েছে, ওয়েবসাইটে ১ মিনিটের মধ্যে দেখাবে');reset();$('auto-out').innerHTML='';load();return true;
+}
+async function save(){
+  const o=cur();
+  if(K==='hero'){if(!o.image_url){A.toast('আগে ছবি আপলোড করুন');return}if(!o.title)o.title='হিরো ছবি'}
+  if(!o.title){A.toast('লেখা দিন');return}
+  if(KIND[K].img&&K!=='popup'&&K!=='hero'&&!o.image_url&&!confirm('ছবি ছাড়া শুধু রং দিয়ে হবে। চালিয়ে যাবেন?'))return;
+  $('f-save').disabled=true;await saveObj(o);$('f-save').disabled=false;
+}
+
+/* ---------- auto design ---------- */
+const STN={classic:'ক্লাসিক',tint:'রঙিন গ্রেডিয়েন্ট',panel:'রঙিন প্যানেল',split:'স্প্লিট',ribbon:'রিবন',center:'মাঝখানে',plain:'শুধু ছবি'};
+const PAL=['#b8715a','#4a2c6d','#1f6f5c','#c9962b','#a8283d'];
+let VARS=[];
+function hsl2hex(h,s,l){h=((h%360)+360)%360;s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12,c=l-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(255*c).toString(16).padStart(2,'0')};return'#'+f(0)+f(8)+f(4)}
+function lum(hex){const n=parseInt(hex.slice(1),16),f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*f(n>>16&255)+.7152*f(n>>8&255)+.0722*f(n&255)}
+const ink=bg=>lum(bg)>.4?'#1c1a17':'#ffffff';
+function rgb2h(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(!d)return 0;let h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;return Math.round(((h*60)+360)%360)}
+function domHue(url){
+  return new Promise(res=>{
+    if(!url)return res(null);
+    const im=new Image();im.crossOrigin='anonymous';
+    im.onload=()=>{try{
+      const c=document.createElement('canvas');c.width=c.height=24;const x=c.getContext('2d');x.drawImage(im,0,0,24,24);
+      const d=x.getImageData(0,0,24,24).data;let R=0,G=0,B=0,W=0;
+      for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0,w=sat*sat*(1-Math.abs(mx+mn-255)/255)+.001;R+=r*w;G+=g*w;B+=b*w;W+=w}
+      res(W>.5?rgb2h(R/W,G/W,B/W):null);
+    }catch(e){res(null)}};
+    im.onerror=()=>res(null);im.src=url;
+  });
+}
+async function autoGo(){
+  const o=cur();
+  if(!o.title){A.toast('আগে শিরোনাম/লেখা দিন');return}
+  const styled=K==='slider'||K==='promo';
+  if(styled&&!o.image_url){A.toast('আগে ছবি আপলোড করুন');return}
+  $('auto-go').disabled=true;
+  const H=await domHue(o.image_url);
+  $('auto-go').disabled=false;
+  let cols,sts;
+  if(styled){
+    const h=H==null?([...o.title].reduce((a,c)=>a+c.charCodeAt(0),0)%360):H;
+    cols=[hsl2hex(h,58,30),PAL[0],hsl2hex(h+180,50,28),PAL[3],hsl2hex(h+35,62,26)];
+    sts=['tint','panel','split','ribbon','center'];
+  }else{
+    cols=PAL.slice();if(H!=null)cols[0]=hsl2hex(H,58,32);
+    sts=['classic','classic','classic','classic','classic'];
   }
-  d.innerHTML='<span></span><button class="x" aria-label="close">×</button>';
-  d.querySelector('.x').onclick=function(){d.remove();try{sessionStorage.setItem('ab_bar_x','1')}catch(e){}};
-  show();document.body.insertBefore(d,document.body.firstChild);
-  var hd=document.getElementById('hd');
-  function pos(){if(!hd)return;var h=d.parentNode?Math.max(0,d.offsetHeight-(window.pageYOffset||0)):0;hd.style.top=h?'calc('+h+'px + 10px + env(safe-area-inset-top,0px))':''}
-  pos();window.addEventListener('scroll',pos,{passive:true});window.addEventListener('resize',pos);
-  d.querySelector('.x').addEventListener('click',function(){setTimeout(pos,0)});
-  if(list.length>1)setInterval(function(){i++;show()},4000);
+  VARS=cols.map((bg,i)=>Object.assign({},o,{bg_color:bg,text_color:ink(bg)},styled?{style:sts[i]}:{}));
+  $('auto-out').innerHTML=VARS.map((v,i)=>`<div class="au"><div class="t">ডিজাইন ${i+1}${styled?' · '+STN[v.style]:''}</div>${pvHtml(v)}<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="cb pr sm" data-v="save" data-i="${i}">সেভ করুন</button><button class="cb sm" data-v="use" data-i="${i}">ফর্মে নিন (এডিট)</button></div></div>`).join('');
 }
 
-function slider(list){
-  var host=document.getElementById('aabha-slider');if(!host||!list.length)return;
-  var w=document.createElement('div');w.className='ab-sl';
-  var tr=document.createElement('div');tr.className='tr';
-  list.forEach(function(b){tr.appendChild(card(b,'sd'))});
-  w.appendChild(tr);
-  var n=list.length,i=0,t,dots;
-  function go(k){i=(k+n)%n;tr.style.transform='translateX(-'+(i*100)+'%)';if(dots)[].forEach.call(dots.children,function(x,j){x.className=j===i?'on':''})}
-  function auto(){clearInterval(t);if(n>1)t=setInterval(function(){go(i+1)},4500)}
-  if(n>1){
-    dots=document.createElement('div');dots.className='ab-dots';
-    list.forEach(function(_,j){var x=document.createElement('i');x.onclick=function(){go(j);auto()};dots.appendChild(x)});
-    w.appendChild(dots);
-    var sx=null;
-    w.addEventListener('touchstart',function(e){sx=e.touches[0].clientX},{passive:true});
-    w.addEventListener('touchend',function(e){if(sx==null)return;var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40){go(i+(dx<0?1:-1));auto()}sx=null});
-  }
-  host.innerHTML='';host.appendChild(w);go(0);auto();
+async function move(id,dir){
+  const L=ROWS.filter(b=>b.kind===K),i=L.findIndex(b=>String(b.id)===id),j=i+dir;
+  if(i<0||j<0||j>=L.length)return;
+  const a=L[i],b=L[j];
+  const ps=L.map(x=>x.id);ps[i]=b.id;ps[j]=a.id;
+  const rs=await Promise.all(ps.map((pid,idx)=>sb.from('site_banners').update({position:idx}).eq('id',pid)));
+  if(rs.some(r=>r.error)){A.toast('ক্রম বদলানো যায়নি');return}
+  load();
+}
+async function upload(file){
+  if(!file)return;
+  if(file.size>3*1024*1024){A.toast('ছবি ৩MB এর কম হতে হবে');return}
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const path=K+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+'.'+ext;
+  A.toast('আপলোড হচ্ছে...');
+  const r=await sb.storage.from('banners').upload(path,file,{cacheControl:'3600',upsert:false});
+  if(r.error){A.toast('আপলোড হয়নি: '+r.error.message);return}
+  $('f_img').value=sb.storage.from('banners').getPublicUrl(path).data.publicUrl;
+  A.toast('আপলোড হয়েছে');pv();
 }
 
-function promo(list){
-  var host=document.getElementById('aabha-promo');if(!host||!list.length)return;
-  var g=document.createElement('div');g.className='ab-prs';
-  list.forEach(function(b){g.appendChild(card(b,'ab-pr'))});
-  host.innerHTML='';host.appendChild(g);
-}
-
-function hero(list){
-  var b=list[0],img=document.getElementById('hph');
-  if(!b||!img)return;
-  var u=imgUrl(b.image_url);if(!u)return;
-  var hf=img.parentNode;
-  if(!document.getElementById('ab-hero-css')){var st=document.createElement('style');st.id='ab-hero-css';st.textContent='.hf.ab-hero{margin-bottom:72px}@media(min-width:900px){.hf.ab-hero{margin-bottom:0}}';document.head.appendChild(st)}
-  hf.className+=' ab-hero';
-  img.alt=b.title||'';
-  img.style.cssText='opacity:1;-webkit-mask-image:none;mask-image:none;object-fit:cover;object-position:center';
-  img.onload=function(){
-    var r=img.naturalWidth/img.naturalHeight;if(!(r>0))return;
-    r=Math.max(.7,Math.min(1.9,r));
-    hf.style.aspectRatio=String(r);hf.style.borderRadius='26px';hf.style.maxWidth='none';
+Admin.boot({key:'banners',title:'Banner Manager',perm:'products',ready:async()=>{
+  A.onRefresh=load;
+  $('tabs').onclick=e=>{const b=e.target.closest('[data-k]');if(b)setKind(b.dataset.k)};
+  ['f_title','f_sub','f_btn','f_img','f_bg','f_fg'].forEach(i=>$(i).addEventListener('input',pv));
+  $('f_file').addEventListener('change',e=>{upload(e.target.files[0]);e.target.value=''});
+  $('f-save').onclick=save;
+  $('auto-go').onclick=autoGo;
+  $('f_style').addEventListener('change',pv);
+  $('auto-out').onclick=async e=>{
+    const b=e.target.closest('[data-v]');if(!b)return;const v=VARS[+b.dataset.i];if(!v)return;
+    if(b.dataset.v==='save'){b.disabled=true;await saveObj(Object.assign({},v));b.disabled=false;return}
+    $('f_style').value=v.style;$('f_bg').value=v.bg_color;$('f_fg').value=v.text_color;pv();A.toast('ফর্মে বসানো হয়েছে');scrollTo(0,0);
   };
-  img.src=u;
-  [].forEach.call(hf.querySelectorAll('.chip,.cap'),function(e){e.style.display='none'});
-  var l=safeUrl(b.link);
-  if(l){hf.style.cursor='pointer';hf.onclick=function(){location.href=l}}
-}
-
-function popup(list){
-  if(!list.length)return;
-  var b=list[0],key='ab_pop_'+b.id;
-  try{if(sessionStorage.getItem(key))return}catch(e){}
-  setTimeout(function(){
-    var l=safeUrl(b.link),im=imgUrl(b.image_url);
-    var ov=document.createElement('div');ov.className='ab-ov';
-    ov.innerHTML='<div class="ab-pop" style="background:'+color(b.bg_color,'#fff')+';color:'+color(b.text_color,'#222')+'"><button class="x" aria-label="close">×</button>'+(im?'<div class="im" style="background-image:url(\''+im+'\')"></div>':'')+'<div class="tx"><h3>'+esc(b.title)+'</h3>'+(b.subtitle?'<p>'+esc(b.subtitle)+'</p>':'')+(b.button_text&&l?'<a class="ab-btn" style="background:#222;color:#fff" href="'+esc(l)+'">'+esc(b.button_text)+'</a>':'')+'</div></div>';
-    function close(){ov.remove();try{sessionStorage.setItem(key,'1')}catch(e){}}
-    ov.querySelector('.x').onclick=close;
-    ov.addEventListener('click',function(e){if(e.target===ov)close()});
-    document.body.appendChild(ov);
-  },3000);
-}
-
-function run(sb){
-  var now=new Date().toISOString();
-  sb.from('site_banners').select('*').eq('active',true)
-    .or('starts_at.is.null,starts_at.lte.'+now).or('ends_at.is.null,ends_at.gte.'+now)
-    .order('position',{ascending:true}).then(function(r){
-      if(r.error||!r.data)return;
-      css();
-      function of(k){return r.data.filter(function(b){return b.kind===k})}
-      hero(of('hero'));bar(of('bar'));slider(of('slider'));promo(of('promo'));popup(of('popup'));
-    });
-}
-
-function start(){
-  var C=window.AABHA_CONFIG||{};
-  if(C.SUPABASE_URL&&C.SUPABASE_ANON_KEY){SB_URL=C.SUPABASE_URL;SB_KEY=C.SUPABASE_ANON_KEY}
-  var lib=window.supabase;
-  if(lib&&lib.createClient){run(lib.createClient(SB_URL,SB_KEY));return}
-  var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-  s.onload=function(){run(window.supabase.createClient(SB_URL,SB_KEY))};
-  document.head.appendChild(s);
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
-})();
+  $('f-x').onclick=()=>reset();
+  $('list').onclick=async e=>{
+    const b=e.target.closest('[data-a]');if(!b||b.disabled)return;
+    const a=b.dataset.a,id=b.dataset.id,row=ROWS.find(x=>String(x.id)===id);
+    if(a==='up')return move(id,-1);
+    if(a==='down')return move(id,1);
+    if(a==='tog'&&row){const r=await sb.from('site_banners').update({active:!row.active}).eq('id',row.id);if(r.error)A.toast('হয়নি: '+r.error.message);else load();return}
+    if(a==='del'){if(!confirm('মুছে ফেলবেন?'))return;const r=await sb.from('site_banners').delete().eq('id',id);if(r.error)A.toast('মোছা যায়নি: '+r.error.message);else{A.toast('মুছে ফেলা হয়েছে');load()}return}
+    if(a==='edit'&&row){
+      EDIT=row.id;$('f_title').value=row.title||'';$('f_sub').value=row.subtitle||'';$('f_btn').value=row.button_text||'';$('f_link').value=row.link||'';$('f_img').value=row.image_url||'';
+      $('f_style').value=row.style||'classic';$('f_bg').value=row.bg_color||'#1c1a17';$('f_fg').value=row.text_color||'#ffffff';
+      $('f_st').value=row.starts_at?ymd(new Date(row.starts_at)):'';$('f_en').value=row.ends_at?ymd(new Date(row.ends_at)):'';
+      $('f-h').textContent='এডিট: '+KIND[K].n;$('f-x').hidden=false;pv();scrollTo(0,0);
+    }
+  };
+  setKind('hero');
+  await load();
+}});
+</script>
+</body>
+</html>
