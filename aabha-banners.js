@@ -112,12 +112,33 @@ function hero(list){
     var r=img.naturalWidth/img.naturalHeight;if(!(r>0))return;log('হিরো: লোড হয়েছে '+img.naturalWidth+'x'+img.naturalHeight);
     if(r>=.72&&r<=.9)return; /* খিলান ছবি: সাইটের খিলান ফ্রেমেই বসবে */
     r=Math.max(.7,Math.min(1.9,r));
-    hf.style.aspectRatio=String(r);hf.style.borderRadius='26px';hf.style.maxWidth='none';
+    hf.style.aspectRatio=String(r);hf.style.borderRadius='26px';hf.style.maxWidth='none';hf.style.width='100%';
   };
   img.src=u;
   [].forEach.call(hf.querySelectorAll('.chip,.cap'),function(e){e.style.display='none'});
-  var l=safeUrl(b.link);
-  if(l){hf.style.cursor='pointer';hf.onclick=function(){location.href=l}}
+  var l=safeUrl(b.link)||'#shop';
+  hf.style.cursor='pointer';hf.onclick=function(){goTo(l)};
+}
+function goTo(l){
+  if(l.charAt(0)==='#'){try{var t=document.querySelector(l);if(t){t.scrollIntoView({behavior:'smooth',block:'start'});return}}catch(e){}}
+  location.href=l;
+}
+function heroText(list){
+  var b=list[0];if(!b)return;
+  var x={};try{x=JSON.parse(b.style||'{}')}catch(e){}
+  function q(s){return document.querySelector(s)}
+  function set(s,v){var e=q(s);if(e&&v&&String(v).trim())e.textContent=v}
+  function hide(s){var e=q(s);if(e)e.style.display='none'}
+  set('.ht2 .h0',x.eye);set('.ht2 .l1 span',b.title);set('.ht2 .l2 span',x.l2);set('.ht2 .fd p',b.subtitle);
+  var ob=q('.ordbtn'),ot=q('.ordbtn .ot');
+  if(ot){
+    if(b.button_text&&String(b.button_text).trim()&&ot.firstChild&&ot.firstChild.nodeType===3)ot.replaceChild(document.createTextNode(b.button_text),ot.firstChild);
+    var sm=ot.querySelector('small');if(sm&&x.small&&String(x.small).trim())sm.textContent=x.small;
+  }
+  var l=safeUrl(b.link);if(ob&&l)ob.setAttribute('href',l);
+  if(x.hide1){hide('.ht2 h1');hide('.ht2 .fd p')}
+  if(x.hide2){hide('.ht2 .meta');hide('.ht2 .promo');hide('.ht2 .btn.g')}
+  log('হোমপেজের লেখা বসানো হয়েছে');
 }
 
 function popup(list){
@@ -141,7 +162,7 @@ function live(rows){var n=Date.now();return rows.filter(function(b){var s=b.star
 function apply(rows){
   css();
   function of(k){return rows.filter(function(b){return b.kind===k})}
-  hero(of('hero'));bar(of('bar'));slider(of('slider'));promo(of('promo'));popup(of('popup'));
+  heroText(of('herotext'));hero(of('hero'));bar(of('bar'));slider(of('slider'));promo(of('promo'));popup(of('popup'));
 }
 function fetchRows(u){
   var ctl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctl)ctl.abort()},9000);
