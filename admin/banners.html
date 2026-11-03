@@ -9,14 +9,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>
 <style>
-.bn{--bd:#eadfd6;--mut:#8a7d74}
+.bn{--bd:rgba(22,40,40,.12);--mut:#8a7d74}
 .bn *{box-sizing:border-box}
 .bn-card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:16px;margin-bottom:14px;min-width:0}
 .bn-card h4{margin:0 0 4px;font-size:15px}
 .sub{color:var(--mut);font-size:13px}
 .cx-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;align-items:center}
 .cb{flex:none;background:#fff;border:1px solid var(--bd);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
-.cb.on,.cb.pr{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
+.cb.on,.cb.pr{background:var(--ink);color:#fff;border-color:transparent}
 .cb.red{color:#b83b4a}.cb.sm{padding:5px 11px;font-size:12px}
 .cb:disabled{opacity:.5}
 .mi{width:100%;background:#fff;border:1px solid var(--bd);border-radius:12px;color:inherit;padding:10px 12px;font:inherit;font-size:14px;outline:none}
@@ -26,7 +26,7 @@
 .bn-f input[type=color]{padding:2px;height:40px}
 .pill{font-size:10px;font-weight:800;padding:3px 9px;border-radius:12px;color:#fff;background:#6b7280;white-space:nowrap}
 .pill.on{background:#2f855a}.pill.exp{background:#b83b4a}.pill.soon{background:#d9a85f}.pill.off{background:#94a3b8}
-.bn-i{border:1px solid var(--bd);border-radius:14px;padding:12px;margin-top:10px;background:#fffdfa}
+.bn-i{border:1px solid var(--bd);border-radius:14px;padding:12px;margin-top:10px;background:rgba(255,255,255,.7)}
 .bn-i .t{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
 .bn-i .m{font-size:12px;color:var(--mut);margin:8px 0}
 .bn-i .a{display:flex;gap:6px;flex-wrap:wrap}
@@ -37,7 +37,7 @@
 .abc{position:relative;overflow:hidden;background-color:var(--c,#1c1a17);background-image:var(--im,none);background-size:cover;background-position:center;color:var(--t,#fff);display:flex;align-items:flex-end;text-decoration:none}.abc .tx{position:relative;width:100%;padding:18px 20px}.abc h3{margin:0 0 4px;font-size:clamp(17px,3.2vw,28px);line-height:1.25}.abc p{margin:0 0 10px;font-size:clamp(12px,2vw,15px);opacity:.92}.abc .ab-btn{display:inline-block;background:#fff;color:#222;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700}.abc.st-classic .tx{background:linear-gradient(transparent,rgba(0,0,0,.6));padding-top:34px}.abc.st-tint .tx{background:linear-gradient(transparent,var(--c) 72%);padding-top:46px}.abc.st-tint .ab-btn,.abc.st-panel .ab-btn,.abc.st-ribbon .ab-btn{background:var(--t);color:var(--c)}.abc.st-panel .tx{width:auto;max-width:80%;margin:14px;border-radius:14px;background:var(--c)}.abc.st-split{align-items:center;background-image:none}.abc.st-split::after{content:'';position:absolute;top:0;right:0;bottom:0;width:50%;background:var(--im,none) center/cover;clip-path:polygon(16% 0,100% 0,100% 100%,0 100%)}.abc.st-split .tx{width:56%;z-index:1}.abc.st-ribbon .tx{width:auto;max-width:92%;margin:0 0 20px;background:var(--c);border-radius:0 40px 40px 0;padding:10px 26px 12px 18px}.abc.st-center{align-items:center;justify-content:center;text-align:center}.abc.st-center::before{content:'';position:absolute;inset:0;background:var(--c);opacity:.62}.abc.st-center .tx{width:auto;max-width:86%;z-index:1}.abc.st-center .ab-btn{background:transparent;border:2px solid var(--t);color:var(--t)}.abc.st-plain .tx{display:none}
 .ab-btn{font-size:12px!important;padding:5px 13px!important}
 .pv-btn{display:inline-block;background:#fff;color:#222;border-radius:18px;padding:5px 13px;font-size:12px;font-weight:700}
-.au{border:1px solid var(--bd);border-radius:14px;padding:10px;margin-bottom:12px;background:#fffdfa}
+.au{border:1px solid var(--bd);border-radius:14px;padding:10px;margin-bottom:12px;background:rgba(255,255,255,.7)}
 .au .t{font-size:12px;color:var(--mut);margin-bottom:6px}
 .pv-pop{max-width:300px;margin:0 auto;border-radius:16px;overflow:hidden;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.2)}
 .pv-pop .im{aspect-ratio:16/9;background-size:cover;background-position:center}
