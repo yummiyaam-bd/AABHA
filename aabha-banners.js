@@ -107,6 +107,7 @@ function hero(list){
   img.style.cssText='opacity:1;-webkit-mask-image:none;mask-image:none;object-fit:cover;object-position:center';
   img.onload=function(){
     var r=img.naturalWidth/img.naturalHeight;if(!(r>0))return;
+    if(r>=.72&&r<=.9)return; /* খিলান ছবি: সাইটের খিলান ফ্রেমেই বসবে */
     r=Math.max(.7,Math.min(1.9,r));
     hf.style.aspectRatio=String(r);hf.style.borderRadius='26px';hf.style.maxWidth='none';
   };
