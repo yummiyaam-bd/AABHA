@@ -1,71 +1,101 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AABHA Secure Admin Login</title>
-    <!-- সরাসরি সুপাবেস লাইব্রেরি লিংক -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #0b0f19; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: #1f2937; padding: 40px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; border: 1px solid #374151; }
-        h2 { color: #fff; margin-bottom: 25px; font-weight: 600; letter-spacing: 0.5px; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; background: #111827; border: 1px solid #4b5563; border-radius: 8px; color: #fff; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: #3b82f6; }
-        button { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #2563eb; }
-        .error-msg { color: #ef4444; font-size: 14px; margin-bottom: 15px; display: none; font-weight: 600; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 6px; border: 1px solid #ef4444; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e8edea">
+<meta name="robots" content="noindex,nofollow">
+<title>AABHA | Admin Login</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+html,body{height:100%}
+body{display:grid;place-items:center;padding:20px;position:relative;overflow-x:hidden}
+.blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.55;pointer-events:none}
+.b1{width:340px;height:340px;left:-80px;top:-60px;background:rgba(240,138,36,.35)}
+.b2{width:380px;height:380px;right:-90px;bottom:-80px;background:rgba(123,77,240,.28)}
+.lg{position:relative;width:100%;max-width:400px;background:rgba(255,255,255,.66);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.95);border-radius:30px;padding:34px 28px 26px;box-shadow:0 30px 80px rgba(22,40,40,.14)}
+.mark{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+.mark i{width:42px;height:42px;border-radius:13px;background:var(--ink);color:#fff;display:grid;place-items:center;font:800 18px var(--serif);font-style:normal;box-shadow:0 8px 18px rgba(22,25,28,.25)}
+.mark b{display:block;font:800 1.05rem var(--serif);letter-spacing:.32em}
+.mark small{display:block;font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--mut);margin-top:3px;font-weight:600}
+h1{margin:0 0 4px;font:500 1.6rem/1.2 var(--serif);letter-spacing:-.01em}
+.lead{margin:0 0 22px;color:var(--mut);font-size:13.5px}
+.fld{position:relative;margin-bottom:12px}
+.fld label{display:block;font-size:11.5px;font-weight:600;color:var(--mut);margin-bottom:6px}
+.fld .in{padding:13px 44px 13px 14px;font-size:15px}
+.eye{position:absolute;right:6px;bottom:6px;width:36px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--mut);cursor:pointer;display:grid;place-items:center}
+.eye:hover{color:var(--ink);background:rgba(22,40,40,.05)}
+.go{width:100%;justify-content:center;padding:14px;font-size:14.5px;margin-top:6px;border-radius:14px}
+.msg{display:none;margin:0 0 12px;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.5}
+.msg.err{display:block;background:rgba(224,69,90,.09);color:#b02a3f;border:1px solid rgba(224,69,90,.25)}
+.msg.ok{display:block;background:rgba(47,158,109,.1);color:#1f7a50;border:1px solid rgba(47,158,109,.25)}
+.lnk{display:block;text-align:center;margin-top:16px;font-size:13px;color:var(--mut);background:none;border:0;cursor:pointer;font-family:inherit;width:100%}
+.lnk:hover{color:var(--ink)}
+.foot{margin-top:18px;text-align:center;font-size:11px;color:var(--mut);letter-spacing:.04em}
+.sp{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:r .7s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+[hidden]{display:none!important}
+</style>
 </head>
 <body>
+<div class="blob b1"></div><div class="blob b2"></div>
+<main class="lg">
+  <div class="mark"><i>A</i><div><b>AABHA</b><small>Admin Studio</small></div></div>
 
-    <div class="login-card">
-        <h2>🔒 AABHA Admin Gate</h2>
-        <div id="error-display-box" class="error-msg">ভুল ইমেইল অথবা পাসওয়ার্ড!</div>
-        
-        <input type="email" id="admin-email-input" placeholder="অ্যাডমিন ইমেইল লিখুন" required>
-        <input type="password" id="admin-pass-input" placeholder="সিক্রেট পাসওয়ার্ড লিখুন" required>
-        <button onclick="executeAdminLogin()">প্রবেশ করুন</button>
-    </div>
+  <form id="f" autocomplete="on">
+    <h1 id="h">স্বাগতম</h1>
+    <p class="lead" id="ld">অ্যাডমিন প্যানেলে ঢুকতে লগইন করুন।</p>
+    <div class="msg" id="m" role="alert"></div>
+    <div class="fld"><label for="em">ইমেইল</label><input class="in" id="em" type="email" inputmode="email" autocomplete="username" placeholder="admin@example.com" required></div>
+    <div class="fld" id="pw"><label for="ps">পাসওয়ার্ড</label><input class="in" id="ps" type="password" autocomplete="current-password" placeholder="আপনার পাসওয়ার্ড" required>
+      <button type="button" class="eye" id="ey" aria-label="পাসওয়ার্ড দেখান"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+    <button class="btn go" id="b" type="submit"><span id="bt">প্রবেশ করুন</span></button>
+    <button class="lnk" id="fg" type="button">পাসওয়ার্ড ভুলে গেছেন?</button>
+    <button class="lnk" id="bk" type="button" hidden>← লগইনে ফিরুন</button>
+  </form>
+  <div class="foot">© AABHA · শুধু অনুমোদিত অ্যাডমিনদের জন্য</div>
+</main>
 
-    <script>
-        // প্রথমে সুপাবেস কানেকশন ইনিশিয়েলাইজ করা (যাতে এরর না আসে)
-        const LOGIN_URL = "https://xjwuozdfuflfoqiuucik.supabase.co";
-        const LOGIN_KEY = "sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
-        const sbInstance = supabase.createClient(LOGIN_URL, LOGIN_KEY);
-
-        // এবার লগইন ফাংশন রান করা
-        async function executeAdminLogin() {
-            const emailValue = document.getElementById('admin-email-input').value;
-            const passwordValue = document.getElementById('admin-pass-input').value;
-            const errorBox = document.getElementById('error-display-box');
-            
-            errorBox.style.display = 'none';
-
-            if(!emailValue || !passwordValue) {
-                errorBox.style.display = 'block';
-                errorBox.innerText = "⚠️ দয়া করে ইমেইল এবং পাসওয়ার্ড দুটিই লিখুন!";
-                return;
-            }
-
-            try {
-                const { data, error } = await sbInstance.auth.signInWithPassword({ 
-                    email: emailValue, 
-                    password: passwordValue 
-                });
-
-                if (error) {
-                    errorBox.style.display = 'block';
-                    errorBox.innerText = "⛔ ভুল ইমেইল বা পাসওয়ার্ড! আবার চেষ্টা করুন।";
-                } else if (data && data.user) {
-                    alert("🎉 লগইন সফল! প্রিমিয়াম ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে...");
-                    window.location.replace("index.html");
-                }
-            } catch (err) {
-                errorBox.style.display = 'block';
-                errorBox.innerText = "🚨 কানেকশনে সমস্যা হয়েছে: " + err.message;
-            }
-        }
-    </script>
+<script>
+const sb=supabase.createClient("https://xjwuozdfuflfoqiuucik.supabase.co","sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm");
+const $=id=>document.getElementById(id);
+let mode='login';
+function say(t,ok){const m=$('m');m.className='msg '+(t?(ok?'ok':'err'):'');m.textContent=t||''}
+function busy(on){$('b').disabled=on;$('bt').innerHTML=on?'<span class="sp"></span>':(mode==='login'?'প্রবেশ করুন':'লিংক পাঠান')}
+function setMode(m){
+  mode=m;say('');
+  $('pw').hidden=m!=='login';$('ps').required=m==='login';
+  $('h').textContent=m==='login'?'স্বাগতম':'পাসওয়ার্ড রিসেট';
+  $('ld').textContent=m==='login'?'অ্যাডমিন প্যানেলে ঢুকতে লগইন করুন।':'আপনার ইমেইল দিন, নতুন পাসওয়ার্ড বানানোর লিংক পাঠাব।';
+  $('fg').hidden=m!=='login';$('bk').hidden=m==='login';busy(false);
+}
+function human(e){
+  const t=String(e&&e.message||e);
+  if(/invalid login|invalid credentials/i.test(t))return'ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।';
+  if(/not confirmed/i.test(t))return'এই ইমেইল এখনো কনফার্ম করা হয়নি।';
+  if(/rate|too many|seconds/i.test(t))return'অনেকবার চেষ্টা হয়েছে, একটু পরে আবার চেষ্টা করুন।';
+  if(/network|fetch/i.test(t))return'ইন্টারনেট সংযোগ চেক করুন।';
+  return'লগইন হয়নি: '+t;
+}
+$('ey').onclick=()=>{const p=$('ps');p.type=p.type==='password'?'text':'password'};
+$('fg').onclick=()=>setMode('reset');$('bk').onclick=()=>setMode('login');
+$('f').addEventListener('submit',async e=>{
+  e.preventDefault();say('');const email=$('em').value.trim();if(!email)return;busy(true);
+  try{
+    if(mode==='reset'){
+      const r=await sb.auth.resetPasswordForEmail(email,{redirectTo:new URL('account.html?reset=1',location.href).href});
+      if(r.error)throw r.error;
+      say('ইমেইলে লিংক পাঠানো হয়েছে। ইনবক্স (আর স্প্যাম) দেখুন।',true);busy(false);return;
+    }
+    const r=await sb.auth.signInWithPassword({email,password:$('ps').value});
+    if(r.error)throw r.error;
+    const st=await sb.rpc('is_staff');
+    if(st.error||st.data!==true){await sb.auth.signOut();say('এই অ্যাকাউন্টে অ্যাডমিন অনুমতি নেই।');busy(false);return}
+    location.replace('index.html');
+  }catch(err){say(human(err));busy(false)}
+});
+sb.auth.getSession().then(r=>{if(r.data&&r.data.session)location.replace('index.html')});
+</script>
 </body>
 </html>
