@@ -159,7 +159,9 @@ function run(list){
 }
 
 function start(){
+  log('স্ক্রিপ্ট চালু হয়েছে');
   var C=window.AABHA_CONFIG||{},lib=window.supabase,cand=[];
+  log('config.js: '+(C.SUPABASE_URL?'আছে':'নেই')+' | supabase লাইব্রেরি: '+(lib&&lib.createClient?'আছে':'নেই')+' | #hph: '+(document.getElementById('hph')?'আছে':'নেই'));
   if(C.SUPABASE_URL&&C.SUPABASE_ANON_KEY)cand.push({n:'config.js প্রজেক্ট',url:C.SUPABASE_URL,key:C.SUPABASE_ANON_KEY});
   if(!cand.length||cand[0].url!==SB_URL)cand.push({n:'অ্যাডমিন প্রজেক্ট',url:SB_URL,key:SB_KEY});
   function go(L){run(cand.map(function(x){return{n:x.n+' ('+x.url.replace(/^https?:\/\//,'').split('.')[0]+')',c:L.createClient(x.url,x.key)}}))}
@@ -169,5 +171,7 @@ function start(){
   s.onerror=function(){log('supabase লাইব্রেরি লোড হয়নি')};
   document.head.appendChild(s);
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+window.addEventListener('error',function(e){log('JS ERROR: '+e.message+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')')});
+function safeStart(){try{start()}catch(e){log('start ERROR: '+e.message)}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',safeStart);else safeStart();
 })();
