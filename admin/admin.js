@@ -59,6 +59,7 @@ const NAV=[
  ['desc','Description','edit','desc.html','products'],
  ['studio','Photo Studio','camera','studio.html','products'],
  ['crm','CRM','users','crm.html','orders'],
+ ['account','My Account','user','account.html',null],
  ['staff','Staff','users','staff.html','admin']];
 
 A.boot=async function(o){
