@@ -6,13 +6,18 @@
 <meta name="theme-color" content="#0d0b11">
 <title>AABHA | Banner Studio</title>
 <link rel="stylesheet" href="admin.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Hind+Siliguri:wght@400;600;700&family=Poppins:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500&family=Poppins:wght@400;500;600;700&family=Oswald:wght@500;600&family=Dancing+Script:wght@600;700&family=Hind+Siliguri:wght@400;600;700&family=Tiro+Bangla:ital@0;1&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="admin.js"></script>
 <style>
 .bs{--bd:#eadfd6;--mut:#8a7d74}
 .bs *{box-sizing:border-box}
-.bs-card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:16px;margin-bottom:14px;min-width:0}
+.bs-card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:14px 16px;margin-bottom:12px;min-width:0}
+.bs-card>summary{cursor:pointer;font-weight:700;font-size:15px;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.bs-card>summary::-webkit-details-marker{display:none}
+.bs-card>summary::after{content:'＋';color:var(--mut);font-weight:400}
+.bs-card[open]>summary::after{content:'－'}
+.bs-card>.in{margin-top:10px}
 .bs-card h4{margin:0 0 4px;font-size:15px}
 .sub{color:var(--mut);font-size:13px}
 .cb{flex:none;background:#fff;border:1px solid var(--bd);color:inherit;border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block}
@@ -20,92 +25,213 @@
 .cb.sm{padding:5px 11px;font-size:12px}
 .cb:disabled{opacity:.5}
 .mi{width:100%;background:#fff;border:1px solid var(--bd);border-radius:12px;color:inherit;padding:10px 12px;font:inherit;font-size:14px;outline:none}
+textarea.mi{min-height:150px;resize:vertical;line-height:1.5}
 input[type=color].mi{padding:2px;height:40px}
 input[type=range]{width:100%}
-.bs-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
-.bs-f label{display:block;font-size:11px;color:var(--mut);margin-bottom:3px}
+.bs-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}
+.bs-f label,.lb{display:block;font-size:11px;color:var(--mut);margin-bottom:3px}
 .bs-f .w{grid-column:1/-1}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.th{display:flex;align-items:center;gap:6px;padding:6px 10px;border:2px solid var(--bd);border-radius:20px;background:#fff;font:inherit;font-size:12px;cursor:pointer}
-.th.on{border-color:#b8715a}
-.th i{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.15)}
-.cvw{background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/16px 16px;border-radius:14px;padding:8px;text-align:center}
-#cv{max-width:100%;max-height:70vh;width:auto;height:auto;border-radius:8px;display:inline-block;box-shadow:0 4px 18px rgba(0,0,0,.15)}
-.act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.drop{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pg{display:flex;gap:8px;flex-wrap:wrap}
+.tg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.th{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border:2px solid var(--bd);border-radius:14px;background:#fff;font:inherit;font-size:11.5px;cursor:pointer;line-height:1.2;text-align:center;min-width:0}
+.th.on{border-color:#b8715a;background:#fbf3ee}
+.th .sw{display:flex;height:22px;width:100%;max-width:70px;border-radius:11px;overflow:hidden;border:1px solid rgba(0,0,0,.12)}
+.th .sw i{flex:1}
+.pv{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:8px;margin-bottom:12px}
+.cvw{position:relative;display:inline-block;line-height:0;overflow:hidden;border-radius:8px;background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/16px 16px;vertical-align:top;max-width:100%}
+.pvw{text-align:center}
+#cv{max-width:100%;width:auto;height:auto;max-height:36vh;display:block;touch-action:pan-y}
+#cv.drag{touch-action:none;cursor:grab}
+.gd{position:absolute;inset:0;pointer-events:none}
+.gd.arch{border-radius:999px 999px 8px 8px;box-shadow:0 0 0 3000px rgba(255,255,255,.72),inset 0 0 0 2px rgba(184,113,90,.9)}
+.gd.safe{background:linear-gradient(to bottom,rgba(220,40,40,.28) 0 13%,transparent 13% 78%,rgba(220,40,40,.28) 78% 100%)}
+.gd.off{display:none}
+.lcol{display:contents}
+.act{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.act .cb{flex:1 1 auto;text-align:center}
 [hidden]{display:none!important}
+.res{font-size:13px;line-height:1.7;background:#faf6f2;border-radius:12px;padding:10px 12px;margin-top:8px;white-space:pre-wrap}
+.sv{display:flex;gap:6px;align-items:center;margin:6px 0}
+.sv .cb{flex:1;text-align:left}
+@media(min-width:900px){
+ .bs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:16px;align-items:start}
+ .intro{grid-column:1/-1}
+ .lcol{display:block;position:sticky;top:var(--tb,0px)}
+ #cv{max-height:60vh}
+}
+@media(max-width:899px){
+ .pv{position:sticky;top:var(--tb,0px);z-index:6;box-shadow:0 8px 20px rgba(0,0,0,.1)}
+}
 </style>
 </head>
 <body>
 <div id="page" class="bs">
 
-  <div class="bs-card">
+  <div class="bs-card intro">
     <h4>🎨 ব্যানার স্টুডিও</h4>
-    <p class="sub">ছবি দিন, লেখা লিখুন, একটা স্টাইল বেছে নিন, ব্যানার তৈরি। ডাউনলোড করুন (ফেসবুক, ইনস্টা, টিকটকের জন্য) বা এক ক্লিকে ওয়েবসাইটে দিন।</p>
+    <p class="sub" style="margin:4px 0 0">ছবি দিন, লেখা লিখুন, স্টাইল বেছে নিন। ডাউনলোড করুন (ফেসবুক, ইনস্টা, টিকটক) বা এক ক্লিকে ওয়েবসাইটে দিন। প্রিভিউ উপরে আটকে থাকে, নিচের স্লাইডার সরালেই বদলাতে দেখবেন।</p>
   </div>
 
-  <div class="bs-card">
-    <div class="cvw"><canvas id="cv" width="1536" height="1024"></canvas></div>
+  <div class="lcol">
+    <div class="pv">
+      <div class="pvw"><div class="cvw"><canvas id="cv" width="1200" height="1500"></canvas><div class="gd arch" id="gd"></div></div></div>
+    </div>
     <div class="act" id="act">
-      <button class="cb pr" id="b-dl">⬇ ডাউনলোড (JPG)</button>
+      <button class="cb pr" id="b-dl">⬇ JPG</button>
+      <button class="cb" id="b-png">⬇ PNG</button>
+      <button class="cb" id="b-zip">📦 সব সাইজ (ZIP)</button>
       <button class="cb" id="b-pub" hidden>🌐 ওয়েবসাইটে দিন</button>
+      <button class="cb" id="b-chk">🔍 সাইট চেক</button>
     </div>
-    <p class="sub" id="pubnote" style="margin-top:8px"></p>
+    <p class="sub" id="pubnote" style="margin:-4px 2px 10px"></p>
+    <div class="res" id="chk" hidden></div>
   </div>
 
-  <div class="bs-card">
-    <h4>১. ছবি</h4>
-    <div class="drop" style="margin-top:8px">
-      <label class="cb pr" style="margin:0">📷 ছবি বাছুন<input type="file" id="p_file" accept="image/*" hidden></label>
-      <span class="sub" id="p_name">কোনো ছবি বাছা হয়নি</span>
-    </div>
-    <div class="bs-f">
-      <div><label>জুম</label><input type="range" id="p_zoom" min="100" max="300" value="100"></div>
-      <div><label>বাম ↔ ডান</label><input type="range" id="p_x" min="0" max="100" value="50"></div>
-      <div><label>উপর ↕ নিচ</label><input type="range" id="p_y" min="0" max="100" value="30"></div>
-    </div>
-  </div>
+  <div class="ctl">
 
-  <div class="bs-card">
-    <h4>২. লেখা</h4>
-    <div class="bs-f">
-      <div class="w"><label>শিরোনাম</label><input class="mi" id="t_title" maxlength="60" value="Elegant Everyday Wear"></div>
-      <div class="w"><label>ছোট লেখা</label><input class="mi" id="t_sub" maxlength="90" value="Timeless Style for Modern Women"></div>
-      <div><label>বাটনের লেখা</label><input class="mi" id="t_btn" maxlength="24" value="Shop Now"></div>
-      <div><label>ব্যাজের লেখা (সেল স্টাইলে)</label><input class="mi" id="t_badge" maxlength="14" value="20% OFF"></div>
-      <div><label>ব্র্যান্ড লেখা</label><input class="mi" id="t_brand" maxlength="30" value="AABHA FASHION"></div>
-      <div><label>ওয়েবসাইটে ক্লিক করলে কোথায় যাবে (ঐচ্ছিক)</label><input class="mi" id="t_link" placeholder="#shop"></div>
+  <details class="bs-card" open>
+    <summary>১. ছবি</summary>
+    <div class="in">
+      <div class="row">
+        <label class="cb pr" style="margin:0">📷 ছবি বাছুন<input type="file" id="p_file" accept="image/*" hidden></label>
+        <span class="sub" id="p_name">কোনো ছবি বাছা হয়নি</span>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="cb sm" style="margin:0"><input type="checkbox" id="dragmode"> ✋ ছবি আঙুলে টেনে সরান (দুই আঙুলে জুম)</label>
+        <label class="cb sm" style="margin:0"><input type="checkbox" id="p_flip"> ↔ ছবি উল্টান</label>
+        <label class="cb sm" style="margin:0"><input type="checkbox" id="guide" checked> 👁 গাইড দেখান</label>
+      </div>
+      <p class="sub" style="margin:6px 0 0">গাইড: হিরো খিলানে সাইটে যতটুকু দেখা যাবে তার বাইরেটা ফিকে। স্টোরিতে লাল অংশে অ্যাপের বাটন ঢেকে যায়।</p>
+      <div class="bs-f">
+        <div><label>জুম</label><input type="range" id="p_zoom" min="40" max="400" value="100"></div>
+        <div><label>বাম ↔ ডান</label><input type="range" id="p_x" min="-100" max="100" value="0"></div>
+        <div><label>উপর ↕ নিচ</label><input type="range" id="p_y" min="-100" max="100" value="0"></div>
+        <div><label>ছবি গাঢ় (লেখা পড়তে সুবিধা)</label><input type="range" id="p_dark" min="0" max="70" value="0"></div>
+      </div>
+      <p class="lb" style="margin-top:6px">ফিল্টার</p>
+      <div class="pg" id="filts"></div>
+      <div class="bs-f">
+        <div><label>উজ্জ্বলতা</label><input type="range" id="p_br" min="50" max="150" value="100"></div>
+        <div><label>কনট্রাস্ট</label><input type="range" id="p_ct" min="50" max="150" value="100"></div>
+        <div><label>রঙের তীব্রতা</label><input type="range" id="p_sa" min="0" max="200" value="100"></div>
+      </div>
+      <div id="p2box" hidden>
+        <div class="row"><label class="cb" style="margin:0">📷 ২য় ছবি (ডুয়ো স্টাইলে)<input type="file" id="p2_file" accept="image/*" hidden></label><span class="sub" id="p2_name"></span></div>
+      </div>
     </div>
-  </div>
+  </details>
 
-  <div class="bs-card">
-    <h4>৩. স্টাইল ও সাইজ</h4>
-    <p class="sub" style="margin:8px 0 6px">স্টাইল</p>
-    <div class="chips" id="tpls"></div>
-    <p class="sub" style="margin:12px 0 6px">সাইজ</p>
-    <select class="mi" id="fmt"></select>
-    <p class="sub" style="margin:12px 0 6px">রঙের থিম</p>
-    <div class="chips" id="themes"></div>
-    <div class="bs-f">
-      <div><label>ব্যাকগ্রাউন্ড</label><input class="mi" type="color" id="c_bg"></div>
-      <div><label>লেখার রং</label><input class="mi" type="color" id="c_tx"></div>
-      <div><label>বাটন/অ্যাকসেন্ট</label><input class="mi" type="color" id="c_ac"></div>
+  <details class="bs-card" open>
+    <summary>২. লেখা</summary>
+    <div class="in">
+      <p class="lb">রেডিমেড লেখা (এক ট্যাপে বসে যাবে)</p>
+      <div class="pg" id="quick"></div>
+      <div class="bs-f">
+        <div class="w"><label>শিরোনাম</label><input class="mi" id="t_title" maxlength="60" value="Elegant Everyday Wear"></div>
+        <div class="w"><label>ছোট লেখা</label><input class="mi" id="t_sub" maxlength="90" value="Timeless Style for Modern Women"></div>
+        <div><label>বাটনের লেখা</label><input class="mi" id="t_btn" maxlength="24" value="Shop Now"></div>
+        <div><label>ব্যাজের লেখা (সেল স্টাইলে)</label><input class="mi" id="t_badge" maxlength="14" value="20% OFF"></div>
+        <div><label>নতুন দাম (যেমন ৳1,299)</label><input class="mi" id="t_pnew" maxlength="16" placeholder="৳1,299"></div>
+        <div><label>আগের দাম (কাটা দেখাবে)</label><input class="mi" id="t_pold" maxlength="16" placeholder="৳1,999"></div>
+        <div class="w"><label>নিচের ছোট নোট (যেমন Offer ends 30 Nov)</label><input class="mi" id="t_note" maxlength="50" placeholder="Free delivery all over Bangladesh"></div>
+        <div><label>ট্যাগ স্টিকার (যেমন FREE DELIVERY)</label><input class="mi" id="t_tag" maxlength="20" placeholder="NEW"></div>
+        <div><label>ট্যাগ কোথায়</label><select class="mi" id="x_tagpos"><option value="tr">উপরে ডানে</option><option value="tl">উপরে বামে</option><option value="br">নিচে ডানে</option><option value="bl">নিচে বামে</option></select></div>
+        <div><label>ব্র্যান্ড লেখা</label><input class="mi" id="t_brand" maxlength="30" value="AABHA FASHION"></div>
+        <div><label>ওয়েবসাইটে ক্লিক করলে কোথায় যাবে (ঐচ্ছিক)</label><input class="mi" id="t_link" placeholder="#shop"></div>
+      </div>
     </div>
+  </details>
+
+  <details class="bs-card" open>
+    <summary>৩. স্টাইল ও সাইজ</summary>
+    <div class="in">
+      <p class="lb">স্টাইল</p>
+      <div class="pg" id="tpls"></div>
+      <p class="lb" style="margin-top:12px">সাইজ</p>
+      <select class="mi" id="fmt"></select>
+    </div>
+  </details>
+
+  <details class="bs-card" open>
+    <summary>৪. রঙ ও থিম</summary>
+    <div class="in">
+      <div class="tg" id="themes"></div>
+      <div class="bs-f">
+        <div><label>ব্যাকগ্রাউন্ড</label><input class="mi" type="color" id="c_bg"></div>
+        <div><label>লেখার রং</label><input class="mi" type="color" id="c_tx"></div>
+        <div><label>বাটন/অ্যাকসেন্ট</label><input class="mi" type="color" id="c_ac"></div>
+      </div>
+      <div class="bs-f">
+        <div class="w"><label>ছবির উপরের লেখার রং</label>
+          <select class="mi" id="x_col"><option value="auto">অটো (স্টাইল অনুযায়ী)</option><option value="white">সাদা</option><option value="dark">কালো</option><option value="gold">গোল্ড</option><option value="theme">থিমের লেখার রং</option></select></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="bs-card">
+    <summary>৫. ফন্ট, লেখার সেটিং ও বর্ডার</summary>
+    <div class="in">
+      <p class="lb">ফন্ট</p>
+      <div class="pg" id="fonts"></div>
+      <div class="bs-f">
+        <div><label>লেখার সাইজ</label><input type="range" id="x_size" min="70" max="140" value="100"></div>
+        <div><label>লেখা সাজানো</label><select class="mi" id="x_align"><option value="auto">অটো</option><option value="left">বামে</option><option value="center">মাঝে</option><option value="right">ডানে</option></select></div>
+        <div><label>লেখা কোথায় (উপর-নিচ)</label><select class="mi" id="x_v"><option value="auto">অটো</option><option value="top">উপরে</option><option value="middle">মাঝে</option><option value="bottom">নিচে</option></select></div>
+        <div><label>বর্ডার</label><select class="mi" id="x_border">
+          <option value="none">নেই</option><option value="w-line">সাদা চিকন</option><option value="g-line">গোল্ড চিকন</option><option value="g-double">গোল্ড ডাবল</option><option value="w-double">সাদা ডাবল</option><option value="g-corner">গোল্ড কোণা</option><option value="w-corner">সাদা কোণা</option><option value="a-line">অ্যাকসেন্ট রঙ</option></select></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="bs-card">
+    <summary>৬. লোগো</summary>
+    <div class="in">
+      <div class="row"><label class="cb" style="margin:0">🏷 লোগো বাছুন (PNG ভালো)<input type="file" id="l_file" accept="image/*" hidden></label><span class="sub" id="l_name">লোগো নেই</span><button class="cb sm" id="l_clr" hidden>মুছুন</button></div>
+      <div class="bs-f">
+        <div><label>কোথায়</label><select class="mi" id="x_logopos"><option value="tl">উপরে বামে</option><option value="tr">উপরে ডানে</option><option value="bl">নিচে বামে</option><option value="br">নিচে ডানে</option><option value="none">লুকান</option></select></div>
+        <div><label>সাইজ</label><input type="range" id="g_logo" min="6" max="40" value="16"></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="bs-card">
+    <summary>৭. ক্যাপশন (ফেসবুক/ইনস্টা পোস্টের লেখা)</summary>
+    <div class="in">
+      <div class="row"><select class="mi" id="cap_lang" style="width:auto"><option value="bn">বাংলা</option><option value="en">English</option><option value="mix">মিক্স</option></select>
+      <button class="cb pr" id="cap_go">✍ বানান</button><button class="cb" id="cap_cp">📋 কপি</button></div>
+      <textarea class="mi" id="cap" style="margin-top:8px" placeholder="উপরের লেখা থেকে ক্যাপশন ও হ্যাশট্যাগ বানাবে"></textarea>
+    </div>
+  </details>
+
+  <details class="bs-card">
+    <summary>৮. আমার ডিজাইন সেভ</summary>
+    <div class="in">
+      <div class="row"><button class="cb pr" id="sv_new">💾 এই ডিজাইন সেভ করুন</button><button class="cb" id="rs">↺ সব রিসেট</button></div>
+      <div id="saved" style="margin-top:6px"></div>
+      <p class="sub">সেভ হয় এই ফোন/ব্রাউজারে (ছবি সেভ হয় না, শুধু লেখা, স্টাইল ও রং)।</p>
+    </div>
+  </details>
+
   </div>
 </div>
 
 <script>
 const A=Admin, sb=A.sb, $=A.$;
-const cv=$('cv'), ctx=cv.getContext('2d');
-let IMG=null, TPL='elegant', RAF=0;
+const cv=$('cv');let ctx=cv.getContext('2d');
+let IMG=null,IMG2=null,LOGO=null,TPL='elegant',RAF=0,FILT='none',THEMEI=0,LASTREG={w:1,h:1},LASTPUB=null;
 
-const TPLN={elegant:'এলিগ্যান্ট',full:'ফুল ফটো',split:'স্প্লিট',center:'সেন্টার',sale:'সেল ব্যাজ'};
+const TPLN={elegant:'এলিগ্যান্ট',full:'ফুল ফটো',split:'স্প্লিট',center:'সেন্টার',sale:'সেল ব্যাজ',arch:'খিলান',frame:'ফ্রেম',glass:'গ্লাস কার্ড',bold:'বোল্ড',duo:'ডুয়ো (২ ছবি)'};
 const FMT={
- hero:{n:'হিরো ছবি (৩:২) · ওয়েবসাইটের উপরে',w:1536,h:1024,pub:'hero'},
+ harch:{n:'হিরো খিলান (৪:৫) · ওয়েবসাইটের উপরে',w:1200,h:1500,pub:'hero',arch:1},
+ hero:{n:'হিরো চওড়া (৩:২) · ওয়েবসাইটের উপরে',w:1536,h:1024,pub:'hero'},
  slider:{n:'স্লাইডার (১৬:৭) · ওয়েবসাইট',w:1600,h:700,pub:'slider'},
  promo:{n:'প্রোমো ব্যানার (৪:৩) · ওয়েবসাইট',w:1200,h:900,pub:'promo'},
  square:{n:'ফেসবুক/ইনস্টা পোস্ট (১:১)',w:1080,h:1080},
- story:{n:'স্টোরি / টিকটক / রিলস (৯:১৬)',w:1080,h:1920}
+ post45:{n:'ইনস্টাগ্রাম পোর্ট্রেট (৪:৫)',w:1080,h:1350},
+ story:{n:'স্টোরি / টিকটক / রিলস (৯:১৬)',w:1080,h:1920,safe:1},
+ fbad:{n:'ফেসবুক অ্যাড / লিংক (১.৯১:১)',w:1200,h:628},
+ fbcover:{n:'ফেসবুক কভার',w:1640,h:624}
 };
 const THEMES=[
  {n:'ক্রিম মেরুন',bg:'#f6e9df',tx:'#3d1c27',ac:'#4a1f2e'},
@@ -113,18 +239,62 @@ const THEMES=[
  {n:'রোজ গোল্ড',bg:'#f3d9ce',tx:'#4a2c2a',ac:'#b8715a'},
  {n:'এমারেল্ড',bg:'#0f3d33',tx:'#f1efe2',ac:'#d6b56a'},
  {n:'নেভি',bg:'#14213d',tx:'#ffffff',ac:'#fca311'},
- {n:'সাদা',bg:'#ffffff',tx:'#111111',ac:'#111111'}
+ {n:'সাদা',bg:'#ffffff',tx:'#111111',ac:'#111111'},
+ {n:'রয়্যাল ওয়াইন',bg:'#3a0d1c',tx:'#f6e8d6',ac:'#d9b26f'},
+ {n:'শ্যাম্পেন',bg:'#efe3d0',tx:'#3a2a1a',ac:'#9c7438'},
+ {n:'ডিপ প্লাম',bg:'#2a1233',tx:'#f3e6f7',ac:'#e8b4a0'},
+ {n:'অলিভ ব্রোঞ্জ',bg:'#2b2a1a',tx:'#f2ecd8',ac:'#c08a3e'},
+ {n:'প্ল্যাটিনাম নোয়ার',bg:'#0d0d0f',tx:'#ffffff',ac:'#cfd3d8'},
+ {n:'ডাস্টি মভ',bg:'#e9dde3',tx:'#3a2733',ac:'#8b4a62'}
 ];
+const FONTS={
+ classic:{n:'ক্লাসিক',f:'"Playfair Display","Hind Siliguri",Georgia,serif',w:700,it:1},
+ luxe:{n:'লাক্সারি',f:'"Cormorant Garamond","Tiro Bangla","Hind Siliguri",Georgia,serif',w:700,it:1},
+ modern:{n:'মডার্ন',f:'"Poppins","Hind Siliguri",Arial,sans-serif',w:600,it:0},
+ bold:{n:'বোল্ড',f:'"Oswald","Hind Siliguri",Arial,sans-serif',w:600,it:0},
+ script:{n:'স্ক্রিপ্ট',f:'"Dancing Script","Hind Siliguri",cursive',w:700,it:0},
+ bangla:{n:'বাংলা সেরিফ',f:'"Tiro Bangla","Hind Siliguri",serif',w:400,it:1}
+};
+const FILTS={
+ none:['অরিজিনাল',''],
+ warm:['ওয়ার্ম','sepia(.25) saturate(1.15) brightness(1.03)'],
+ cool:['কুল','hue-rotate(-12deg) saturate(1.05) brightness(1.02)'],
+ bw:['সাদাকালো','grayscale(1) contrast(1.1)'],
+ vivid:['ভিভিড','saturate(1.45) contrast(1.08)'],
+ matte:['ম্যাট','contrast(.9) saturate(.9) brightness(1.06)'],
+ film:['ফিল্ম','sepia(.35) contrast(1.05) saturate(.9)']
+};
+const QUICK=[
+ ['ঈদ স্পেশাল','ঈদ স্পেশাল কালেকশন','নতুন ডিজাইন, সেরা দাম','অর্ডার করুন','ঈদ অফার','FREE DELIVERY'],
+ ['নতুন কালেকশন','নতুন কালেকশন','এবারের সবচেয়ে সুন্দর ডিজাইন','দেখুন','নতুন','NEW'],
+ ['ফ্ল্যাশ সেল','ফ্ল্যাশ সেল','আজকের জন্য বিশেষ ছাড়','এখনই কিনুন','50% OFF','২৪ ঘণ্টা'],
+ ['Winter Sale','Winter Collection 2026','Cosy styles for chilly days','Shop Now','30% OFF','LIMITED TIME'],
+ ['New Arrival','New Arrival','Fresh styles just landed','Explore','NEW','JUST IN'],
+ ['Flash Sale','Flash Sale','Today only, grab yours','Order Now','50% OFF','24 HOURS'],
+ ['Buy 2 Get 1','Buy 2 Get 1 Free','Mix and match your favourites','Shop Now','B2G1','LIMITED'],
+ ['Elegant (ডিফল্ট)','Elegant Everyday Wear','Timeless Style for Modern Women','Shop Now','20% OFF','']
+];
+const TXT=['t_title','t_sub','t_btn','t_badge','t_brand','t_link','t_pnew','t_pold','t_note','t_tag'];
+const NUM=['p_zoom','p_x','p_y','p_dark','p_br','p_ct','p_sa','x_size','g_logo'];
+const SEL=['fmt','x_font_dummy','x_align','x_v','x_border','x_col','x_tagpos','x_logopos'].filter(i=>i!=='x_font_dummy');
+const COL=['c_bg','c_tx','c_ac'];
+const CHK=['p_flip'];
+let FONTK='classic';
 
 /* ---------- colour helpers ---------- */
 const hex=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]};
 const rgba=(h,a)=>{const c=hex(h);return`rgba(${c[0]},${c[1]},${c[2]},${a})`};
 const lum=h=>{const c=hex(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]};
 const ink=h=>lum(h)>.4?'#1c1a17':'#ffffff';
+function rgb2hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0,l=(mx+mn)/2;
+  if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return[h,s*100,l*100]}
+function hsl2hex(h,s,l){h=((h%360)+360)%360;s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
+  return'#'+[f(0),f(8),f(4)].map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('')}
 
 /* ---------- fonts ---------- */
-const fT=(s,w)=>`${w||700} ${Math.round(s)}px "Playfair Display","Hind Siliguri",Georgia,serif`;
-const fI=s=>`italic 500 ${Math.round(s)}px "Playfair Display","Hind Siliguri",Georgia,serif`;
+const FN=()=>FONTS[FONTK]||FONTS.classic;
+const fT=(s,w)=>`${w||FN().w} ${Math.round(s)}px ${FN().f}`;
+const fI=s=>`${FN().it?'italic ':''}500 ${Math.round(s)}px ${FN().f}`;
 const fB=(s,w)=>`${w||600} ${Math.round(s)}px "Poppins","Hind Siliguri",Arial,sans-serif`;
 
 function wrap(c,text,maxW){
@@ -133,139 +303,295 @@ function wrap(c,text,maxW){
   if(cur)lines.push(cur);return lines;
 }
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function archPath(x,y,w,h){const r=w/2,b=Math.min(w,h)*.04;ctx.beginPath();ctx.moveTo(x,y+r);ctx.arc(x+r,y+r,r,Math.PI,0);ctx.lineTo(x+w,y+h-b);ctx.arcTo(x+w,y+h,x+w-b,y+h,b);ctx.lineTo(x+b,y+h);ctx.arcTo(x,y+h,x,y+h-b,b);ctx.closePath()}
 
 /* ---------- photo ---------- */
-function drawPhoto(x,y,w,h,t){
+function filt(){
+  const br=+$('p_br').value,ct=+$('p_ct').value,sa=+$('p_sa').value;
+  let s=FILTS[FILT][1];
+  if(br!==100)s+=` brightness(${br}%)`;if(ct!==100)s+=` contrast(${ct}%)`;if(sa!==100)s+=` saturate(${sa}%)`;
+  return s.trim();
+}
+function softBg(im,x,y,w,h){
+  if(!im._s){const s=document.createElement('canvas');s.width=24;s.height=Math.max(2,Math.round(24*im.naturalHeight/im.naturalWidth));s.getContext('2d').drawImage(im,0,0,s.width,s.height);im._s=s}
+  const s=im._s,sc=Math.max(w/s.width,h/s.height),dw=s.width*sc,dh=s.height*sc;
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(s,x-(dw-w)/2,y-(dh-h)/2,dw,dh);ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(x,y,w,h);
+}
+function drawPhoto(x,y,w,h,t,which){
+  const im=which===2?IMG2:IMG,main=which!==2;
   ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
-  if(!IMG){
+  if(!im){
     const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,rgba(t.ac,.85));g.addColorStop(1,rgba(t.bg,1));ctx.fillStyle=g;ctx.fillRect(x,y,w,h);
-    ctx.fillStyle=rgba(ink(t.ac),.7);ctx.font=fB(Math.min(w,h)*.06,500);ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('ছবি বাছুন',x+w/2,y+h/2);
+    ctx.fillStyle=rgba(ink(t.ac),.7);ctx.font=fB(Math.min(w,h)*.06,500);ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(main?'ছবি বাছুন':'২য় ছবি বাছুন',x+w/2,y+h/2);
+    if(main)LASTREG={w,h};
   }else{
-    const z=+$('p_zoom').value/100,fx=+$('p_x').value/100,fy=+$('p_y').value/100;
-    const sc=Math.max(w/IMG.naturalWidth,h/IMG.naturalHeight)*z,dw=IMG.naturalWidth*sc,dh=IMG.naturalHeight*sc;
-    ctx.drawImage(IMG,x-(dw-w)*fx,y-(dh-h)*fy,dw,dh);
+    const z=main?Math.max(.3,+$('p_zoom').value/100):1,ox=main?+$('p_x').value/100:0,oy=main?+$('p_y').value/100:0;
+    const iw=im.naturalWidth,ih=im.naturalHeight,sc=Math.max(w/iw,h/ih)*z,dw=iw*sc,dh=ih*sc;
+    const dx=x-(dw-w)*.5+ox*w*.5,dy=y-(dh-h)*(dh>h?.3:.5)+oy*h*.5;
+    if(main)LASTREG={w,h};
+    if(dx>x+.5||dy>y+.5||dx+dw<x+w-.5||dy+dh<y+h-.5)softBg(im,x,y,w,h);
+    ctx.save();
+    if(main&&$('p_flip').checked){ctx.translate(x+w/2,0);ctx.scale(-1,1);ctx.translate(-(x+w/2),0)}
+    const f=filt();if(f&&('filter' in ctx))ctx.filter=f;
+    ctx.drawImage(im,dx,dy,dw,dh);
+    ctx.restore();
   }
+  const sh=+$('p_dark').value;if(sh>0){ctx.fillStyle='rgba(0,0,0,'+(sh/100)+')';ctx.fillRect(x,y,w,h)}
   ctx.restore();
 }
 
 /* ---------- text block ---------- */
-function block(o,x,w,top,bottom,align,col){
-  const H=bottom-top;let ts=col.tsize;
-  let L,SL,ss,bs,bh,total,tries=0;
+const TXV=()=>({scale:+$('x_size').value/100,align:$('x_align').value,v:$('x_v').value,col:$('x_col').value});
+function block(o,x,w,top,bottom,align,col0){
+  const U=TXV(),col=Object.assign({},col0);
+  if(U.align!=='auto')align=U.align;
+  const anc=U.v==='top'?'top':U.v==='middle'?'center':U.v==='bottom'?'bottom':col.anchor;
+  if(U.col!=='auto'){
+    const c=U.col==='white'?'#ffffff':U.col==='dark'?'#1c1a17':U.col==='gold'?'#d9b26f':$('c_tx').value;
+    col.title=c;col.sub=rgba(c,.88);col.price=c;if(U.col==='gold')col.brand=c;
+  }
+  const H=bottom-top,title=(col.upper||FONTK==='bold')?o.title.toUpperCase():o.title;
+  let ts=col.tsize*U.scale,L,SL,ss,bs,bh,ph,nh,total,tries=0;
   do{
-    ctx.font=fT(ts);L=wrap(ctx,o.title,w);
+    ctx.font=fT(ts);L=wrap(ctx,title,w);
+    const fit=L.every(l=>ctx.measureText(l).width<=w*1.02);
     ss=ts*.4;ctx.font=fI(ss);SL=o.sub?wrap(ctx,o.sub,w).slice(0,3):[];
-    bs=o.brand?ts*.28:0;bh=o.btn?ts*.74:0;
-    total=(bs?bs*2.1:0)+L.length*ts*1.12+(SL.length?ts*.22+SL.length*ss*1.4:0)+(bh?ts*.4+bh:0);
-    tries++;if(L.length<=3&&total<=H)break;ts*=.93;
-  }while(tries<30);
-  let y=col.anchor==='bottom'?bottom-total:top+(H-total)/2;
-  const cx=align==='center'?x+w/2:x;ctx.textAlign=align;ctx.textBaseline='top';
+    bs=o.brand?ts*.28:0;bh=o.btn?ts*.74:0;ph=o.pnew?ts*.62:0;nh=o.note?ts*.2:0;
+    total=(bs?bs*2.1:0)+L.length*ts*1.12+(SL.length?ts*.22+SL.length*ss*1.4:0)+(ph?ts*.25+ph:0)+(bh?ts*.4+bh:0)+(nh?ts*.3+nh*1.3:0);
+    tries++;if(L.length<=3&&total<=H&&fit)break;ts*=.93;
+  }while(tries<40);
+  let y=anc==='bottom'?bottom-total:anc==='top'?top:top+(H-total)/2;
+  const cx=align==='center'?x+w/2:align==='right'?x+w:x;ctx.textAlign=align;ctx.textBaseline='top';
+  if(col.shadow){ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=ts*.12;ctx.shadowOffsetY=ts*.03}
   if(bs){ctx.font=fB(bs,600);ctx.fillStyle=col.brand;
     if(ctx.letterSpacing!==undefined)ctx.letterSpacing=Math.round(bs*.18)+'px';
     ctx.fillText(o.brand.toUpperCase(),cx+(align==='center'&&ctx.letterSpacing!==undefined?Math.round(bs*.09):0),y);
     if(ctx.letterSpacing!==undefined)ctx.letterSpacing='0px';y+=bs*2.1}
   ctx.font=fT(ts);ctx.fillStyle=col.title;L.forEach(l=>{ctx.fillText(l,cx,y);y+=ts*1.12});
   if(SL.length){y+=ts*.22;ctx.font=fI(ss);ctx.fillStyle=col.sub;SL.forEach(l=>{ctx.fillText(l,cx,y);y+=ss*1.4})}
+  if(ph){
+    y+=ts*.25;const fs=ph*.9,gap=fs*.35,fo=fs*.6;ctx.font=fT(fs);const wn=ctx.measureText(o.pnew).width;
+    let wo=0;if(o.pold){ctx.font=fB(fo,500);wo=ctx.measureText(o.pold).width+gap}
+    const sx=align==='center'?cx-(wn+wo)/2:align==='right'?cx-(wn+wo):cx;
+    ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.font=fT(fs);ctx.fillStyle=col.price||col.title;ctx.fillText(o.pnew,sx,y+ph/2);
+    if(o.pold){ctx.font=fB(fo,500);ctx.fillStyle=col.sub;const px=sx+wn+gap;ctx.fillText(o.pold,px,y+ph/2);ctx.fillRect(px,y+ph/2,ctx.measureText(o.pold).width,Math.max(2,fo*.07))}
+    y+=ph;ctx.textAlign=align;ctx.textBaseline='top';
+  }
+  if(col.shadow){ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0}
   if(bh){
     y+=ts*.4;const bt=o.btn+'  →';ctx.font=fB(bh*.46,600);const bw=ctx.measureText(bt).width+bh*.95;
-    const bx=align==='center'?x+(w-bw)/2:x;
+    const bx=align==='center'?x+(w-bw)/2:align==='right'?x+w-bw:x;
     if(col.outline){rr(ctx,bx,y,bw,bh,bh/2);ctx.lineWidth=Math.max(2,bh*.05);ctx.strokeStyle=col.btnBg;ctx.stroke()}
     else{rr(ctx,bx,y,bw,bh,bh/2);ctx.fillStyle=col.btnBg;ctx.fill()}
     ctx.fillStyle=col.btnFg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(bt,bx+bw/2,y+bh/2+1);
+    y+=bh;ctx.textBaseline='top';ctx.textAlign=align;
   }
-  ctx.textBaseline='alphabetic';
+  if(nh){y+=ts*.3;ctx.font=fB(nh,500);ctx.fillStyle=col.sub;ctx.fillText(o.note,cx,y)}
+  ctx.textBaseline='alphabetic';ctx.textAlign='left';
 }
-const cols=(t,on)=>{ // on: 'light' bg or 'dark'
-  return on==='dark'
-   ?{brand:t.ac,title:'#ffffff',sub:'rgba(255,255,255,.88)',btnBg:lum(t.ac)<.12?'#ffffff':t.ac,btnFg:lum(t.ac)<.12?t.ac:ink(t.ac)}
-   :{brand:t.ac,title:t.tx,sub:rgba(t.tx,.85),btnBg:t.ac,btnFg:ink(t.ac)};
+const cols=(t,on)=>{
+  if(on==='dark'){
+    const pr=lum(t.ac)>.25?t.ac:'#ffffff';
+    return{brand:lum(t.ac)>.25?t.ac:'rgba(255,255,255,.85)',title:'#ffffff',sub:'rgba(255,255,255,.88)',price:pr,btnBg:lum(t.ac)<.12?'#ffffff':t.ac,btnFg:lum(t.ac)<.12?t.ac:ink(t.ac)};
+  }
+  const pr=Math.abs(lum(t.ac)-lum(t.bg))>.25?t.ac:t.tx;
+  return{brand:t.ac,title:t.tx,sub:rgba(t.tx,.85),price:pr,btnBg:t.ac,btnFg:ink(t.ac)};
 };
 
 /* ---------- templates ---------- */
 const TPLS={
  elegant(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5;
   ctx.fillStyle=t.bg;ctx.fillRect(0,0,W,H);
   if(wide){
     drawPhoto(W*.34,0,W*.66,H,t);
     const g=ctx.createLinearGradient(W*.34,0,W*.62,0);g.addColorStop(0,t.bg);g.addColorStop(1,rgba(t.bg,0));ctx.fillStyle=g;ctx.fillRect(W*.34,0,W*.3,H);
     ctx.fillStyle=rgba(t.ac,.9);ctx.beginPath();ctx.arc(0,0,H*.2,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=rgba(t.ac,.9);ctx.beginPath();ctx.arc(0,H,H*.16,0,Math.PI*2);ctx.fill();
-    const c=cols(t,'light');c.tsize=H*.1;c.anchor='center';block(o,W*.05,W*.38,H*.12,H*.88,'center',c);
+    ctx.beginPath();ctx.arc(0,H,H*.16,0,Math.PI*2);ctx.fill();
+    const c=cols(t,'light');c.tsize=H*.1*K;c.anchor='center';block(o,W*.05,W*.38,H*.12,H*.88,'center',c);
   }else{
     drawPhoto(0,0,W,H,t);
     const g=ctx.createLinearGradient(0,H*.32,0,H*.74);g.addColorStop(0,rgba(t.bg,0));g.addColorStop(1,rgba(t.bg,.97));ctx.fillStyle=g;ctx.fillRect(0,H*.32,W,H*.68);
     ctx.fillStyle=rgba(t.bg,.97);ctx.fillRect(0,H*.74,W,H*.26);
-    const c=cols(t,'light');c.tsize=W*(H/W>1.5?.105:.085);c.anchor='bottom';block(o,W*.08,W*.84,H*.46,H*.94,'center',c);
+    const c=cols(t,'light');c.tsize=W*(tall?.105:.085);c.anchor='bottom';block(o,W*.08,W*.84,H*.46,H*.94,'center',c);
   }
  },
  full(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5;
   drawPhoto(0,0,W,H,t);
   if(wide){const g=ctx.createLinearGradient(0,0,W*.7,0);g.addColorStop(0,'rgba(0,0,0,.78)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    const c=cols(t,'dark');c.tsize=H*.1;c.anchor='center';block(o,W*.06,W*.42,H*.1,H*.9,'left',c)}
+    const c=cols(t,'dark');c.tsize=H*.1*K;c.anchor='center';block(o,W*.06,W*.42,H*.1,H*.9,'left',c)}
   else{const g=ctx.createLinearGradient(0,H*.3,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.85)');ctx.fillStyle=g;ctx.fillRect(0,H*.3,W,H*.7);
-    const c=cols(t,'dark');c.tsize=W*(H/W>1.5?.105:.085);c.anchor='bottom';block(o,W*.08,W*.84,H*.5,H*.93,'left',c)}
+    const c=cols(t,'dark');c.tsize=W*(tall?.105:.085);c.anchor='bottom';block(o,W*.08,W*.84,H*.5,H*.93,'left',c)}
  },
  split(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5;
   ctx.fillStyle=t.bg;ctx.fillRect(0,0,W,H);
   const pc=ink(t.ac);
+  const pr=Math.abs(lum(t.bg)-lum(t.ac))>.25?t.bg:pc;
   if(wide){
     drawPhoto(W*.34,0,W*.66,H,t);
     ctx.fillStyle=t.ac;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W*.52,0);ctx.lineTo(W*.43,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
-    const c={brand:rgba(pc,.8),title:pc,sub:rgba(pc,.88),btnBg:t.bg,btnFg:t.tx,tsize:H*.1,anchor:'center'};block(o,W*.05,W*.36,H*.1,H*.9,'left',c);
+    const c={brand:rgba(pc,.8),title:pc,sub:rgba(pc,.88),price:pc,btnBg:t.bg,btnFg:t.tx,tsize:H*.1*K,anchor:'center'};block(o,W*.05,W*.36,H*.1,H*.9,'left',c);
   }else{
     drawPhoto(0,0,W,H*.62,t);
     ctx.fillStyle=t.ac;ctx.beginPath();ctx.moveTo(0,H*.56);ctx.lineTo(W,H*.48);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
-    const c={brand:rgba(pc,.8),title:pc,sub:rgba(pc,.88),btnBg:t.bg,btnFg:t.tx,tsize:W*(H/W>1.5?.1:.075),anchor:'center'};block(o,W*.08,W*.84,H*.6,H*.94,'center',c);
+    const c={brand:rgba(pc,.8),title:pc,sub:rgba(pc,.88),price:pc,btnBg:t.bg,btnFg:t.tx,tsize:W*(tall?.1:.075),anchor:'center'};block(o,W*.08,W*.84,H*.6,H*.94,'center',c);
   }
  },
  center(W,H,wide,o,t){
+  const tall=H/W>1.5;
   drawPhoto(0,0,W,H,t);ctx.fillStyle=rgba(t.bg,.62);ctx.fillRect(0,0,W,H);
-  const tc=ink(t.bg),c={brand:t.ac,title:tc,sub:rgba(tc,.9),btnBg:tc,btnFg:tc,outline:true,tsize:wide?H*.12:W*(H/W>1.5?.12:.1),anchor:'center'};
+  const tc=ink(t.bg),c={brand:t.ac,title:tc,sub:rgba(tc,.9),price:tc,btnBg:tc,btnFg:tc,outline:true,tsize:wide?H*.12:W*(tall?.12:.1),anchor:'center'};
   block(o,W*.1,W*.8,H*.1,H*.9,'center',c);
  },
  sale(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5;
   drawPhoto(0,0,W,H,t);
   const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,.05)');g.addColorStop(1,'rgba(0,0,0,.35)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  const R=Math.min(W,H)*(wide?.19:.17),bx=wide?W*.84:W*.8,by=wide?H*.27:H*.17;
+  const R=Math.min(W,H)*(wide?.19:.17),bx=wide?W*.84:W*.8,by=wide?H*.27:(tall?H*.2:H*.17);
   ctx.fillStyle=t.ac;ctx.beginPath();ctx.arc(bx,by,R,0,Math.PI*2);ctx.fill();
   ctx.lineWidth=R*.05;ctx.strokeStyle=ink(t.ac);ctx.setLineDash([R*.08,R*.08]);ctx.beginPath();ctx.arc(bx,by,R*.88,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
   const bl=String(o.badge||'SALE').split(/\s+/).slice(0,2);let bs=R*.62;
   ctx.font=fT(bs,700);while(bl.some(l=>ctx.measureText(l).width>R*1.5)&&bs>10){bs*=.92;ctx.font=fT(bs,700)}
   ctx.fillStyle=ink(t.ac);ctx.textAlign='center';ctx.textBaseline='middle';
   bl.forEach((l,i)=>ctx.fillText(l,bx,by+(i-(bl.length-1)/2)*bs*1.05));
-  const rx=0,ry=wide?H*.5:H*.6,rw=wide?W*.58:W*.92,rh=wide?H*.42:H*.34;
+  const rx=0,ry=wide?H*.46:H*.58,rw=wide?W*.58:W*.92,rh=wide?H*.48:H*.38;
   ctx.fillStyle=t.ac;ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx+rw,ry);ctx.arcTo(rx+rw+rh*.25,ry+rh/2,rx+rw,ry+rh,rh*.5);ctx.lineTo(rx,ry+rh);ctx.closePath();ctx.fill();
-  const pc=ink(t.ac),c={brand:rgba(pc,.8),title:pc,sub:rgba(pc,.9),btnBg:pc,btnFg:t.ac,tsize:wide?H*.09:W*(H/W>1.5?.09:.07),anchor:'center'};
+  const pc=ink(t.ac),c={brand:rgba(pc,.8),title:pc,sub:rgba(pc,.9),price:pc,btnBg:pc,btnFg:t.ac,tsize:wide?H*.09*K:W*(tall?.09:.07),anchor:'center'};
   block(o,W*.05,rw-W*.09,ry+rh*.06,ry+rh*.94,'left',c);
+ },
+ arch(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5;
+  ctx.fillStyle=t.bg;ctx.fillRect(0,0,W,H);
+  let ax,ay,aw,ah;
+  if(wide){ah=H*.86;aw=Math.min(W*.4,ah*.82);ax=W-aw-W*.07;ay=H*.07}
+  else{aw=W*.74;ah=H*(tall?.56:.62);ax=(W-aw)/2;ay=H*.05}
+  const off=Math.min(W,H)*.018;
+  archPath(ax-off,ay-off,aw+off*2,ah+off*2);ctx.strokeStyle=rgba(t.ac,.75);ctx.lineWidth=Math.max(2,W*.0025);ctx.stroke();
+  ctx.save();archPath(ax,ay,aw,ah);ctx.clip();drawPhoto(ax,ay,aw,ah,t);ctx.restore();
+  const c=cols(t,'light');
+  if(wide){c.tsize=H*.1*K;c.anchor='center';block(o,W*.06,W*.44,H*.1,H*.9,'left',c)}
+  else{c.tsize=W*(tall?.095:.075);c.anchor='center';block(o,W*.08,W*.84,ay+ah+off*2,H*.97,'center',c)}
+ },
+ frame(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5,m=Math.min(W,H)*.045;
+  ctx.fillStyle=t.bg;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle=t.ac;ctx.lineWidth=Math.max(2,Math.min(W,H)*.004);ctx.strokeRect(m,m,W-2*m,H-2*m);
+  const c=cols(t,'light');
+  if(wide){drawPhoto(W*.46,m*2,W*.54-m*2,H-m*4,t);c.tsize=H*.095*K;c.anchor='center';block(o,m*3,W*.46-m*4,H*.1,H*.9,'center',c)}
+  else{const pw=W-m*4,ph=H*(tall?.56:.6);drawPhoto(m*2,m*2,pw,ph,t);c.tsize=W*(tall?.095:.075);c.anchor='center';block(o,W*.1,W*.8,m*2+ph+m*.8,H-m*2.5,'center',c)}
+ },
+ glass(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5;
+  drawPhoto(0,0,W,H,t);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(0,0,0,.05)');g.addColorStop(1,'rgba(0,0,0,.3)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  let cx,cy,cw,ch;
+  if(wide){cx=W*.05;cw=W*.44;cy=H*.09;ch=H*.82}else{cx=W*.06;cw=W*.88;ch=H*(tall?.34:.42);cy=H-ch-H*.05}
+  rr(ctx,cx,cy,cw,ch,Math.min(cw,ch)*.08);ctx.fillStyle='rgba(20,14,16,.5)';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='rgba(255,255,255,.38)';ctx.stroke();
+  const c=cols(t,'dark');c.tsize=wide?H*.085*K:W*(tall?.085:.07);c.anchor='center';
+  block(o,cx+cw*.07,cw*.86,cy+ch*.06,cy+ch*.94,wide?'left':'center',c);
+ },
+ bold(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5;
+  drawPhoto(0,0,W,H,t);
+  const c=cols(t,'dark');c.upper=true;c.shadow=1;
+  if(wide){const g=ctx.createLinearGradient(0,0,W*.75,0);g.addColorStop(0,'rgba(0,0,0,.82)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    c.tsize=H*.14*K;c.anchor='center';block(o,W*.05,W*.55,H*.08,H*.92,'left',c);ctx.fillStyle=t.ac;ctx.fillRect(0,0,W*.012,H)}
+  else{const g=ctx.createLinearGradient(0,H*.25,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.9)');ctx.fillStyle=g;ctx.fillRect(0,H*.25,W,H*.75);
+    c.tsize=W*(tall?.15:.12);c.anchor='bottom';block(o,W*.07,W*.86,H*.4,H*.94,'left',c);ctx.fillStyle=t.ac;ctx.fillRect(0,H-H*.012,W,H*.012)}
+ },
+ duo(W,H,wide,o,t){
+  const K=W/H>2?1.3:1,tall=H/W>1.5,gap=Math.min(W,H)*.012,c=cols(t,'light');
+  ctx.fillStyle=t.bg;ctx.fillRect(0,0,W,H);
+  if(wide){const px=W*.4,pw=(W-px)/2;drawPhoto(px,0,pw-gap/2,H,t,1);drawPhoto(px+pw+gap/2,0,pw-gap/2,H,t,2);c.tsize=H*.1*K;c.anchor='center';block(o,W*.04,W*.33,H*.1,H*.9,'center',c)}
+  else{const ph=H*(tall?.58:.64),pw=(W-gap)/2;drawPhoto(0,0,pw,ph,t,1);drawPhoto(pw+gap,0,pw,ph,t,2);ctx.fillStyle=t.ac;ctx.fillRect(0,ph,W,gap*1.5);c.tsize=W*(tall?.1:.075);c.anchor='center';block(o,W*.08,W*.84,ph+H*.02,H*.97,'center',c)}
  }
 };
 
-function vals(){return{title:$('t_title').value.trim(),sub:$('t_sub').value.trim(),btn:$('t_btn').value.trim(),badge:$('t_badge').value.trim(),brand:$('t_brand').value.trim()}}
+/* ---------- decorations (border, tag, logo) ---------- */
+function deco(W,H,f,o,t){
+  const u=Math.min(W,H),b=$('x_border').value;
+  if(b!=='none'){
+    const col=b[0]==='g'?'#d9b26f':b[0]==='w'?'#ffffff':t.ac,kind=b.slice(2),m=u*.03;
+    ctx.save();ctx.strokeStyle=col;ctx.lineWidth=Math.max(2,u*.004);
+    if(kind==='line')ctx.strokeRect(m,m,W-2*m,H-2*m);
+    else if(kind==='double'){ctx.strokeRect(m,m,W-2*m,H-2*m);ctx.lineWidth=Math.max(1.5,u*.002);const m2=m*1.7;ctx.strokeRect(m2,m2,W-2*m2,H-2*m2)}
+    else if(kind==='corner'){const L=u*.09;ctx.lineWidth=Math.max(3,u*.006);
+      [[m,m,1,1],[W-m,m,-1,1],[m,H-m,1,-1],[W-m,H-m,-1,-1]].forEach(c=>{ctx.beginPath();ctx.moveTo(c[0]+c[2]*L,c[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(c[0],c[1]+c[3]*L);ctx.stroke()})}
+    ctx.restore();
+  }
+  const pad=u*.05,topY=f.arch?H*.12:pad,sideX=f.arch?W*.1:pad;
+  if(o.tag){
+    const fs=u*.03,hh=fs*2.1;ctx.save();ctx.font=fB(fs,600);
+    if(ctx.letterSpacing!==undefined)ctx.letterSpacing=Math.round(fs*.12)+'px';
+    const txt=o.tag.toUpperCase(),tw=ctx.measureText(txt).width+fs*2.2,pos=$('x_tagpos').value;
+    const x=pos[1]==='l'?sideX:W-sideX-tw,y=pos[0]==='t'?topY:H-pad-hh;
+    rr(ctx,x,y,tw,hh,hh/2);ctx.fillStyle=t.ac;ctx.fill();
+    ctx.fillStyle=ink(t.ac);ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(txt,x+fs*1.1,y+hh/2+1);
+    if(ctx.letterSpacing!==undefined)ctx.letterSpacing='0px';ctx.restore();
+  }
+  const lp=$('x_logopos').value;
+  if(LOGO&&lp!=='none'){
+    let lw=W*(+$('g_logo').value/100),lh=lw*LOGO.naturalHeight/LOGO.naturalWidth;
+    if(lh>H*.25){lh=H*.25;lw=lh*LOGO.naturalWidth/LOGO.naturalHeight}
+    const x=lp[1]==='l'?sideX:W-sideX-lw,y=lp[0]==='t'?topY:H-pad-lh;
+    ctx.drawImage(LOGO,x,y,lw,lh);
+  }
+}
+
+function vals(){return{title:$('t_title').value.trim(),sub:$('t_sub').value.trim(),btn:$('t_btn').value.trim(),badge:$('t_badge').value.trim(),brand:$('t_brand').value.trim(),pnew:$('t_pnew').value.trim(),pold:$('t_pold').value.trim(),note:$('t_note').value.trim(),tag:$('t_tag').value.trim()}}
 function theme(){return{bg:$('c_bg').value,tx:$('c_tx').value,ac:$('c_ac').value}}
+
+function render(c,f){
+  const prev=ctx;ctx=c.getContext('2d');
+  if(c.width!==f.w)c.width=f.w;if(c.height!==f.h)c.height=f.h;
+  ctx.clearRect(0,0,f.w,f.h);ctx.setLineDash([]);ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.globalAlpha=1;
+  const o=vals(),t=theme();
+  TPLS[TPL](f.w,f.h,f.w/f.h>1.25,o,t,f);
+  deco(f.w,f.h,f,o,t);
+  ctx=prev;
+}
 function draw(){
-  const f=FMT[$('fmt').value];if(cv.width!==f.w)cv.width=f.w;if(cv.height!==f.h)cv.height=f.h;
-  ctx.clearRect(0,0,f.w,f.h);ctx.setLineDash([]);ctx.textAlign='left';
-  TPLS[TPL](f.w,f.h,f.w/f.h>1.25,vals(),theme());
+  const f=FMT[$('fmt').value];render(cv,f);
   const p=f.pub;$('b-pub').hidden=!p;
   if(p)$('b-pub').textContent='🌐 ওয়েবসাইটে দিন ('+({hero:'হিরো',slider:'স্লাইডার',promo:'প্রোমো'})[p]+')';
-  $('pubnote').textContent=p?(p==='hero'?'হিরো তে দিলে আগের হিরো ছবি বন্ধ হয়ে যাবে (Banner Manager থেকে আবার চালু করা যাবে)।':'Banner Manager এ গিয়ে ক্রম, তারিখ বা মুছে ফেলা যাবে।'):'এই সাইজ সোশ্যাল মিডিয়ার জন্য, ডাউনলোড করে পোস্ট করুন।';
+  $('pubnote').textContent=p?(p==='hero'?(f.arch?'হিরো খিলানের জায়গায় ঠিক বসবে। আগের হিরো ছবি বন্ধ হবে (Banner Manager থেকে আবার চালু করা যাবে)।':'হিরোতে দিলে আগের হিরো ছবি বন্ধ হয়ে যাবে (Banner Manager থেকে আবার চালু করা যাবে)।'):'Banner Manager এ গিয়ে ক্রম, তারিখ বা মুছে ফেলা যাবে।'):'এই সাইজ সোশ্যাল মিডিয়ার জন্য, ডাউনলোড করে পোস্ট করুন।';
+  $('gd').className='gd'+(f.arch?' arch':f.safe?' safe':' off')+($('guide').checked?'':' off');
+  $('p2box').hidden=TPL!=='duo';
 }
 function sched(){cancelAnimationFrame(RAF);RAF=requestAnimationFrame(draw)}
-function fontsThen(){const l=[document.fonts.load(fT(40)),document.fonts.load(fI(40)),document.fonts.load(fB(40)),document.fonts.load('700 40px "Hind Siliguri"')];Promise.all(l).catch(()=>{}).then(()=>draw())}
+function loadFonts(){
+  const o=vals(),txt=o.title+o.sub+o.brand+o.btn+o.note+o.tag+o.pnew+'ছবি';
+  return Promise.all([document.fonts.load(fT(40),txt),document.fonts.load(fI(40),txt),document.fonts.load(fB(40),txt),document.fonts.load('700 40px "Hind Siliguri"',txt)]).catch(()=>{}).then(sched);
+}
 
 /* ---------- actions ---------- */
-function blob(){return new Promise(r=>cv.toBlob(r,'image/jpeg',.9))}
-async function download(){
-  const b=await blob();if(!b){A.toast('ছবি তৈরি হয়নি');return}
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aabha-banner-'+$('fmt').value+'.jpg';a.click();
+const blobOf=(c,type,q)=>new Promise(r=>c.toBlob(r,type,q));
+function save(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+async function download(png){
+  const b=await blobOf(cv,png?'image/png':'image/jpeg',.92);if(!b){A.toast('ছবি তৈরি হয়নি');return}
+  save(b,'aabha-banner-'+$('fmt').value+(png?'.png':'.jpg'));
+}
+function loadJSZip(){return window.JSZip?Promise.resolve():new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';s.onload=res;s.onerror=()=>rej(new Error('ZIP লাইব্রেরি লোড হয়নি'));document.head.appendChild(s)})}
+async function zipAll(){
+  const btn=$('b-zip');btn.disabled=true;
+  try{
+    A.toast('সব সাইজ বানানো হচ্ছে...');await loadJSZip();
+    const z=new JSZip(),tmp=document.createElement('canvas');
+    for(const k of Object.keys(FMT)){render(tmp,FMT[k]);const b=await blobOf(tmp,'image/jpeg',.9);z.file('aabha-'+k+'.jpg',b)}
+    const out=await z.generateAsync({type:'blob'});save(out,'aabha-banners.zip');A.toast('ZIP নামছে');
+  }catch(e){A.toast('হয়নি: '+(e.message||e))}
+  btn.disabled=false;
 }
 async function publish(){
   const f=FMT[$('fmt').value],kind=f.pub;if(!kind)return;
   if(!IMG&&!confirm('এখনো কোনো ছবি বাছা হয়নি। এভাবেই চালিয়ে যাবেন?'))return;
   const btn=$('b-pub');btn.disabled=true;
   try{
-    const b=await blob();
+    const b=await blobOf(cv,'image/jpeg',.9);
     const path='studio/'+kind+'-'+Date.now()+'.jpg';
     A.toast('আপলোড হচ্ছে...');
     const up=await sb.storage.from('banners').upload(path,b,{contentType:'image/jpeg',cacheControl:'3600'});
@@ -274,7 +600,8 @@ async function publish(){
     const title=$('t_title').value.trim()||'স্টুডিও ব্যানার';
     const row={kind,title,image_url:url,link:$('t_link').value.trim(),bg_color:$('c_bg').value,text_color:$('c_tx').value,active:true};
     if(kind==='hero'){
-      await sb.from('site_banners').update({active:false}).eq('kind','hero');
+      const d=await sb.from('site_banners').update({active:false}).eq('kind','hero');
+      if(d.error)throw d.error;
       row.position=0;
     }else{
       row.style='plain';
@@ -283,33 +610,148 @@ async function publish(){
     }
     const r=await sb.from('site_banners').insert(row);
     if(r.error)throw r.error;
-    A.toast('ওয়েবসাইটে যোগ হয়েছে, ১ মিনিটের মধ্যে দেখাবে');
+    LASTPUB=url;
+    A.toast('ওয়েবসাইটে যোগ হয়েছে। সাইট রিফ্রেশ করে দেখুন।');
+    siteCheck();
   }catch(e){
     const m=String(e.message||e);
     A.toast(/style/i.test(m)?'SQL এ style কলাম যোগ করুন (ALTER)':/relation|does not exist|bucket/i.test(m)?'Banner এর SQL Run করেছেন?':'হয়নি: '+m);
   }
   btn.disabled=false;
 }
+async function siteCheck(){
+  const box=$('chk');box.hidden=false;box.textContent='চেক হচ্ছে...';
+  const base=new URL('../',location.href).href,out=[];
+  try{
+    const r=await sb.from('site_banners').select('id,image_url,created_at').eq('kind','hero').eq('active',true).order('created_at',{ascending:false}).limit(1);
+    if(r.error)out.push('❌ ডাটাবেস পড়া যায়নি: '+r.error.message);
+    else if(r.data&&r.data.length){
+      out.push('✅ ডাটাবেসে হিরো ব্যানার সক্রিয় আছে');
+      const ok=await new Promise(res=>{const im=new Image();im.onload=()=>res(true);im.onerror=()=>res(false);im.src=r.data[0].image_url});
+      out.push(ok?'✅ ছবির লিংক খুলছে':'❌ ছবির লিংক খুলছে না (Storage বাকেট public কিনা দেখুন)');
+    }else out.push('⚠️ সক্রিয় হিরো ব্যানার নেই (এখনো "ওয়েবসাইটে দিন" চাপেননি?)');
+  }catch(e){out.push('❌ ডাটাবেস চেক হয়নি')}
+  try{
+    const js=await fetch(base+'aabha-banners.js?'+Date.now(),{cache:'no-store'});
+    if(!js.ok)out.push('❌ সাইটের মেইন ফোল্ডারে aabha-banners.js নেই (index.html এর পাশে আপলোড করুন)');
+    else{const tx=await js.text();out.push(tx.indexOf('ab-hero')>-1?'✅ সাইটের aabha-banners.js নতুন (হিরো সাপোর্ট আছে)':'❌ সাইটের aabha-banners.js পুরনো। নতুন ফাইলটা মেইন ফোল্ডারে replace করুন')}
+  }catch(e){out.push('⚠️ aabha-banners.js চেক করা যায়নি')}
+  try{
+    const ix=await fetch(base+'index.html?'+Date.now(),{cache:'no-store'});
+    if(ix.ok){const tx=await ix.text();out.push(tx.indexOf('aabha-banners.js')>-1?'✅ index.html এ aabha-banners.js লাগানো আছে':'❌ index.html এ aabha-banners.js এর script লাইন নেই')}
+  }catch(e){}
+  out.push('ℹ️ আপলোডের পর GitHub Pages এ ১-২ মিনিট লাগে, তারপর সাইটে Ctrl+Shift+R (বা ব্রাউজারের ক্যাশ ক্লিয়ার) করুন।');
+  box.textContent=out.join('\n');
+}
 
-function setTheme(i){const t=THEMES[i];$('c_bg').value=t.bg;$('c_tx').value=t.tx;$('c_ac').value=t.ac;
-  document.querySelectorAll('#themes .th').forEach((b,j)=>b.classList.toggle('on',j===i));sched()}
+/* ---------- UI helpers ---------- */
+function setTheme(i,silent){const t=THEMES[i];THEMEI=i;$('c_bg').value=t.bg;$('c_tx').value=t.tx;$('c_ac').value=t.ac;
+  document.querySelectorAll('#themes .th').forEach((b,j)=>b.classList.toggle('on',j===i));if(!silent)sched()}
 function setTpl(k){TPL=k;document.querySelectorAll('#tpls .cb').forEach(b=>b.classList.toggle('on',b.dataset.k===k));sched()}
+function setFilt(k){FILT=k;document.querySelectorAll('#filts .cb').forEach(b=>b.classList.toggle('on',b.dataset.k===k));sched()}
+function setFont(k){FONTK=k;document.querySelectorAll('#fonts .cb').forEach(b=>b.classList.toggle('on',b.dataset.k===k));loadFonts()}
+function photoTheme(dark){
+  if(!IMG){A.toast('আগে ছবি বাছুন');return}
+  const s=IMG._s||(softBg(IMG,0,0,1,1),IMG._s);
+  const d=s.getContext('2d').getImageData(0,0,s.width,s.height).data;let r=0,g=0,b=0,n=0;
+  for(let i=0;i<d.length;i+=4){const hs=rgb2hsl(d[i],d[i+1],d[i+2]),w=.3+hs[1]/100;r+=d[i]*w;g+=d[i+1]*w;b+=d[i+2]*w;n+=w}
+  const h=rgb2hsl(r/n,g/n,b/n);const H=h[0];
+  const t=dark?{bg:hsl2hex(H,38,11),tx:hsl2hex(H,25,93),ac:hsl2hex(H+8,60,66)}:{bg:hsl2hex(H,38,93),tx:hsl2hex(H,45,15),ac:hsl2hex(H,48,32)};
+  $('c_bg').value=t.bg;$('c_tx').value=t.tx;$('c_ac').value=t.ac;document.querySelectorAll('#themes .th').forEach(b=>b.classList.remove('on'));sched();
+}
+function loadImg(file,cb){const im=new Image();im.onload=()=>cb(im);im.onerror=()=>A.toast('ছবি পড়া যায়নি');im.src=URL.createObjectURL(file)}
+
+/* drag + pinch on canvas */
+const ptrs=new Map();let lastD=0;
+const pd=()=>{const a=[...ptrs.values()];return a.length<2?0:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)};
+function bump(id,d){const e=$(id);e.value=Math.max(+e.min,Math.min(+e.max,+e.value+d))}
+cv.addEventListener('pointerdown',e=>{if(!$('dragmode').checked)return;try{cv.setPointerCapture(e.pointerId)}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});lastD=pd();e.preventDefault()});
+cv.addEventListener('pointermove',e=>{
+  const p=ptrs.get(e.pointerId);if(!p)return;
+  const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
+  if(ptrs.size===1){const k=cv.width/cv.clientWidth,fl=$('p_flip').checked?-1:1;
+    bump('p_x',fl*dx*k/(LASTREG.w*.5)*100);bump('p_y',dy*k/(LASTREG.h*.5)*100)}
+  else if(ptrs.size===2){const d=pd();if(lastD&&d){const z=$('p_zoom');z.value=Math.max(+z.min,Math.min(+z.max,+z.value*d/lastD))}lastD=d}
+  sched();
+});
+['pointerup','pointercancel','pointerleave'].forEach(n=>cv.addEventListener(n,e=>{ptrs.delete(e.pointerId);lastD=pd()}));
+
+/* ---------- save / load designs ---------- */
+const SKEY='aabha_studio_designs';
+const getSaved=()=>{try{return JSON.parse(localStorage.getItem(SKEY)||'[]')}catch(e){return[]}};
+const putSaved=a=>{try{localStorage.setItem(SKEY,JSON.stringify(a))}catch(e){A.toast('এই ব্রাউজারে সেভ করা যাচ্ছে না')}};
+function getState(){const s={TPL,FILT,FONTK,THEMEI,v:{}};[].concat(TXT,NUM,SEL,COL).forEach(i=>s.v[i]=$(i).value);CHK.forEach(i=>s.v[i]=$(i).checked);return s}
+function setState(s){TPL=s.TPL||TPL;FILT=s.FILT||'none';FONTK=s.FONTK||'classic';THEMEI=s.THEMEI;
+  Object.keys(s.v||{}).forEach(i=>{const e=$(i);if(!e)return;if(e.type==='checkbox')e.checked=!!s.v[i];else e.value=s.v[i]});
+  setTpl(TPL);setFilt(FILT);setFont(FONTK);
+  document.querySelectorAll('#themes .th').forEach((b,j)=>b.classList.toggle('on',j===THEMEI));sched()}
+function showSaved(){
+  const a=getSaved();$('saved').innerHTML=a.length?a.map((d,i)=>`<div class="sv"><button class="cb" data-load="${i}">${A.esc(d.name)}</button><button class="cb sm" data-del="${i}">×</button></div>`).join(''):'<p class="sub">এখনো কিছু সেভ করা নেই।</p>';
+}
+let DEF=null;
+
+/* ---------- caption ---------- */
+function makeCap(){
+  const o=vals(),lang=$('cap_lang').value,site=new URL('../',location.href).href;
+  const bt='#'+(o.brand.replace(/[^A-Za-z0-9]/g,'')||'AABHA');
+  const tags=[bt,'#AABHA','#BangladeshFashion','#OnlineShopBD','#FashionBD'].filter((v,i,a)=>a.indexOf(v)===i).join(' ');
+  const en=!!o.pnew&&lang==='en',pr=o.pnew?(lang==='en'?`💰 Only ${o.pnew}`+(o.pold?` (was ${o.pold})`:''):`💰 মাত্র ${o.pnew}`+(o.pold?` (আগে ${o.pold})`:'')):'';
+  let t;
+  if(lang==='en')t=`✨ ${o.title}\n${o.sub}\n\n${pr?pr+'\n':''}🚚 Cash on delivery all over Bangladesh\n🛍️ Order now: ${site}\n\n${tags}`;
+  else if(lang==='mix')t=`✨ ${o.title}\n${o.sub}\n\n${pr?pr+'\n':''}🚚 সারা বাংলাদেশে Cash on Delivery\n📲 Order করুন: ${site}\n\n${tags}`;
+  else t=`✨ ${o.title}\n${o.sub}\n\n${pr?pr+'\n':''}🚚 সারা বাংলাদেশে ক্যাশ অন ডেলিভারি\n📲 অর্ডার করতে মেসেজ করুন বা ওয়েবসাইটে যান: ${site}\n\n${tags}`;
+  if(o.note)t=t.replace('\n\n#','\n⏰ '+o.note+'\n\n#');
+  $('cap').value=t;
+}
 
 Admin.boot({key:'bstudio',title:'Banner Studio',perm:'products',ready:async()=>{
+  const tb=document.querySelector('.topbar');
+  if(tb){const ps=getComputedStyle(tb).position;document.documentElement.style.setProperty('--tb',(ps==='sticky'||ps==='fixed')?tb.offsetHeight+'px':'0px')}
   $('tpls').innerHTML=Object.keys(TPLN).map(k=>`<button class="cb${k===TPL?' on':''}" data-k="${k}">${TPLN[k]}</button>`).join('');
-  $('themes').innerHTML=THEMES.map((t,i)=>`<button class="th" data-i="${i}"><i style="background:${t.bg}"></i><i style="background:${t.ac}"></i>${t.n}</button>`).join('');
+  $('themes').innerHTML=THEMES.map((t,i)=>`<button class="th" data-i="${i}"><span class="sw"><i style="background:${t.bg}"></i><i style="background:${t.ac}"></i><i style="background:${t.tx}"></i></span>${t.n}</button>`).join('')
+    +'<button class="th" id="pt_l"><span class="sw"><i style="background:linear-gradient(90deg,#f6e9df,#cfae98)"></i></span>ছবি থেকে (হালকা)</button><button class="th" id="pt_d"><span class="sw"><i style="background:linear-gradient(90deg,#2a1a1a,#b98a7a)"></i></span>ছবি থেকে (গাঢ়)</button>';
   $('fmt').innerHTML=Object.keys(FMT).map(k=>`<option value="${k}">${FMT[k].n}</option>`).join('');
+  $('filts').innerHTML=Object.keys(FILTS).map(k=>`<button class="cb sm${k===FILT?' on':''}" data-k="${k}">${FILTS[k][0]}</button>`).join('');
+  $('fonts').innerHTML=Object.keys(FONTS).map(k=>`<button class="cb sm${k===FONTK?' on':''}" data-k="${k}" style="font-family:${FONTS[k].f}">${FONTS[k].n}</button>`).join('');
+  $('quick').innerHTML=QUICK.map((q,i)=>`<button class="cb sm" data-q="${i}">${q[0]}</button>`).join('');
   $('tpls').onclick=e=>{const b=e.target.closest('[data-k]');if(b)setTpl(b.dataset.k)};
+  $('filts').onclick=e=>{const b=e.target.closest('[data-k]');if(b)setFilt(b.dataset.k)};
+  $('fonts').onclick=e=>{const b=e.target.closest('[data-k]');if(b)setFont(b.dataset.k)};
   $('themes').onclick=e=>{const b=e.target.closest('[data-i]');if(b)setTheme(+b.dataset.i)};
-  ['t_title','t_sub','t_btn','t_badge','t_brand','p_zoom','p_x','p_y','c_bg','c_tx','c_ac'].forEach(i=>$(i).addEventListener('input',sched));
-  $('fmt').addEventListener('change',sched);
+  $('pt_l').onclick=()=>photoTheme(false);$('pt_d').onclick=()=>photoTheme(true);
+  $('quick').onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;const q=QUICK[+b.dataset.q];['t_title','t_sub','t_btn','t_badge','t_tag'].forEach((id,i)=>$(id).value=q[i+1]);loadFonts()};
+  [].concat(TXT,NUM,COL).forEach(i=>$(i).addEventListener('input',sched));
+  TXT.forEach(i=>$(i).addEventListener('change',loadFonts));
+  SEL.concat(CHK,['guide']).forEach(i=>$(i).addEventListener('change',sched));
+  $('dragmode').addEventListener('change',e=>cv.classList.toggle('drag',e.target.checked));
   $('p_file').addEventListener('change',e=>{
     const f=e.target.files[0];if(!f)return;
-    const im=new Image();im.onload=()=>{IMG=im;$('p_name').textContent=f.name;draw()};
-    im.onerror=()=>A.toast('ছবি পড়া যায়নি');im.src=URL.createObjectURL(f);
+    loadImg(f,im=>{IMG=im;$('p_name').textContent=f.name;['p_x','p_y','p_dark'].forEach(i=>$(i).value=0);$('p_zoom').value=100;draw()});
   });
-  $('b-dl').onclick=download;$('b-pub').onclick=publish;
-  setTheme(0);fontsThen();
+  $('p2_file').addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    loadImg(f,im=>{IMG2=im;$('p2_name').textContent=f.name;draw()});
+  });
+  $('l_file').addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    loadImg(f,im=>{LOGO=im;$('l_name').textContent=f.name;$('l_clr').hidden=false;draw()});
+  });
+  $('l_clr').onclick=()=>{LOGO=null;$('l_name').textContent='লোগো নেই';$('l_clr').hidden=true;$('l_file').value='';sched()};
+  $('b-dl').onclick=()=>download(false);$('b-png').onclick=()=>download(true);$('b-zip').onclick=zipAll;
+  $('b-pub').onclick=publish;$('b-chk').onclick=siteCheck;
+  $('cap_go').onclick=makeCap;
+  $('cap_cp').onclick=()=>{const c=$('cap');if(!c.value)makeCap();c.select();try{navigator.clipboard.writeText(c.value);A.toast('কপি হয়েছে')}catch(e){document.execCommand('copy');A.toast('কপি হয়েছে')}};
+  $('sv_new').onclick=()=>{const n=prompt('ডিজাইনের নাম দিন','আমার ডিজাইন');if(!n)return;const a=getSaved();a.unshift({name:n.slice(0,30),state:getState()});putSaved(a.slice(0,12));showSaved();A.toast('সেভ হয়েছে')};
+  $('saved').onclick=e=>{
+    const l=e.target.closest('[data-load]'),d=e.target.closest('[data-del]'),a=getSaved();
+    if(l&&a[+l.dataset.load]){setState(a[+l.dataset.load].state);loadFonts()}
+    if(d){a.splice(+d.dataset.del,1);putSaved(a);showSaved()}
+  };
+  $('rs').onclick=()=>{if(DEF&&confirm('সব সেটিং আগের অবস্থায় যাবে (ছবি থাকবে)। ঠিক আছে?')){setState(DEF);loadFonts()}};
+  $('fmt').value='harch';
+  setTheme(0,true);
+  DEF=JSON.parse(JSON.stringify(getState()));
+  showSaved();loadFonts();
 }});
 </script>
 </body>
