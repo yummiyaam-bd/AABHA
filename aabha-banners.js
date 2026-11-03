@@ -143,33 +143,36 @@ function apply(rows){
   function of(k){return rows.filter(function(b){return b.kind===k})}
   hero(of('hero'));bar(of('bar'));slider(of('slider'));promo(of('promo'));popup(of('popup'));
 }
+function fetchRows(u){
+  var ctl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctl)ctl.abort()},9000);
+  var h={apikey:u.key};if(/^eyJ/.test(u.key))h.Authorization='Bearer '+u.key;
+  return fetch(u.url+'/rest/v1/site_banners?select=*&active=eq.true&order=position.asc',{headers:h,signal:ctl?ctl.signal:undefined})
+    .then(function(r){clearTimeout(t);return r.json().then(function(j){return r.ok?{data:j}:{error:{message:(j&&(j.message||j.hint))||('HTTP '+r.status),code:j&&j.code}}},function(){return{error:{message:'HTTP '+r.status}}})})
+    .catch(function(e){clearTimeout(t);return{error:{message:(e&&e.name==='AbortError')?'টাইমআউট (৯ সেকেন্ডে সাড়া নেই)':String(e)}}});
+}
 function run(list){
   var i=0;
   (function next(){
     if(i>=list.length){log('কোনো ডাটাবেসে সক্রিয় ব্যানার মেলেনি');return}
-    var u=list[i++];
-    u.c.from('site_banners').select('*').eq('active',true).order('position',{ascending:true}).then(function(r){
+    var u=list[i++];log(u.n+': ব্যানার চাওয়া হচ্ছে...');
+    fetchRows(u).then(function(r){
       if(r.error){log(u.n+': ERROR '+r.error.message+(r.error.code?' ('+r.error.code+')':''));return next()}
       var rows=live(r.data||[]),k={};rows.forEach(function(b){k[b.kind]=(k[b.kind]||0)+1});
       log(u.n+': '+rows.length+' ব্যানার '+JSON.stringify(k));
       if(!rows.length)return next();
       apply(rows);
-    },function(e){log(u.n+': নেটওয়ার্ক সমস্যা '+e);next()});
+    });
   })();
 }
 
 function start(){
   log('স্ক্রিপ্ট চালু হয়েছে');
-  var C=window.AABHA_CONFIG||{},lib=window.supabase,cand=[];
-  log('config.js: '+(C.SUPABASE_URL?'আছে':'নেই')+' | supabase লাইব্রেরি: '+(lib&&lib.createClient?'আছে':'নেই')+' | #hph: '+(document.getElementById('hph')?'আছে':'নেই'));
-  if(C.SUPABASE_URL&&C.SUPABASE_ANON_KEY)cand.push({n:'config.js প্রজেক্ট',url:C.SUPABASE_URL,key:C.SUPABASE_ANON_KEY});
+  var C=window.AABHA_CONFIG||{},cand=[];
+  log('config.js: '+(C.SUPABASE_URL?'আছে':'নেই')+' | #hph: '+(document.getElementById('hph')?'আছে':'নেই'));
+  if(C.SUPABASE_URL&&C.SUPABASE_ANON_KEY)cand.push({n:'config.js প্রজেক্ট',url:String(C.SUPABASE_URL).replace(/\/+$/,''),key:C.SUPABASE_ANON_KEY});
   if(!cand.length||cand[0].url!==SB_URL)cand.push({n:'অ্যাডমিন প্রজেক্ট',url:SB_URL,key:SB_KEY});
-  function go(L){run(cand.map(function(x){return{n:x.n+' ('+x.url.replace(/^https?:\/\//,'').split('.')[0]+')',c:L.createClient(x.url,x.key)}}))}
-  if(lib&&lib.createClient){go(lib);return}
-  var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-  s.onload=function(){go(window.supabase)};
-  s.onerror=function(){log('supabase লাইব্রেরি লোড হয়নি')};
-  document.head.appendChild(s);
+  cand.forEach(function(x){x.n+=' ('+x.url.replace(/^https?:\/\//,'').split('.')[0]+')'});
+  run(cand);
 }
 window.addEventListener('error',function(e){log('JS ERROR: '+e.message+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')')});
 function safeStart(){try{start()}catch(e){log('start ERROR: '+e.message)}}
