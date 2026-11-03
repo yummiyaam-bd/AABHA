@@ -136,7 +136,7 @@ function popup(list){
 }
 
 var LOG=[];
-function log(m){LOG.push(m);if(!/[?&]abdebug/.test(location.search))return;var d=document.getElementById('ab-dbg');if(!d){d=document.createElement('div');d.id='ab-dbg';d.style.cssText='position:fixed;left:6px;right:6px;bottom:6px;z-index:99999;background:rgba(0,0,0,.85);color:#9f9;font:11px/1.45 monospace;padding:8px;border-radius:8px;max-height:42vh;overflow:auto;white-space:pre-wrap';document.body.appendChild(d)}d.textContent='aabha-banners v3\n'+LOG.join('\n')}
+function log(m){LOG.push(m);if(!/[?&]abdebug/.test(location.search))return;var d=document.getElementById('ab-dbg');if(!d){d=document.createElement('div');d.id='ab-dbg';d.style.cssText='position:fixed;left:6px;right:6px;bottom:6px;z-index:99999;background:rgba(0,0,0,.85);color:#9f9;font:11px/1.45 monospace;padding:8px;border-radius:8px;max-height:42vh;overflow:auto;white-space:pre-wrap';document.body.appendChild(d)}d.textContent='aabha-banners v4\n'+LOG.join('\n')}
 function live(rows){var n=Date.now();return rows.filter(function(b){var s=b.starts_at?Date.parse(b.starts_at):0,e=b.ends_at?Date.parse(b.ends_at):Infinity;return !(s>n||e<n)})}
 function apply(rows){
   css();
@@ -150,10 +150,16 @@ function fetchRows(u){
     .then(function(r){clearTimeout(t);return r.json().then(function(j){return r.ok?{data:j}:{error:{message:(j&&(j.message||j.hint))||('HTTP '+r.status),code:j&&j.code}}},function(){return{error:{message:'HTTP '+r.status}}})})
     .catch(function(e){clearTimeout(t);return{error:{message:(e&&e.name==='AbortError')?'টাইমআউট (৯ সেকেন্ডে সাড়া নেই)':String(e)}}});
 }
+function staticHero(){
+  var im=new Image();
+  im.onload=function(){log('hero-banner.jpg পাওয়া গেছে, বসানো হচ্ছে');css();hero([{image_url:'hero-banner.jpg',title:'AABHA'}])};
+  im.onerror=function(){log('hero-banner.jpg নেই')};
+  im.src='hero-banner.jpg?'+Math.floor(Date.now()/600000);
+}
 function run(list){
   var i=0;
   (function next(){
-    if(i>=list.length){log('কোনো ডাটাবেসে সক্রিয় ব্যানার মেলেনি');return}
+    if(i>=list.length){log('ডাটাবেসে হিরো মেলেনি, hero-banner.jpg ফাইল খোঁজা হচ্ছে...');staticHero();return}
     var u=list[i++];log(u.n+': ব্যানার চাওয়া হচ্ছে...');
     fetchRows(u).then(function(r){
       if(r.error){log(u.n+': ERROR '+r.error.message+(r.error.code?' ('+r.error.code+')':''));return next()}
@@ -161,6 +167,7 @@ function run(list){
       log(u.n+': '+rows.length+' ব্যানার '+JSON.stringify(k));
       if(!rows.length)return next();
       apply(rows);
+      if(!rows.some(function(b){return b.kind==='hero'}))staticHero();
     });
   })();
 }
