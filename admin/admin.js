@@ -1,4 +1,10 @@
 (function(){
+/* ---- থিমের রং ও এমবেড মোড (লগইনের আগেই) ---- */
+try{
+  if(/[?&]embed=1/.test(location.search))document.documentElement.classList.add('embed');
+  var _ac=JSON.parse(localStorage.getItem('aabha_ac')||'null');
+  if(_ac&&_ac.ac){var _s=document.documentElement.style;_s.setProperty('--ac',_ac.ac);_s.setProperty('--acrgb',_ac.acrgb);_s.setProperty('--ac2',_ac.ac2);_s.setProperty('--ac2rgb',_ac.ac2rgb)}
+}catch(e){}
 const SB_URL="https://xjwuozdfuflfoqiuucik.supabase.co";
 const SB_KEY="sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
 const sb=supabase.createClient(SB_URL,SB_KEY);
@@ -40,6 +46,7 @@ const SPRITE='<svg width="0" height="0" style="position:absolute" aria-hidden="t
 +'<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>'
 +'<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/></symbol>'
 +'<symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z"/><circle cx="12" cy="13" r="3.5"/></symbol>'
++'<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>'
  +'</svg>';
 
 /* [key, নাম, icon, ফাইল, দরকারি অনুমতি] */
@@ -59,12 +66,14 @@ const NAV=[
  ['desc','Description','edit','desc.html','products'],
  ['studio','Photo Studio','camera','studio.html','products'],
  ['crm','CRM','users','crm.html','orders'],
- ['account','My Account','user','account.html',null],
- ['staff','Staff','users','staff.html','admin']];
+ ['settings','Settings','gear','settings.html',null]];
 
 A.boot=async function(o){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){location.replace('login.html');return}
+  /* টু-ফ্যাক্টর চালু থাকলে কোড ছাড়া ঢোকা যাবে না */
+  try{const m=await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+    if(m.data&&m.data.nextLevel==='aal2'&&m.data.currentLevel!=='aal2'){location.replace('login.html?mfa=1');return}}catch(e){}
   const perms=['orders','products','expenses','reports'];
   const rs=await Promise.all([sb.rpc('is_staff'),sb.rpc('is_admin')].concat(perms.map(p=>sb.rpc('has_perm',{p:p}))));
   if(rs[0].error||rs[0].data!==true){await sb.auth.signOut();alert('আপনার অনুমতি নেই!');location.replace('login.html');return}
@@ -93,6 +102,15 @@ A.boot=async function(o){
   document.body.appendChild(main);
   document.body.insertAdjacentHTML('beforeend','<div class="toast" id="toast"></div>');
   $('content').appendChild($('page'));
+
+  /* নিষ্ক্রিয় থাকলে অটো লগআউট (Settings থেকে সময় ঠিক করা যায়) */
+  try{
+    var _im=localStorage.getItem('aabha_idle');_im=_im===null?60:+_im;
+    if(_im>0&&!document.documentElement.classList.contains('embed')){
+      var _t,_ms=_im*60000,_out=function(){sb.auth.signOut().then(function(){location.replace('login.html?idle=1')})},_rs=function(){clearTimeout(_t);_t=setTimeout(_out,_ms)};
+      ['click','keydown','touchstart','scroll','mousemove'].forEach(function(e){addEventListener(e,_rs,{passive:true})});_rs();
+    }
+  }catch(e){}
 
   $('mb').onclick=()=>document.body.classList.toggle('menu');
   $('scrim').onclick=()=>document.body.classList.remove('menu');
