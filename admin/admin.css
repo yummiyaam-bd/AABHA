@@ -155,3 +155,9 @@ tbody tr{transition:background .2s}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 @media print{.sidebar,.topbar,.btn,.acts,.toast{display:none!important}.main{margin:0}body{background:#fff}}
+
+/* ---- Settings এ ভেতরে বসানো পেজ (iframe) ---- */
+html.embed .sidebar,html.embed .topbar,html.embed .scrim{display:none!important}
+html.embed .main{margin:0}
+html.embed .content{padding:4px 2px 20px;max-width:none}
+html.embed body{background:transparent}
