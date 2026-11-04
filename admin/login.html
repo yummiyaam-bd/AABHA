@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#e8edea">
 <meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>AABHA | Admin Login</title>
 <link rel="stylesheet" href="admin.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -50,6 +52,7 @@ h1{margin:0 0 4px;font:500 1.6rem/1.2 var(--serif);letter-spacing:-.01em}
     <div class="fld"><label for="em">ইমেইল</label><input class="in" id="em" type="email" inputmode="email" autocomplete="username" placeholder="admin@example.com" required></div>
     <div class="fld" id="pw"><label for="ps">পাসওয়ার্ড</label><input class="in" id="ps" type="password" autocomplete="current-password" placeholder="আপনার পাসওয়ার্ড" required>
       <button type="button" class="eye" id="ey" aria-label="পাসওয়ার্ড দেখান"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+    <div class="fld" id="mf" hidden><label for="mc">অথেনটিকেটর অ্যাপের ৬ ডিজিট কোড</label><input class="in" id="mc" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" style="letter-spacing:.3em;text-align:center"></div>
     <button class="btn go" id="b" type="submit"><span id="bt">প্রবেশ করুন</span></button>
     <button class="lnk" id="fg" type="button">পাসওয়ার্ড ভুলে গেছেন?</button>
     <button class="lnk" id="bk" type="button" hidden>← লগইনে ফিরুন</button>
@@ -62,13 +65,14 @@ const sb=supabase.createClient("https://xjwuozdfuflfoqiuucik.supabase.co","sb_pu
 const $=id=>document.getElementById(id);
 let mode='login';
 function say(t,ok){const m=$('m');m.className='msg '+(t?(ok?'ok':'err'):'');m.textContent=t||''}
-function busy(on){$('b').disabled=on;$('bt').innerHTML=on?'<span class="sp"></span>':(mode==='login'?'প্রবেশ করুন':'লিংক পাঠান')}
+function busy(on){$('b').disabled=on;$('bt').innerHTML=on?'<span class="sp"></span>':(mode==='login'?'প্রবেশ করুন':mode==='mfa'?'কোড যাচাই করুন':'লিংক পাঠান')}
 function setMode(m){
   mode=m;say('');
   $('pw').hidden=m!=='login';$('ps').required=m==='login';
-  $('h').textContent=m==='login'?'স্বাগতম':'পাসওয়ার্ড রিসেট';
-  $('ld').textContent=m==='login'?'অ্যাডমিন প্যানেলে ঢুকতে লগইন করুন।':'আপনার ইমেইল দিন, নতুন পাসওয়ার্ড বানানোর লিংক পাঠাব।';
-  $('fg').hidden=m!=='login';$('bk').hidden=m==='login';busy(false);
+  $('mf').hidden=m!=='mfa';$('em').closest('.fld').hidden=m==='mfa';$('em').required=m!=='mfa';
+  $('h').textContent=m==='login'?'স্বাগতম':m==='mfa'?'দ্বিতীয় ধাপ':'পাসওয়ার্ড রিসেট';
+  $('ld').textContent=m==='login'?'অ্যাডমিন প্যানেলে ঢুকতে লগইন করুন।':m==='mfa'?'আপনার ফোনের অথেনটিকেটর অ্যাপ খুলে ৬ ডিজিট কোড দিন।':'আপনার ইমেইল দিন, নতুন পাসওয়ার্ড বানানোর লিংক পাঠাব।';
+  $('fg').hidden=m!=='login';$('bk').hidden=m==='login';busy(false);if(m==='mfa')setTimeout(()=>$('mc').focus(),50);
 }
 function human(e){
   const t=String(e&&e.message||e);
@@ -79,23 +83,56 @@ function human(e){
   return'লগইন হয়নি: '+t;
 }
 $('ey').onclick=()=>{const p=$('ps');p.type=p.type==='password'?'text':'password'};
-$('fg').onclick=()=>setMode('reset');$('bk').onclick=()=>setMode('login');
+$('fg').onclick=()=>setMode('reset');
+$('bk').onclick=async()=>{if(mode==='mfa'){await sb.auth.signOut()}setMode('login')};
+/* ব্রুট-ফোর্স ঠেকানো: ৫ বার ভুল হলে ৫ মিনিট, তারপর প্রতিবার দ্বিগুণ (এই ব্রাউজারে) */
+const LK='aabha_lock';
+function lk(){try{return JSON.parse(localStorage.getItem(LK)||'{}')}catch(e){return{}}}
+function lkSet(o){try{localStorage.setItem(LK,JSON.stringify(o))}catch(e){}}
+function locked(){const l=lk();return l.until&&l.until>Date.now()?Math.ceil((l.until-Date.now())/60000):0}
+function fail(){const l=lk();l.n=(l.n||0)+1;if(l.n>=5){const k=Math.min(6,Math.floor(l.n/5));l.until=Date.now()+5*60000*Math.pow(2,k-1)}lkSet(l);return l}
+function clearLock(){try{localStorage.removeItem(LK)}catch(e){}}
+async function slog(event,detail,email){try{await sb.from('security_events').insert({event,detail:detail||null,email:email||null,ua:navigator.userAgent.slice(0,200)})}catch(e){}}
+async function needMfa(){try{const m=await sb.auth.mfa.getAuthenticatorAssuranceLevel();return !!(m.data&&m.data.nextLevel==='aal2'&&m.data.currentLevel!=='aal2')}catch(e){return false}}
+async function finish(email,viaMfa){
+  const st=await sb.rpc('is_staff');
+  if(st.error||st.data!==true){await sb.auth.signOut();say('এই অ্যাকাউন্টে অ্যাডমিন অনুমতি নেই।');setMode('login');return}
+  clearLock();await slog(viaMfa?'mfa_ok':'login',null,email);location.replace('index.html');
+}
 $('f').addEventListener('submit',async e=>{
-  e.preventDefault();say('');const email=$('em').value.trim();if(!email)return;busy(true);
+  e.preventDefault();say('');
+  if(mode==='mfa'){
+    const code=$('mc').value.trim();if(!/^\d{6}$/.test(code))return say('৬ ডিজিটের কোড দিন।');
+    busy(true);
+    try{
+      const lf=await sb.auth.mfa.listFactors();const f=lf.data&&(lf.data.totp||[])[0];if(!f)throw new Error('2FA পাওয়া যায়নি');
+      const v=await sb.auth.mfa.challengeAndVerify({factorId:f.id,code});
+      if(v.error){const l=fail();say(locked()?'অনেকবার ভুল হয়েছে। '+locked()+' মিনিট পরে চেষ্টা করুন।':'কোড মেলেনি, আবার দিন।');busy(false);return}
+      const u=await sb.auth.getUser();await finish(u.data&&u.data.user&&u.data.user.email,true);
+    }catch(err){say(human(err));busy(false)}
+    return;
+  }
+  const email=$('em').value.trim();if(!email)return;
+  const lm=locked();if(lm&&mode==='login')return say('অনেকবার ভুল হয়েছে। নিরাপত্তার জন্য '+lm+' মিনিট পরে চেষ্টা করুন।');
+  busy(true);
   try{
     if(mode==='reset'){
-      const r=await sb.auth.resetPasswordForEmail(email,{redirectTo:new URL('account.html?reset=1',location.href).href});
+      const r=await sb.auth.resetPasswordForEmail(email,{redirectTo:new URL('settings.html?reset=1',location.href).href});
       if(r.error)throw r.error;
       say('ইমেইলে লিংক পাঠানো হয়েছে। ইনবক্স (আর স্প্যাম) দেখুন।',true);busy(false);return;
     }
     const r=await sb.auth.signInWithPassword({email,password:$('ps').value});
-    if(r.error)throw r.error;
-    const st=await sb.rpc('is_staff');
-    if(st.error||st.data!==true){await sb.auth.signOut();say('এই অ্যাকাউন্টে অ্যাডমিন অনুমতি নেই।');busy(false);return}
-    location.replace('index.html');
-  }catch(err){say(human(err));busy(false)}
+    if(r.error){fail();throw r.error}
+    if(await needMfa()){setMode('mfa');return}
+    await finish(email,false);
+  }catch(err){const lm2=locked();say(lm2?'অনেকবার ভুল হয়েছে। '+lm2+' মিনিট পরে চেষ্টা করুন।':human(err));busy(false)}
 });
-sb.auth.getSession().then(r=>{if(r.data&&r.data.session)location.replace('index.html')});
+sb.auth.getSession().then(async r=>{
+  if(!(r.data&&r.data.session))return;
+  if(await needMfa()){setMode('mfa');return}
+  location.replace('index.html');
+});
+if(/[?&]idle=1/.test(location.search))say('নিরাপত্তার জন্য নিষ্ক্রিয় থাকায় লগআউট করা হয়েছে। আবার লগইন করুন।',true);
 </script>
 </body>
 </html>
