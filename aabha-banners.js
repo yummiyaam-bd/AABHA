@@ -157,7 +157,7 @@ function popup(list){
 }
 
 var LOG=[];
-function log(m){LOG.push(m);if(!/[?&]abdebug/.test(location.search))return;var d=document.getElementById('ab-dbg');if(!d){d=document.createElement('div');d.id='ab-dbg';d.style.cssText='position:fixed;left:6px;right:6px;bottom:6px;z-index:99999;background:rgba(0,0,0,.85);color:#9f9;font:11px/1.45 monospace;padding:8px;border-radius:8px;max-height:42vh;overflow:auto;white-space:pre-wrap';document.body.appendChild(d)}d.textContent='aabha-banners v4\n'+LOG.join('\n')}
+function log(m){LOG.push(m);if(!/[?&]abdebug/.test(location.search))return;var d=document.getElementById('ab-dbg');if(!d){d=document.createElement('div');d.id='ab-dbg';d.style.cssText='position:fixed;left:6px;right:6px;bottom:6px;z-index:99999;background:rgba(0,0,0,.85);color:#9f9;font:11px/1.45 monospace;padding:8px;border-radius:8px;max-height:42vh;overflow:auto;white-space:pre-wrap';document.body.appendChild(d)}d.textContent='aabha-banners v5\n'+LOG.join('\n')}
 function live(rows){var n=Date.now();return rows.filter(function(b){var s=b.starts_at?Date.parse(b.starts_at):0,e=b.ends_at?Date.parse(b.ends_at):Infinity;return !(s>n||e<n)})}
 function apply(rows){
   css();
@@ -205,4 +205,39 @@ function start(){
 window.addEventListener('error',function(e){log('JS ERROR: '+e.message+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')')});
 function safeStart(){try{start()}catch(e){log('start ERROR: '+e.message)}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',safeStart);else safeStart();
+
+/* ---- প্রোডাক্টের দাম/তথ্য লাইভ সিঙ্ক + ডিবাগ ---- */
+function sig(){try{return D.map(function(x){return [x.id,x.n,x.p,x.o,x.tg,x.cat].join('~')}).join('|')}catch(e){return ''}}
+function syncProducts(){
+  try{
+    if(typeof loadData!=='function'||typeof D==='undefined'||typeof DB==='undefined'||!DB)return;
+    var before=sig();
+    loadData().then(function(){if(sig()!==before&&typeof go==='function')go()}).catch(function(){});
+  }catch(e){}
+}
+function productCheck(){
+  var C=window.AABHA_CONFIG||{},urls=[];
+  if(C.SUPABASE_URL)urls.push([String(C.SUPABASE_URL).replace(/\/+$/,''),C.SUPABASE_ANON_KEY,'সাইটের config.js']);
+  if(!urls.length||urls[0][0]!==SB_URL)urls.push([SB_URL,SB_KEY,'অ্যাডমিন']);
+  if(urls.length>1)log('⚠️ সাইট আর অ্যাডমিন আলাদা Supabase প্রজেক্ট ব্যবহার করছে! তাই অ্যাডমিনে দাম বদলালে সাইটে আসে না।');
+  urls.forEach(function(u){
+    fetch(u[0]+'/rest/v1/products?select=id,name,price,old_price,active&order=id&limit=200',{cache:'no-store',headers:{apikey:u[1],Authorization:'Bearer '+u[1]}})
+      .then(function(r){return r.json().then(function(j){return[r.status,j]})})
+      .then(function(x){
+        if(x[0]!==200){log('products ['+u[2]+']: ত্রুটি '+x[0]+' '+JSON.stringify(x[1]).slice(0,140));return}
+        var act=x[1].filter(function(p){return p.active!==false});
+        log('products ['+u[2]+']: মোট '+x[1].length+'টা, চালু '+act.length+'টা');
+        var shown={};try{D.forEach(function(d){if(d.id!=null)shown[d.id]=d})}catch(e){}
+        var bad=act.filter(function(p){var d=shown[p.id];return d&&(+d.p!==+p.price)});
+        var miss=act.filter(function(p){return !shown[p.id]});
+        try{log('সাইট এখন দেখাচ্ছে: '+(D.some(function(d){return d.id!=null})?'ডাটাবেসের প্রোডাক্ট':'⚠️ বিল্ট-ইন (ডাটাবেস থেকে আসেনি)'))}catch(e){}
+        if(bad.length)log('দাম মিলছে না: '+bad.slice(0,5).map(function(p){return p.name+' ডিবি=৳'+p.price+' সাইট=৳'+shown[p.id].p}).join(', '));
+        if(miss.length)log('সাইটে নেই কিন্তু ডিবিতে চালু: '+miss.slice(0,5).map(function(p){return p.name}).join(', '));
+        if(!bad.length&&!miss.length&&Object.keys(shown).length)log('✅ সাইট আর ডাটাবেস মিলছে');
+      }).catch(function(e){log('products ['+u[2]+'] fetch ERROR: '+e.message)});
+  });
+}
+if(/[?&]abdebug/.test(location.search))setTimeout(productCheck,3500);
+setInterval(function(){if(!document.hidden)syncProducts()},45000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)syncProducts()});
 })();
