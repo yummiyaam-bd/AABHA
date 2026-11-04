@@ -157,7 +157,7 @@ function popup(list){
 }
 
 var LOG=[];
-function log(m){LOG.push(m);if(!/[?&]abdebug/.test(location.search))return;var d=document.getElementById('ab-dbg');if(!d){d=document.createElement('div');d.id='ab-dbg';d.style.cssText='position:fixed;left:6px;right:6px;bottom:6px;z-index:99999;background:rgba(0,0,0,.85);color:#9f9;font:11px/1.45 monospace;padding:8px;border-radius:8px;max-height:42vh;overflow:auto;white-space:pre-wrap';document.body.appendChild(d)}d.textContent='aabha-banners v5\n'+LOG.join('\n')}
+function log(m){LOG.push(m);if(!/[?&]abdebug/.test(location.search))return;var d=document.getElementById('ab-dbg');if(!d){d=document.createElement('div');d.id='ab-dbg';d.style.cssText='position:fixed;left:6px;right:6px;bottom:6px;z-index:99999;background:rgba(0,0,0,.85);color:#9f9;font:11px/1.45 monospace;padding:8px;border-radius:8px;max-height:42vh;overflow:auto;white-space:pre-wrap';document.body.appendChild(d)}d.textContent='aabha-banners v6\n'+LOG.join('\n')}
 function live(rows){var n=Date.now();return rows.filter(function(b){var s=b.starts_at?Date.parse(b.starts_at):0,e=b.ends_at?Date.parse(b.ends_at):Infinity;return !(s>n||e<n)})}
 function apply(rows){
   css();
@@ -208,12 +208,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 /* ---- প্রোডাক্টের দাম/তথ্য লাইভ সিঙ্ক + ডিবাগ ---- */
 function sig(){try{return D.map(function(x){return [x.id,x.n,x.p,x.o,x.tg,x.cat].join('~')}).join('|')}catch(e){return ''}}
+function restGet(base,key,path){return fetch(base+'/rest/v1/'+path,{cache:'no-store',headers:{apikey:key,Authorization:'Bearer '+key}}).then(function(r){if(!r.ok)throw new Error(path.split('?')[0]+' '+r.status);return r.json()})}
 function syncProducts(){
   try{
-    if(typeof loadData!=='function'||typeof D==='undefined'||typeof DB==='undefined'||!DB)return;
-    var before=sig();
-    loadData().then(function(){if(sig()!==before&&typeof go==='function')go()}).catch(function(){});
-  }catch(e){}
+    if(typeof mk!=='function'||typeof D==='undefined'||typeof DB==='undefined'||!DB)return;
+    var C=window.AABHA_CONFIG||{},base=String(C.SUPABASE_URL||SB_URL).replace(/\/+$/,''),key=C.SUPABASE_ANON_KEY||SB_KEY;
+    var before=sig()+'|'+(typeof ORD!=='undefined'&&ORD);
+    restGet(base,key,'products?select=*&active=eq.true&order=id').then(function(rows){
+      if(!rows||!rows.length)return;
+      return Promise.all([restGet(base,key,'stock?select=product_id,size,qty').catch(function(){return null}),restGet(base,key,'bundles?select=*&active=eq.true').catch(function(){return null})]).then(function(x){
+        var nd=rows.map(mk);
+        D=nd;ORD=true;
+        if(x[0]){STK={};x[0].forEach(function(s){var k=s.product_id+'|'+s.size;STK[k]=(STK[k]||0)+s.qty})}
+        if(x[1]){BUN=x[1].map(function(b){return{n:b.name,saving:+b.saving,parts:(b.product_ids||[]).map(function(id){return D.findIndex(function(y){return y.id==id})}).filter(function(i){return i>=0})}}).filter(function(b){return b.parts.length>1})}
+        if(sig()+'|true'!==before&&typeof go==='function'){log('✅ ডাটাবেসের প্রোডাক্ট ('+rows.length+'টা) সাইটে বসানো হয়েছে');go()}
+      });
+    }).catch(function(e){log('products sync ERROR: '+e.message)});
+  }catch(e){log('sync ERROR: '+e.message)}
 }
 function productCheck(){
   var C=window.AABHA_CONFIG||{},urls=[];
@@ -237,7 +248,8 @@ function productCheck(){
       }).catch(function(e){log('products ['+u[2]+'] fetch ERROR: '+e.message)});
   });
 }
-if(/[?&]abdebug/.test(location.search))setTimeout(productCheck,3500);
+setTimeout(syncProducts,600);
+if(/[?&]abdebug/.test(location.search))setTimeout(productCheck,4500);
 setInterval(function(){if(!document.hidden)syncProducts()},45000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)syncProducts()});
 })();
