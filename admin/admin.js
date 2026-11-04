@@ -3,7 +3,9 @@
 try{
   if(/[?&]embed=1/.test(location.search))document.documentElement.classList.add('embed');
   var _ac=JSON.parse(localStorage.getItem('aabha_ac')||'null');
-  if(_ac&&_ac.ac){var _s=document.documentElement.style;_s.setProperty('--ac',_ac.ac);_s.setProperty('--acrgb',_ac.acrgb);_s.setProperty('--ac2',_ac.ac2);_s.setProperty('--ac2rgb',_ac.ac2rgb)}
+  if(_ac&&_ac.ac){var _s=document.documentElement.style;_s.setProperty('--ac',_ac.ac);_s.setProperty('--acrgb',_ac.acrgb);_s.setProperty('--ac2',_ac.ac2);_s.setProperty('--ac2rgb',_ac.ac2rgb);if(_ac.bg)_s.setProperty('--bg',_ac.bg);if(_ac.ink)_s.setProperty('--ink',_ac.ink)}
+  var _sb=JSON.parse(localStorage.getItem('aabha_sb')||'null');
+  if(_sb){for(var _k in _sb){if(/^--sb-/.test(_k))document.documentElement.style.setProperty(_k,_sb[_k])}}
 }catch(e){}
 const SB_URL="https://xjwuozdfuflfoqiuucik.supabase.co";
 const SB_KEY="sb_publishable_vyOh8uTL-GUcuPD4PevQ5w_qIbNJ8fm";
