@@ -52,7 +52,7 @@
 
 <script>
 const A=Admin, sb=A.sb, $=A.$, esc=A.esc, ic=A.ic;
-let PRODS=[], STK=[], EDIT=null;
+let PRODS=[], STK=[], EDIT=null, SAVED='';
 
 const sizesOf=()=>[...new Set($('f_sizes').value.split(',').map(s=>s.trim()).filter(Boolean))];
 function stkGrid(vals){
@@ -171,7 +171,9 @@ $('pf').onsubmit=async e=>{
   try{
     let id=EDIT;
     if(id){
-      const r=await sb.from('products').update(row).eq('id',id); if(r.error) throw r.error;
+      const r=await sb.from('products').update(row).eq('id',id).select('id,price,old_price'); if(r.error) throw r.error;
+      if(!r.data||!r.data.length) throw new Error('ডাটাবেসে কিছুই বদলায়নি (অনুমতি/RLS আটকে দিচ্ছে)। Supabase এ products টেবিলের UPDATE পলিসি দেখুন।');
+      SAVED='ডাটাবেসে এখন দাম ৳'+r.data[0].price;
     } else {
       const r=await sb.from('products').insert(row).select('id').single(); if(r.error) throw r.error;
       id=r.data.id;
@@ -192,7 +194,7 @@ $('pf').onsubmit=async e=>{
         if(r.error) throw r.error;
       }
     }
-    A.toast('সেভ হয়েছে'); closeM(); load();
+    A.toast('সেভ হয়েছে'+(SAVED?' · '+SAVED:'')); SAVED=''; closeM(); load();
   }catch(err){ A.toast('সেভ হয়নি: '+(err.message||err)); }
   btn.disabled=false;
 };
