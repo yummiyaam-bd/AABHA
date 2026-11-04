@@ -1,0 +1,5 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AABHA | Settings</title>
+<script>location.replace('settings.html'+location.search+(location.hash||'#profile'))</script>
+<noscript><meta http-equiv="refresh" content="0;url=settings.html"></noscript></head>
+<body><a href="settings.html">Settings এ যান</a></body></html>
