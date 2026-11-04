@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e8edea">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.pwnedpasswords.com; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>AABHA | Settings</title>
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin.js"></script>
+<style>
+.tabs2{display:flex;gap:6px;flex-wrap:wrap;padding:6px;margin-bottom:16px;background:var(--card);border:1px solid var(--rim);border-radius:18px;box-shadow:var(--shadow);width:fit-content;max-width:100%}
+.tabs2 button{border:0;background:transparent;color:var(--mut);font:600 13px var(--sans);padding:9px 16px;border-radius:12px;cursor:pointer;transition:.2s;white-space:nowrap}
+.tabs2 button:hover{color:var(--ink);background:rgba(255,255,255,.7)}
+.tabs2 button.on{background:var(--ink);color:#fff;box-shadow:0 6px 14px rgba(22,25,28,.2)}
+.sec{display:none}.sec.on{display:block}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px;align-items:start}
+.g3 .panel{margin:0}
+.pad{padding:18px 22px 22px}
+.fld{position:relative;margin-bottom:12px}
+.fld label,.lb{display:block;font-size:11.5px;font-weight:600;color:var(--mut);margin-bottom:6px}
+.fld .in{padding-right:44px}
+.eye{position:absolute;right:6px;bottom:6px;width:36px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--mut);cursor:pointer;display:grid;place-items:center}
+.eye:hover{color:var(--ink);background:rgba(22,40,40,.05)}
+.meter{height:6px;border-radius:6px;background:rgba(22,40,40,.08);overflow:hidden;margin:2px 0 6px}
+.meter i{display:block;height:100%;width:0;border-radius:6px;background:var(--bad);transition:.3s}
+.hint{font-size:12px;color:var(--mut);margin:0 0 12px;line-height:1.5}
+.msg{display:none;margin:0 0 12px;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.55;white-space:pre-wrap}
+.msg.err{display:block;background:rgba(224,69,90,.09);color:#b02a3f;border:1px solid rgba(224,69,90,.25)}
+.msg.ok{display:block;background:rgba(47,158,109,.1);color:#1f7a50;border:1px solid rgba(47,158,109,.25)}
+.msg.warn{display:block;background:rgba(217,138,28,.1);color:#9a5f0c;border:1px solid rgba(217,138,28,.3)}
+.who{display:flex;align-items:center;gap:14px}
+.av{width:52px;height:52px;border-radius:16px;background:var(--ink);color:#fff;display:grid;place-items:center;font:700 20px var(--serif);flex-shrink:0}
+.who b{display:block;font-size:15px;word-break:break-all}
+.bdg{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin:6px 6px 0 0;background:rgba(22,40,40,.07)}
+.bdg.ok{background:rgba(47,158,109,.13);color:#1f7a50}.bdg.ad{background:rgba(var(--ac2rgb),.13);color:var(--ac2)}
+.banner{margin-bottom:16px;padding:14px 18px;border-radius:18px;background:rgba(var(--acrgb),.12);border:1px solid rgba(var(--acrgb),.35);font-size:13.5px}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ring{--p:0;width:92px;height:92px;border-radius:50%;background:conic-gradient(var(--rc,#e0455a) calc(var(--p)*1%),rgba(22,40,40,.08) 0);display:grid;place-items:center;flex-shrink:0}
+.ring b{width:72px;height:72px;border-radius:50%;background:#fff;display:grid;place-items:center;font:600 1.4rem var(--serif)}
+.chk2{list-style:none;margin:0;padding:0;display:grid;gap:7px;font-size:13.5px;flex:1;min-width:220px}
+.chk2 li{display:flex;gap:9px;align-items:flex-start;line-height:1.45}
+.chk2 em{font-style:normal;flex-shrink:0}
+.qr{display:grid;place-items:center;padding:12px;background:#fff;border-radius:16px;border:1px solid var(--line);width:fit-content;margin:8px 0}
+.qr img{width:180px;height:180px;display:block}
+.code{font:600 13px ui-monospace,Menlo,monospace;background:rgba(22,40,40,.06);padding:8px 10px;border-radius:10px;word-break:break-all;user-select:all}
+.sqlb{position:relative;background:#16191c;color:#d9f3e4;border-radius:14px;padding:14px;font:12px/1.55 ui-monospace,Menlo,monospace;white-space:pre-wrap;max-height:260px;overflow:auto;margin:8px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lst{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px;font-size:13px}
+.lst li{padding:8px 11px;border-radius:10px;background:rgba(255,255,255,.6);border:1px solid var(--line);word-break:break-word}
+.acc{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.acc button{border:2px solid transparent;background:var(--card);border-radius:16px;padding:12px;cursor:pointer;font:600 12.5px var(--sans);color:var(--ink);box-shadow:var(--shadow)}
+.acc button.on{border-color:var(--ink)}
+.acc i{display:block;height:34px;border-radius:10px;margin-bottom:8px}
+.fr2{width:100%;border:0;background:transparent;display:block;min-height:420px;border-radius:16px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="page">
+  <div class="banner" id="rb" hidden><b>নতুন পাসওয়ার্ড সেট করুন।</b> রিসেট লিংক থেকে এসেছেন, তাই পুরনো পাসওয়ার্ড লাগবে না।</div>
+  <div class="tabs2" id="tabs"></div>
+
+  <!-- ===== প্রোফাইল ===== -->
+  <section class="sec" id="s-profile">
+    <div class="g3">
+      <div class="panel">
+        <div class="ph"><div><h2>আমার প্রোফাইল</h2><small>এই ইমেইল দিয়েই লগইন করেন</small></div></div>
+        <div class="pad">
+          <div class="who"><div class="av" id="av">A</div><div><b id="em">—</b><div class="sub" id="ls"></div></div></div>
+          <div id="bdg"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ph"><div><h2>পাসওয়ার্ড বদলান</h2><small>যতবার ইচ্ছা বদলাতে পারবেন</small></div></div>
+        <form class="pad" id="pf" autocomplete="off">
+          <div class="msg" id="pm" role="alert"></div>
+          <div class="fld" id="curw"><label for="cur">বর্তমান পাসওয়ার্ড</label><input class="in" type="password" id="cur" autocomplete="current-password"><button type="button" class="eye" data-t="cur" aria-label="দেখান">👁</button></div>
+          <div class="fld"><label for="n1">নতুন পাসওয়ার্ড</label><input class="in" type="password" id="n1" autocomplete="new-password"><button type="button" class="eye" data-t="n1" aria-label="দেখান">👁</button></div>
+          <div class="meter"><i id="mt"></i></div>
+          <p class="hint" id="mh">কমপক্ষে ১০ অক্ষর। বড়-ছোট হাতের অক্ষর, সংখ্যা আর চিহ্ন মেশান। ইন্টারনেটে ফাঁস হওয়া পাসওয়ার্ড আমরা নিজে থেকেই আটকে দেব।</p>
+          <div class="fld"><label for="n2">নতুন পাসওয়ার্ড আবার</label><input class="in" type="password" id="n2" autocomplete="new-password"></div>
+          <button class="btn" id="pb" type="submit">পাসওয়ার্ড বদলান</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="ph"><div><h2>ইমেইল বদলান</h2><small>নতুন ইমেইলে কনফার্মেশন লিংক যাবে</small></div></div>
+        <form class="pad" id="ef" autocomplete="off">
+          <div class="msg" id="mm" role="alert"></div>
+          <div class="fld"><label for="ne">নতুন ইমেইল</label><input class="in" type="email" id="ne" placeholder="new@example.com" required></div>
+          <button class="btn" id="eb" type="submit">ইমেইল বদলান</button>
+          <p class="hint" style="margin-top:10px">লিংকে ক্লিক না করা পর্যন্ত পুরনো ইমেইলই চলবে।</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== সিকিউরিটি ===== -->
+  <section class="sec" id="s-security">
+    <div class="panel">
+      <div class="ph"><div><h2>সিকিউরিটি স্কোর</h2><small>আপনার অ্যাকাউন্ট কতটা সুরক্ষিত</small></div><button class="txtbtn" id="sc-r">↻ আবার দেখুন</button></div>
+      <div class="pad"><div class="score"><div class="ring" id="ring"><b id="rv">0</b></div><ul class="chk2" id="chk"></ul></div></div>
+    </div>
+    <div class="g3">
+      <div class="panel">
+        <div class="ph"><div><h2>টু-ফ্যাক্টর (2FA)</h2><small>পাসওয়ার্ডের পরে মোবাইল অ্যাপের ৬ ডিজিট কোড</small></div><span class="bdg" id="mfa-b">বন্ধ</span></div>
+        <div class="pad" id="mfa-box"></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div><h2>অটো লগআউট</h2><small>কিছু না করে বসে থাকলে নিজে থেকে বের হয়ে যাবে</small></div></div>
+        <div class="pad">
+          <label class="lb" for="idle">এই ডিভাইসে নিষ্ক্রিয় থাকলে লগআউট</label>
+          <select class="in" id="idle"><option value="15">১৫ মিনিট</option><option value="30">৩০ মিনিট</option><option value="60">১ ঘণ্টা (ডিফল্ট)</option><option value="120">২ ঘণ্টা</option><option value="480">৮ ঘণ্টা</option><option value="0">কখনো না (নিরাপদ নয়)</option></select>
+          <p class="hint" style="margin-top:10px">ফোন বা কম্পিউটার হারিয়ে গেলে বা কেউ হাতে পেলে এটা বাঁচাবে। প্রতিটা ডিভাইসে আলাদা করে ঠিক করতে হয়।</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div><h2>সব ডিভাইস থেকে লগআউট</h2><small>সন্দেহ হলে এটা চাপুন</small></div></div>
+        <div class="pad">
+          <p class="hint">কেউ আপনার পাসওয়ার্ড জেনে গেছে মনে হলে আগে এটা চাপুন, তারপর পাসওয়ার্ড বদলান।</p>
+          <button class="btn d" id="lo2">সব ডিভাইস থেকে লগআউট</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><div><h2>লগইন ও সিকিউরিটি অ্যাক্টিভিটি</h2><small id="lg-s">সাম্প্রতিক ৩০টা ঘটনা</small></div><button class="txtbtn" id="lg-r">↻</button></div>
+      <div id="lg-box"><div class="empty">লোড হচ্ছে...</div></div>
+    </div>
+  </section>
+
+  <!-- ===== স্টাফ ===== -->
+  <section class="sec" id="s-staff">
+    <div class="panel" id="st-no" hidden><div class="empty">স্টাফ ম্যানেজ করার অনুমতি শুধু অ্যাডমিনের আছে।</div></div>
+    <div id="st-wrap" hidden><iframe class="fr2" id="stf" title="Staff" loading="lazy"></iframe></div>
+  </section>
+
+  <!-- ===== ডাটাবেস ও ব্যাকআপ ===== -->
+  <section class="sec" id="s-db">
+    <div class="panel" id="db-no" hidden><div class="empty">এই অংশ শুধু অ্যাডমিনের জন্য।</div></div>
+    <div id="db-wrap" hidden>
+      <div class="panel">
+        <div class="ph"><div><h2>সিকিউরিটি অডিট</h2><small>ডাটাবেস, কী আর সেটিং এর ঝুঁকি খুঁজে দেয়</small></div><button class="btn sm" id="au-go">▶ অডিট চালান</button></div>
+        <div class="pad" id="au-out"><p class="hint">"অডিট চালান" চাপুন। ডাটাবেসের কোন টেবিলে RLS বন্ধ, কোন নিয়ম সবাইকে লেখার সুযোগ দিচ্ছে আর সাইটের কোডে ভুল করে গোপন কী আছে কিনা, সব দেখাবে।</p></div>
+      </div>
+      <div class="g3">
+        <div class="panel">
+          <div class="ph"><div><h2>ডাটা ব্যাকআপ</h2><small>সব তথ্য একটা ফাইলে নামান</small></div></div>
+          <div class="pad">
+            <label class="lb" for="bk-t">টেবিলের নাম (কমা দিয়ে)</label>
+            <textarea class="in" id="bk-t" rows="3">orders,order_items,products,customers,expenses,site_banners,crm_notes,support_messages,mk_coupons,notifications,staff</textarea>
+            <div class="row" style="margin-top:10px"><button class="btn" id="bk-go">⬇ ব্যাকআপ নামান (JSON)</button></div>
+            <div class="msg" id="bk-m" style="margin-top:10px"></div>
+            <p class="hint">যে টেবিল পাওয়া যায় না বা অনুমতি নেই সেটা বাদ যাবে। সপ্তাহে একবার নামিয়ে নিরাপদ জায়গায় রাখুন।</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div><h2>ডাটাবেস সেটআপ (একবার)</h2><small>লগ আর অডিট চালু করতে</small></div></div>
+          <div class="pad">
+            <p class="hint">Supabase → SQL Editor এ এই কোডটা একবার Run করুন। এরপর লগইন অ্যাক্টিভিটি আর সিকিউরিটি অডিট কাজ করবে।</p>
+            <div class="row"><button class="btn sm g" id="sq-cp">📋 SQL কপি</button></div>
+            <div class="sqlb" id="sq-box"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== চেহারা ===== -->
+  <section class="sec" id="s-look">
+    <div class="panel">
+      <div class="ph"><div><h2>অ্যাডমিন প্যানেলের রং</h2><small>শুধু এই ডিভাইসে লাগবে</small></div></div>
+      <div class="pad"><div class="acc" id="acc"></div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const A=Admin,sb=A.sb,$=A.$,esc=A.esc;
+const RESET=/[?&]reset=1/.test(location.search);
+const SQL=`-- ১) লগইন ও সিকিউরিটি ঘটনার লগ
+create table if not exists security_events(
+  id bigint generated always as identity primary key,
+  user_id uuid default auth.uid(),
+  email text, event text not null, detail text, ua text,
+  created_at timestamptz default now());
+alter table security_events enable row level security;
+drop policy if exists se_ins on security_events;
+create policy se_ins on security_events for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists se_sel on security_events;
+create policy se_sel on security_events for select to authenticated using (user_id = auth.uid() or is_admin());
+
+-- ২) ডাটাবেস সিকিউরিটি অডিট (শুধু অ্যাডমিন চালাতে পারবে)
+create or replace function security_audit() returns jsonb
+language plpgsql security definer set search_path = public, pg_catalog as $$
+begin
+  if not is_admin() then raise exception 'admin only'; end if;
+  return jsonb_build_object(
+    'no_rls', (select coalesce(jsonb_agg(c.relname order by c.relname),'[]'::jsonb)
+               from pg_class c join pg_namespace n on n.oid=c.relnamespace
+               where n.nspname='public' and c.relkind='r' and not c.relrowsecurity),
+    'open_write', (select coalesce(jsonb_agg(jsonb_build_object('t',tablename,'p',policyname,'c',cmd)),'[]'::jsonb)
+               from pg_policies where schemaname='public' and cmd in ('INSERT','UPDATE','DELETE','ALL')
+               and roles && array['anon','public']::name[]),
+    'open_read', (select coalesce(jsonb_agg(jsonb_build_object('t',tablename,'p',policyname)),'[]'::jsonb)
+               from pg_policies where schemaname='public' and cmd in ('SELECT','ALL')
+               and roles && array['anon','public']::name[]));
+end $$;
+revoke all on function security_audit() from public, anon;
+grant execute on function security_audit() to authenticated;`;
+$('sq-box').textContent=SQL;
+
+function say(id,t,k){const m=$(id);m.className='msg '+(t?(k||'err'):'');m.textContent=t||''}
+function score(p){let s=0;if(p.length>=10)s++;if(p.length>=14)s++;if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;return s}
+function human(e){const t=String(e&&e.message||e);
+  if(/same.*password|different from the old/i.test(t))return'নতুন পাসওয়ার্ড আগেরটার থেকে আলাদা হতে হবে।';
+  if(/weak|least \d+ char|should be at least/i.test(t))return'পাসওয়ার্ড খুব ছোট বা দুর্বল।';
+  if(/rate|too many|seconds/i.test(t))return'অনেকবার চেষ্টা হয়েছে, একটু পরে আবার চেষ্টা করুন।';
+  if(/reauth|recent|aal2/i.test(t))return'নিরাপত্তার জন্য একবার লগআউট করে আবার লগইন করে চেষ্টা করুন।';
+  if(/not enabled|disabled|MFA/i.test(t))return'Supabase এ MFA চালু নেই: Authentication → Multi-Factor এ TOTP চালু করুন।';
+  return'হয়নি: '+t}
+async function slog(event,detail){try{await sb.from('security_events').insert({event,detail:detail||null,email:A.user.email,ua:navigator.userAgent.slice(0,200)})}catch(e){}}
+function copy(txt,ok){try{navigator.clipboard.writeText(txt).then(()=>A.toast(ok||'কপি হয়েছে'))}catch(e){A.toast('কপি করা যায়নি')}}
+async function pwned(p){ /* ফাঁস হওয়া পাসওয়ার্ডের তালিকা (k-anonymity: পুরো পাসওয়ার্ড কোথাও যায় না) */
+  try{
+    const b=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(p));
+    const h=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();
+    const r=await fetch('https://api.pwnedpasswords.com/range/'+h.slice(0,5),{headers:{'Add-Padding':'true'}});
+    if(!r.ok)return 0;const t=await r.text(),suf=h.slice(5);
+    for(const l of t.split('\n')){const [s,c]=l.trim().split(':');if(s===suf)return +c||0}return 0;
+  }catch(e){return -1}
+}
+const EV={login:'লগইন',mfa_ok:'২FA কোড দিয়ে লগইন',password_change:'পাসওয়ার্ড বদলানো',email_change:'ইমেইল বদলের অনুরোধ',mfa_on:'২FA চালু',mfa_off:'২FA বন্ধ',logout_all:'সব ডিভাইস থেকে লগআউট',backup:'ব্যাকআপ নামানো',audit:'সিকিউরিটি অডিট চালানো'};
+function dev(ua){ua=ua||'';const os=/Android/i.test(ua)?'Android':/iPhone|iPad/i.test(ua)?'iPhone/iPad':/Windows/i.test(ua)?'Windows':/Mac/i.test(ua)?'Mac':/Linux/i.test(ua)?'Linux':'?';const br=/Edg\//.test(ua)?'Edge':/Firefox/i.test(ua)?'Firefox':/Chrome/i.test(ua)?'Chrome':/Safari/i.test(ua)?'Safari':'';return os+(br?' · '+br:'')}
+
+/* ---------- ট্যাব ---------- */
+const TABS=[['profile','👤 প্রোফাইল'],['security','🔐 সিকিউরিটি'],['staff','👥 স্টাফ'],['db','🛡 ডাটাবেস ও ব্যাকআপ'],['look','🎨 চেহারা']];
+function openTab(k){
+  if(!TABS.some(t=>t[0]===k))k='profile';
+  document.querySelectorAll('.sec').forEach(s=>s.classList.toggle('on',s.id==='s-'+k));
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  try{history.replaceState(null,'','#'+k)}catch(e){}
+  if(k==='security'){secLoad()}
+  if(k==='staff')staffLoad();
+}
+/* ---------- স্টাফ (পুরনো Staff পেজ ভেতরে বসানো) ---------- */
+let stDone=false,stT=0;
+function staffLoad(){
+  if(!A.perm.admin){$('st-no').hidden=false;return}
+  $('st-wrap').hidden=false;const f=$('stf');
+  if(!stDone){stDone=true;f.src='staff.html?embed=1';
+    f.addEventListener('load',()=>{clearInterval(stT);stT=setInterval(()=>{try{const d=f.contentDocument;if(d&&d.body)f.style.height=Math.max(420,d.documentElement.scrollHeight+10)+'px'}catch(e){}},600)});}
+}
+/* ---------- সিকিউরিটি ---------- */
+let MFA=null,LOGOK=null,AUDIT=null;
+async function mfaLoad(){
+  let all=[];
+  try{const r=await sb.auth.mfa.listFactors();if(r.error)throw r.error;all=r.data.all||[];MFA=(r.data.totp||[])[0]||null}catch(e){MFA=null}
+  mfaRender(all);
+}
+function mfaRender(all){
+  const b=$('mfa-b'),box=$('mfa-box');
+  b.textContent=MFA?'চালু':'বন্ধ';b.className='bdg'+(MFA?' ok':'');
+  if(MFA){
+    box.innerHTML='<p class="hint">২FA চালু আছে। এখন থেকে লগইনের সময় অথেনটিকেটর অ্যাপের কোড লাগবে।</p><div class="msg" id="mf-m"></div><button class="btn d" id="mf-off">২FA বন্ধ করুন</button>';
+    $('mf-off').onclick=async()=>{
+      if(!confirm('২FA বন্ধ করলে অ্যাকাউন্ট কম সুরক্ষিত হবে। বন্ধ করবেন?'))return;
+      const r=await sb.auth.mfa.unenroll({factorId:MFA.id});
+      if(r.error)return say('mf-m',human(r.error));
+      slog('mfa_off');A.toast('২FA বন্ধ হয়েছে');mfaLoad();secScore();
+    };
+  }else{
+    box.innerHTML='<p class="hint">Google Authenticator, Microsoft Authenticator বা Authy ইনস্টল করুন, তারপর নিচের বাটন চেপে QR স্ক্যান করুন।</p><div class="msg" id="mf-m"></div><button class="btn" id="mf-on">২FA চালু করুন</button>';
+    $('mf-on').onclick=()=>mfaEnroll(all);
+  }
+}
+async function mfaEnroll(all){
+  const box=$('mfa-box');say('mf-m','');
+  try{
+    for(const f of (all||[]).filter(f=>f.status==='unverified'))await sb.auth.mfa.unenroll({factorId:f.id});
+    const e=await sb.auth.mfa.enroll({factorType:'totp',friendlyName:'AABHA '+Date.now()});
+    if(e.error)throw e.error;
+    const id=e.data.id,qr=e.data.totp.qr_code,sec=e.data.totp.secret;
+    box.innerHTML='<p class="hint"><b>ধাপ ১:</b> অ্যাপ দিয়ে QR স্ক্যান করুন।</p><div class="qr"><img alt="QR" src="'+esc(qr)+'"></div><p class="hint">স্ক্যান না হলে এই কোড অ্যাপে হাতে লিখুন:</p><div class="code">'+esc(sec)+'</div><p class="hint" style="margin-top:12px"><b>ধাপ ২:</b> অ্যাপে যে ৬ ডিজিট দেখাচ্ছে সেটা দিন।</p><div class="msg" id="mf-m"></div><input class="in" id="mf-c" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code"><div class="row" style="margin-top:10px"><button class="btn" id="mf-v">নিশ্চিত করুন</button><button class="btn g" id="mf-x">বাতিল</button></div>';
+    $('mf-x').onclick=async()=>{await sb.auth.mfa.unenroll({factorId:id});mfaLoad()};
+    $('mf-v').onclick=async()=>{
+      const code=$('mf-c').value.trim();if(!/^\d{6}$/.test(code))return say('mf-m','৬ ডিজিটের কোড দিন।');
+      const v=await sb.auth.mfa.challengeAndVerify({factorId:id,code});
+      if(v.error)return say('mf-m','কোড মেলেনি, আবার চেষ্টা করুন।');
+      slog('mfa_on');A.toast('২FA চালু হয়েছে');mfaLoad();secScore();
+    };
+  }catch(err){say('mf-m',human(err))}
+}
+async function logLoad(){
+  const box=$('lg-box');
+  const r=await sb.from('security_events').select('*').order('created_at',{ascending:false}).limit(30);
+  if(r.error){
+    LOGOK=false;
+    box.innerHTML='<div class="pad"><div class="msg warn" style="display:block">লগ এখনো চালু হয়নি। "ডাটাবেস ও ব্যাকআপ" ট্যাবের SQL টা Supabase এ একবার Run করুন।</div></div>';return;
+  }
+  LOGOK=true;
+  if(!r.data.length){box.innerHTML='<div class="empty">এখনো কোনো ঘটনা নেই।</div>';return}
+  box.innerHTML='<div class="tw"><table style="min-width:520px"><thead><tr><th>সময়</th><th>ঘটনা</th><th>কে</th><th>ডিভাইস</th></tr></thead><tbody>'+r.data.map(x=>'<tr><td>'+esc(A.fmtDate(x.created_at))+'</td><td>'+esc(EV[x.event]||x.event)+(x.detail?'<div class="sub">'+esc(x.detail)+'</div>':'')+'</td><td>'+esc(x.email||'')+'</td><td>'+esc(dev(x.ua))+'</td></tr>').join('')+'</tbody></table></div>';
+}
+function secScore(){
+  const u=A.user,items=[];let pts=0;
+  const add=(ok,w,good,bad)=>{items.push([ok,ok?good:bad]);if(ok)pts+=w};
+  add(!!MFA,40,'টু-ফ্যাক্টর (2FA) চালু আছে','২FA চালু নেই। এটাই সবচেয়ে জরুরি, উপরে চালু করুন');
+  add(!!u.email_confirmed_at,10,'ইমেইল কনফার্ম করা আছে','ইমেইল কনফার্ম করা নেই');
+  const im=localStorage.getItem('aabha_idle');const mins=im===null?60:+im;
+  add(mins>0&&mins<=120,15,'অটো লগআউট ঠিক আছে','অটো লগআউট ২ ঘণ্টার বেশি বা বন্ধ');
+  add(LOGOK===true,15,'সিকিউরিটি লগ চালু আছে','সিকিউরিটি লগ চালু নেই (SQL Run করুন)');
+  if(A.perm.admin)add(AUDIT&&AUDIT.no_rls&&AUDIT.no_rls.length===0,20,'সব টেবিলে RLS চালু (অডিটে দেখা)',AUDIT?'কিছু টেবিলে RLS বন্ধ। "ডাটাবেস" ট্যাবে দেখুন':'ডাটাবেস অডিট এখনো চালানো হয়নি');
+  else pts+=20;
+  pts=Math.min(100,pts);
+  const c=pts>=80?'#2f9e6d':pts>=50?'#d98a1c':'#e0455a';
+  $('ring').style.setProperty('--p',pts);$('ring').style.setProperty('--rc',c);$('rv').textContent=pts;
+  $('chk').innerHTML=items.map(i=>'<li><em>'+(i[0]?'✅':'⚠️')+'</em><span>'+esc(i[1])+'</span></li>').join('');
+}
+async function secLoad(){await Promise.all([mfaLoad(),logLoad()]);secScore()}
+
+/* ---------- ডাটাবেস অডিট ও ব্যাকআপ ---------- */
+function jwtRole(t){try{const p=JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));return p.role}catch(e){return null}}
+async function scanKeys(){
+  const files=['../config.js','../index.html','../aabha-banners.js','admin.js','login.html'],bad=[];
+  for(const f of files){
+    try{const r=await fetch(f+'?'+Date.now(),{cache:'no-store'});if(!r.ok)continue;const t=await r.text();
+      if(/sb_secret_[A-Za-z0-9_-]{10,}/.test(t))bad.push(f+' এ sb_secret কী আছে');
+      (t.match(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g)||[]).forEach(j=>{if(jwtRole(j)==='service_role')bad.push(f+' এ service_role কী আছে')});
+    }catch(e){}
+  }
+  return bad;
+}
+async function audit(){
+  const out=$('au-out'),btn=$('au-go');btn.disabled=true;out.innerHTML='<p class="hint">চেক হচ্ছে...</p>';
+  const parts=[];
+  const keys=await scanKeys();
+  parts.push(keys.length?'<div class="msg err" style="display:block"><b>🚨 জরুরি:</b> '+keys.map(esc).join('<br>')+'<br>এই কী সাথে সাথে Supabase থেকে বদলে (rotate) ফেলুন আর সাইট থেকে সরান। এটা থাকলে যে কেউ পুরো ডাটাবেস দখল করতে পারে।</div>':'<div class="msg ok" style="display:block">✅ সাইটের কোডে কোনো গোপন (service_role/secret) কী পাওয়া যায়নি।</div>');
+  const r=await sb.rpc('security_audit');
+  if(r.error){
+    AUDIT=null;
+    parts.push('<div class="msg warn" style="display:block">ডাটাবেস অডিট এখনো সেটআপ হয়নি ('+esc(r.error.message)+')। পাশের "ডাটাবেস সেটআপ" এর SQL একবার Run করে আবার চেষ্টা করুন।</div>');
+  }else{
+    AUDIT=r.data;const d=r.data;
+    parts.push(d.no_rls.length?'<div class="msg err" style="display:block"><b>❌ RLS বন্ধ আছে</b> (যে কেউ ডাটা পড়তে বা বদলাতে পারে):</div><ul class="lst">'+d.no_rls.map(t=>'<li>'+esc(t)+' <span class="sub">→ Supabase এ: alter table '+esc(t)+' enable row level security;</span></li>').join('')+'</ul>':'<div class="msg ok" style="display:block">✅ সব টেবিলে RLS চালু আছে।</div>');
+    parts.push('<p class="lb" style="margin-top:14px">যে নিয়মে লগইন ছাড়া (anon) লেখা যায়</p>'+(d.open_write.length?'<ul class="lst">'+d.open_write.map(x=>'<li><b>'+esc(x.t)+'</b> · '+esc(x.c)+' <span class="sub">'+esc(x.p)+'</span></li>').join('')+'</ul><p class="hint" style="margin-top:6px">গ্রাহক অর্ডার দিতে orders এ INSERT লাগে, সেটা ঠিক আছে। কিন্তু UPDATE/DELETE এখানে থাকলে বিপদ, দেখে নিন।</p>':'<p class="hint">নেই ✅</p>'));
+    parts.push('<p class="lb" style="margin-top:14px">যে টেবিল লগইন ছাড়া (anon) পড়া যায়</p>'+(d.open_read.length?'<ul class="lst">'+d.open_read.map(x=>'<li><b>'+esc(x.t)+'</b> <span class="sub">'+esc(x.p)+'</span></li>').join('')+'</ul><p class="hint" style="margin-top:6px">products, site_banners এর মত দোকানের পাবলিক জিনিস থাকলে ঠিক আছে। গ্রাহকের নাম/ফোন/অর্ডার এখানে থাকলে সেটা বন্ধ করুন।</p>':'<p class="hint">নেই ✅</p>'));
+    slog('audit');
+  }
+  parts.push('<p class="lb" style="margin-top:16px">Supabase ড্যাশবোর্ডে নিজে দেখে নিন</p><ul class="lst"><li>Authentication → Sign In / Providers: <b>"Allow new users to sign up" বন্ধ</b> রাখুন (শুধু আপনি স্টাফ যোগ করবেন)</li><li>Authentication → URL Configuration: Redirect URLs এ শুধু নিজের সাইটের লিংক রাখুন</li><li>Authentication → Multi-Factor: TOTP চালু আছে কিনা দেখুন</li><li>Authentication → Rate Limits ডিফল্টের চেয়ে বাড়াবেন না</li><li>Project Settings → API: <b>service_role / secret কী কখনো কাউকে বা কোনো ফাইলে দেবেন না</b></li></ul>');
+  out.innerHTML=parts.join('');btn.disabled=false;secScore();
+}
+async function backup(){
+  const btn=$('bk-go');btn.disabled=true;say('bk-m','ব্যাকআপ হচ্ছে...','warn');
+  const names=$('bk-t').value.split(',').map(s=>s.trim()).filter(s=>/^[a-z0-9_]+$/i.test(s)),data={},rep=[];
+  for(const t of names){
+    try{
+      let rows=[],from=0;
+      for(;;){const r=await sb.from(t).select('*').range(from,from+999);if(r.error)throw r.error;rows=rows.concat(r.data);if(r.data.length<1000||rows.length>=20000)break;from+=1000}
+      data[t]=rows;rep.push(t+': '+rows.length+' টা');
+    }catch(e){rep.push(t+': বাদ ('+(e.code==='42P01'?'টেবিল নেই':'অনুমতি নেই')+')')}
+  }
+  const b=new Blob([JSON.stringify({exported_at:new Date().toISOString(),by:A.user.email,data},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aabha-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();
+  say('bk-m','ব্যাকআপ নেমেছে:\n'+rep.join('\n'),'ok');slog('backup',Object.keys(data).join(','));btn.disabled=false;
+}
+/* ---------- চেহারা ---------- */
+const ACC=[['কমলা + বেগুনি (ডিফল্ট)','#f08a24','240,138,36','#7b4df0','123,77,240'],['সবুজ + নীল','#1fa37a','31,163,122','#2f6fe0','47,111,224'],['গোলাপি + বেগুনি','#e24d8f','226,77,143','#8a4df0','138,77,240'],['সোনালি + বাদামি','#c8923a','200,146,58','#8a5a2b','138,90,43'],['ইন্ডিগো + সায়ান','#4f46e5','79,70,229','#0ea5c6','14,165,198'],['লাল + কমলা','#e0455a','224,69,90','#f08a24','240,138,36']];
+function accRender(){
+  let cur=null;try{cur=JSON.parse(localStorage.getItem('aabha_ac')||'null')}catch(e){}
+  $('acc').innerHTML=ACC.map((a,i)=>'<button data-i="'+i+'" class="'+((cur?cur.ac===a[1]:i===0)?'on':'')+'"><i style="background:linear-gradient(135deg,'+a[1]+','+a[3]+')"></i>'+esc(a[0])+'</button>').join('');
+}
+
+Admin.boot({key:'settings',title:'Settings',perm:null,ready:async()=>{
+  const u=A.user;$('em').textContent=u.email;$('av').textContent=(u.email||'A')[0].toUpperCase();
+  if(u.last_sign_in_at)$('ls').textContent='শেষ লগইন: '+A.fmtDate(u.last_sign_in_at);
+  $('bdg').innerHTML=(A.perm.admin?'<span class="bdg ad">অ্যাডমিন</span>':'<span class="bdg">স্টাফ</span>')+(u.email_confirmed_at?'<span class="bdg ok">ইমেইল কনফার্মড</span>':'')+['orders:অর্ডার','products:প্রোডাক্ট','expenses:হিসাব','reports:রিপোর্ট'].filter(x=>A.perm[x.split(':')[0]]).map(x=>'<span class="bdg">'+x.split(':')[1]+'</span>').join('');
+  if(RESET){$('rb').hidden=false;$('curw').hidden=true}
+
+  const tabs=TABS.filter(t=>(t[0]!=='staff'&&t[0]!=='db')||A.perm.admin);
+  $('tabs').innerHTML=tabs.map(t=>'<button data-k="'+t[0]+'">'+t[1]+'</button>').join('');
+  $('tabs').onclick=e=>{const b=e.target.closest('button');if(b)openTab(b.dataset.k)};
+
+  document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=$(b.dataset.t);i.type=i.type==='password'?'text':'password'});
+  $('n1').addEventListener('input',()=>{
+    const s=score($('n1').value),c=['#e0455a','#e0455a','#d98a1c','#d98a1c','#2f9e6d','#2f9e6d'][s];
+    $('mt').style.width=($('n1').value?(s/5*100):0)+'%';$('mt').style.background=c;
+    $('mh').textContent=!$('n1').value?'কমপক্ষে ১০ অক্ষর। বড়-ছোট হাতের অক্ষর, সংখ্যা আর চিহ্ন মেশান। ইন্টারনেটে ফাঁস হওয়া পাসওয়ার্ড আমরা নিজে থেকেই আটকে দেব।':['খুব দুর্বল','দুর্বল','মোটামুটি','ভালো','শক্তিশালী','খুব শক্তিশালী'][s];
+  });
+  $('pf').addEventListener('submit',async e=>{
+    e.preventDefault();say('pm','');
+    const cur=$('cur').value,n1=$('n1').value,n2=$('n2').value;
+    if(!RESET&&!cur)return say('pm','বর্তমান পাসওয়ার্ড দিন।');
+    if(n1.length<10)return say('pm','নতুন পাসওয়ার্ড কমপক্ষে ১০ অক্ষরের হতে হবে।');
+    if(score(n1)<3)return say('pm','পাসওয়ার্ডে বড়-ছোট হাতের অক্ষর, সংখ্যা বা চিহ্ন মেশান।');
+    if(n1!==n2)return say('pm','দুটো নতুন পাসওয়ার্ড মিলছে না।');
+    if(!RESET&&n1===cur)return say('pm','নতুন পাসওয়ার্ড আগেরটার থেকে আলাদা দিন।');
+    const b=$('pb');b.disabled=true;
+    try{
+      const pw=await pwned(n1);
+      if(pw>0)throw new Error('এই পাসওয়ার্ড ইন্টারনেটে ফাঁস হওয়া তালিকায় '+pw.toLocaleString('en-US')+' বার পাওয়া গেছে। অন্য একটা দিন।');
+      if(!RESET){const v=await sb.auth.signInWithPassword({email:A.user.email,password:cur});if(v.error)throw new Error('বর্তমান পাসওয়ার্ড ভুল হয়েছে।')}
+      const r=await sb.auth.updateUser({password:n1});if(r.error)throw r.error;
+      say('pm','পাসওয়ার্ড বদলানো হয়েছে। এখন থেকে নতুন পাসওয়ার্ড দিয়ে লগইন করবেন।'+(pw<0?'\n(ফাঁস হওয়া তালিকা চেক করা যায়নি, ইন্টারনেট সমস্যা)':''),'ok');
+      ['cur','n1','n2'].forEach(i=>$(i).value='');$('mt').style.width='0';A.toast('পাসওয়ার্ড বদলানো হয়েছে');slog('password_change');
+    }catch(err){say('pm',err.message&&/[ঀ-৿]/.test(err.message)?err.message:human(err))}
+    b.disabled=false;
+  });
+  $('ef').addEventListener('submit',async e=>{
+    e.preventDefault();say('mm','');const ne=$('ne').value.trim();
+    if(!ne||ne.toLowerCase()===String(A.user.email).toLowerCase())return say('mm','নতুন একটা ইমেইল দিন।');
+    const b=$('eb');b.disabled=true;
+    try{
+      const r=await sb.auth.updateUser({email:ne},{emailRedirectTo:location.href.split('?')[0].split('#')[0]});if(r.error)throw r.error;
+      say('mm','কনফার্মেশন লিংক পাঠানো হয়েছে। ইমেইল চেক করে লিংকে ক্লিক করুন (পুরনো ও নতুন দুই ইমেইলেই আসতে পারে)।','ok');slog('email_change',ne);
+    }catch(err){say('mm',human(err))}
+    b.disabled=false;
+  });
+
+  const im=localStorage.getItem('aabha_idle');$('idle').value=im===null?'60':im;if($('idle').value!==(im===null?'60':im))$('idle').value='60';
+  $('idle').onchange=()=>{try{localStorage.setItem('aabha_idle',$('idle').value)}catch(e){}A.toast('সেভ হয়েছে। পরের পেজ থেকে কাজ করবে');secScore()};
+  $('lo2').onclick=async()=>{
+    if(!confirm('সব ডিভাইস থেকে লগআউট হবে, এই ডিভাইসসহ। ঠিক আছে?'))return;
+    await slog('logout_all');await sb.auth.signOut({scope:'global'});location.replace('login.html');
+  };
+  $('sc-r').onclick=secLoad;$('lg-r').onclick=logLoad;
+  $('au-go').onclick=audit;$('bk-go').onclick=backup;$('sq-cp').onclick=()=>copy(SQL,'SQL কপি হয়েছে');
+  $('acc').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;const a=ACC[+b.dataset.i];
+    try{localStorage.setItem('aabha_ac',JSON.stringify({ac:a[1],acrgb:a[2],ac2:a[3],ac2rgb:a[4]}))}catch(x){}
+    const s=document.documentElement.style;s.setProperty('--ac',a[1]);s.setProperty('--acrgb',a[2]);s.setProperty('--ac2',a[3]);s.setProperty('--ac2rgb',a[4]);accRender();A.toast('রং বদলেছে')};
+  accRender();
+
+  if(!A.perm.admin){$('s-staff').remove();$('s-db').remove()}else{$('db-wrap').hidden=false}
+  openTab(RESET?'profile':(location.hash||'#profile').slice(1));
+}});
+</script>
+</body>
+</html>
