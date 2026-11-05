@@ -17,6 +17,34 @@
 .bkh{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
 .bkb{height:6px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden}
 .bkb i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+
+/* ---------- premium look ---------- */
+.stat{position:relative;overflow:hidden;isolation:isolate}
+.stat::after{content:"";position:absolute;right:-40px;top:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,var(--gc,rgba(123,77,240,.22)),transparent 70%);z-index:-1;pointer-events:none}
+.cards .stat:nth-child(1){--gc:rgba(240,138,36,.28)}
+.cards .stat:nth-child(2){--gc:rgba(123,77,240,.26)}
+.cards .stat:nth-child(3){--gc:rgba(59,130,246,.24)}
+.cards .stat:nth-child(4){--gc:rgba(20,184,166,.26)}
+.cards .stat:nth-child(5){--gc:rgba(224,69,90,.22)}
+.cards .stat:nth-child(6){--gc:rgba(226,77,143,.26)}
+.stat b{padding-right:8px;background:linear-gradient(115deg,#16191c 20%,#7b4df0 120%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bk .bkb{height:8px}
+.bk:nth-child(6n+1) .bkb i{background:linear-gradient(90deg,#f08a24,#e24d8f)}
+.bk:nth-child(6n+2) .bkb i{background:linear-gradient(90deg,#7b4df0,#3b82f6)}
+.bk:nth-child(6n+3) .bkb i{background:linear-gradient(90deg,#14b8a6,#22c55e)}
+.bk:nth-child(6n+4) .bkb i{background:linear-gradient(90deg,#f5b041,#ef4444)}
+.bk:nth-child(6n+5) .bkb i{background:linear-gradient(90deg,#e24d8f,#7b4df0)}
+.bk:nth-child(6n+6) .bkb i{background:linear-gradient(90deg,#3b82f6,#14b8a6)}
+.bkb i{box-shadow:0 0 12px rgba(123,77,240,.25)}
+.mbar{height:7px;border-radius:7px;background:rgba(22,40,40,.08);overflow:hidden;margin-top:10px}
+.mbar i{display:block;height:100%;width:0;border-radius:7px;background:linear-gradient(90deg,#14b8a6,#22c55e);transition:width 1s cubic-bezier(.2,.9,.3,1.1)}
+.live{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2f9e6d;margin-left:10px;vertical-align:middle;animation:lv 1.8s infinite}
+@keyframes lv{0%{box-shadow:0 0 0 0 rgba(47,158,109,.55)}70%{box-shadow:0 0 0 9px rgba(47,158,109,0)}100%{box-shadow:0 0 0 0 rgba(47,158,109,0)}}
+#top{counter-reset:r}
+#top tr{counter-increment:r}
+#top tr td:first-child b::before{content:counter(r)".  ";color:var(--ac);font-weight:800}
+.best{display:flex;align-items:center;gap:12px;margin:-6px 4px 18px;padding:12px 16px;border-radius:18px;background:linear-gradient(120deg,rgba(240,138,36,.16),rgba(123,77,240,.14));border:1px solid rgba(123,77,240,.22);font-size:13.5px;font-weight:600}
+.best:empty{display:none}
 </style>
 </head>
 <body>
@@ -41,6 +69,7 @@
     <div class="stat"><div class="top"><label>অন্যান্য খরচ</label><div class="ic"><svg class="i"><use href="#i-wallet"/></svg></div></div><b id="k_exp">৳0</b></div>
     <div class="stat"><div class="top"><label>নিট লাভ</label><div class="ic"><svg class="i"><use href="#i-tag"/></svg></div></div><b id="k_net">৳0</b></div>
   </section>
+  <div class="best" id="best"></div>
   <p class="sub" id="warn" style="margin:-6px 4px 18px"></p>
 
   <section class="grid2">
@@ -112,7 +141,10 @@ async function load(){
     /* দিন অনুযায়ী */
     const days=[]; for(let d=new Date(from);d<to;d.setDate(d.getDate()+1)) days.push(new Date(d));
     const sums=days.map(d=>{const k=d.toDateString();return LIST.filter(o=>new Date(o.created_at).toDateString()===k).reduce((a,o)=>a+Number(o.total||0),0)});
-    drawChart(days.map(d=>d.getDate()+'/'+(d.getMonth()+1)),sums);
+    const LBL=days.map(d=>d.getDate()+'/'+(d.getMonth()+1));
+    drawChart(LBL,sums);
+    const bi=sums.indexOf(Math.max(...sums));
+    $('best').innerHTML=sums[bi]>0?'🏆 সেরা দিন: <b>'+esc(LBL[bi])+'</b> · '+A.money(sums[bi])+' বিক্রি':'';
 
     /* পেমেন্ট */
     const pm={}; LIST.forEach(o=>{const k=String(o.payment||'Cash');pm[k]=pm[k]||{n:0,t:0};pm[k].n++;pm[k].t+=Number(o.total||0)});
@@ -132,6 +164,12 @@ async function load(){
   }
 }
 
+const BAR_P=[['#f08a24','#e24d8f'],['#7b4df0','#3b82f6'],['#14b8a6','#22c55e'],['#f5b041','#ef4444'],['#e24d8f','#7b4df0'],['#3b82f6','#14b8a6'],['#ef4444','#f5b041']];
+function barFill(ctx){
+  const c=ctx.chart,a=c.chartArea;if(!a)return '#7b4df0';
+  const p=BAR_P[ctx.dataIndex%BAR_P.length],g=c.ctx.createLinearGradient(0,a.bottom,0,a.top);
+  g.addColorStop(0,p[0]);g.addColorStop(1,p[1]);return g;
+}
 function drawChart(labels,sums){
   if(typeof Chart==='undefined') return;
   Chart.defaults.color=css('--mut');
@@ -141,7 +179,7 @@ function drawChart(labels,sums){
   const g=ctx.createLinearGradient(0,0,0,260);
   g.addColorStop(0,`rgba(${rgb},.95)`); g.addColorStop(1,`rgba(${rgb},.12)`);
   chart=new Chart(ctx,{type:'bar',
-    data:{labels:labels,datasets:[{data:sums,backgroundColor:g,borderRadius:6,maxBarThickness:28}]},
+    data:{labels:labels,datasets:[{data:sums,backgroundColor:barFill,borderRadius:8,maxBarThickness:30,hoverBackgroundColor:'#16191c'}]},
     options:{maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{backgroundColor:css('--card2'),borderColor:'rgba(255,255,255,.12)',borderWidth:1,padding:10,titleColor:css('--ink'),bodyColor:css('--ink'),displayColors:false,callbacks:{label:c=>'৳'+c.parsed.y.toLocaleString('en-US')}}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:10}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'},border:{display:false},ticks:{maxTicksLimit:5}}}}});
