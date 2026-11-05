@@ -374,13 +374,173 @@ const LOOKS={
  t49:{n:'মাল্টি ড্রপ',bg:'pink',v:{cn:'#0f4c5c',cp:'#0f4c5c',bs:'cardL',tpos:'bottom',tal:'left',fn:'poppins',fs:105,frm:'none',brp:'tr',fpr:'pastel'},dec:['dots']},
  t50:{n:'ফাইনাল সেল',bg:'color',bc:'#0f172a',v:{cn:'#ffffff',cp:'#fde68a',bs:'bar',tpos:'center',tal:'center',fn:'poppins',fs:140,fc:125,olw:5,olc:'#fb7185',tls:2,frm:'glow',brc:'#fb7185',brp:'bc',tt:'LAST CHANCE',tdisc:false,tcol:'#fb7185'},dec:['spark']}
 };
+/* ---------- লেআউট টেমপ্লেট (ছবির মতো বিন্যাস, লেখা নিজের জায়গায়) ---------- */
+let LAYOUT=null;
+const LAYS={};
+const wrapLay=(g,txt,maxW)=>{if(!maxW)return[txt];const out=[];let cur='';txt.split(/\s+/).filter(Boolean).forEach(w=>{const t=cur?cur+' '+w:w;if(cur&&g.measureText(t).width>maxW){out.push(cur);cur=w}else cur=t});if(cur)out.push(cur);return out.length?out:['']};
+function layShapes(g,W,H,z){
+  if(!LAYOUT)return;const S=W/1080;
+  LAYOUT.shapes.forEach((s,i)=>{
+    if((s.z||0)!==z)return;
+    const x=s.x*W,y=s.y*H,w=(s.w||0)*W,h=(s.h||0)*H;
+    g.save();g.globalAlpha=s.al==null?1:s.al;if(s.op)g.globalCompositeOperation=s.op;
+    g.translate(x,y);if(s.rot)g.rotate(s.rot*Math.PI/180);
+    if(s.k==='rect'){g.fillStyle=s.c;g.fillRect(-w/2,-h/2,w,h)}
+    else if(s.k==='rr'){g.fillStyle=s.c;rr(g,-w/2,-h/2,w,h,s.r*S);g.fill()}
+    else if(s.k==='circle'){g.fillStyle=s.c;g.beginPath();g.arc(0,0,s.r*W,0,Math.PI*2);g.fill()}
+    else if(s.k==='frame'){g.strokeStyle=s.c;g.lineWidth=s.lw*S;g.strokeRect(-w/2,-h/2,w,h)}
+    else if(s.k==='beam'){const l=g.createLinearGradient(-w/2,0,w/2,0);l.addColorStop(0,'rgba(0,0,0,0)');l.addColorStop(.5,s.c);l.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=l;g.fillRect(-w/2,-h/2,w,h)}
+    else if(s.k==='torn'){
+      const rnd=n=>{const v=Math.sin((i*97+n)*12.9898)*43758.5453;return v-Math.floor(v)};
+      const poly=(pw,ph,amp,seed)=>{const r=n=>{const v=Math.sin((seed+n)*12.9898)*43758.5453;return v-Math.floor(v)};const P=[],N=18;
+        for(let k=0;k<=N;k++)P.push([-pw/2+pw*k/N,-ph/2+(r(k)-.5)*amp]);
+        for(let k=0;k<=N;k++)P.push([pw/2+(r(k+30)-.5)*amp,-ph/2+ph*k/N]);
+        for(let k=0;k<=N;k++)P.push([pw/2-pw*k/N,ph/2+(r(k+60)-.5)*amp]);
+        for(let k=0;k<=N;k++)P.push([-pw/2+(r(k+90)-.5)*amp,ph/2-ph*k/N]);return P};
+      const draw=(P,c)=>{g.fillStyle=c;g.beginPath();P.forEach((p,k)=>k?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();g.fill()};
+      draw(poly(w,h,(s.amp||24)*S,i*31+7),s.c);
+      if(s.c2)draw(poly(w*.62,h*.62,(s.amp||24)*S*.8,i*17+3),s.c2);
+    }
+    g.restore();
+  });
+}
+function layTexts(g,W,H,z){
+  if(!LAYOUT)return;const S=W/1080;
+  LAYOUT.items.forEach(it=>{
+    if((it.z==null?1:it.z)!==z)return;
+    let t=it.src?($(it.src)?$(it.src).value.trim():''):(it.txt||'');
+    if(it.src&&!t)t=it.fb||'';
+    if(it.src==='tp'&&t)t='৳'+t;
+    if(it.src==='to'&&t)t='৳'+t;
+    if(!t)return;
+    if(it.caps)t=t.toUpperCase();
+    const px=it.s*W, fam=(FONTS[it.f]||FONTS.poppins).fam;
+    g.save();
+    g.font=(it.w||600)+' '+px+'px '+fam;g.textBaseline='top';
+    setLS(g,(it.ls||0)*W);
+    const maxW=it.mw?it.mw*W:0;
+    const lines=t.split('|').map(s=>s.trim()).flatMap(p=>wrapLay(g,p,maxW));
+    const lh=px*(it.lh||1.12), bws=lines.map(l=>g.measureText(l).width), bw=Math.max(...bws), bh=lh*lines.length;
+    const x0=it.x*W, y0=it.y*H;
+    g.translate(x0,y0);if(it.rot)g.rotate(it.rot*Math.PI/180);
+    const top=it.vc?-bh/2:0;
+    if(it.pill){const pad=px*.5,ph=px*.26;const bx=it.a==='center'?-bw/2:it.a==='right'?-bw:0;
+      g.fillStyle=it.pill;rr(g,bx-pad,top-ph,bw+pad*2,bh+ph*2,(bh+ph*2)/2);g.fill()}
+    if(it.a==='center')g.textAlign='center';else g.textAlign=it.a==='right'?'right':'left';
+    if(it.op!=null)g.globalAlpha=it.op;
+    lines.forEach((l,k)=>{const yy=top+k*lh;
+      if(it.outline){g.strokeStyle=it.oc||'#000';g.lineWidth=it.outline*S;g.lineJoin='round';g.strokeText(l,0,yy)}
+      g.fillStyle=it.c;g.fillText(l,0,yy)});
+    g.restore();
+  });
+}
+function layBg(g,W,H){
+  const P=LAYOUT.pal,cs=P.bg;
+  const gr=P.radial?g.createRadialGradient(W*.5,H*.42,0,W*.5,H*.42,Math.max(W,H)*.8):g.createLinearGradient(0,0,0,H);
+  cs.forEach((c,k)=>gr.addColorStop(cs.length===1?0:k/(cs.length-1),c));
+  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  layShapes(g,W,H,0);layTexts(g,W,H,0);
+}
+const PALS=[
+ {n:'টিল',bg:['#a6eef0','#22b5bc'],ink:'#0b2f36',acc:'#0b2f36',ink2:'#ffffff',pill:'#0b2f36',pc:'#ffffff',paper:'#ffffff',dk:'#063b3f',band:'#0b2f36',card:'#ffffff'},
+ {n:'ডার্ক গোল্ড',bg:['#3a2c1e','#0d0b11'],ink:'#f5efe6',acc:'#c9a24a',ink2:'#c9a24a',pill:'#c9a24a',pc:'#0d0b11',paper:'#f5efe6',dk:'#0d0b11',band:'#c9a24a',card:'#f5efe6'},
+ {n:'ক্রিম বাদামি',bg:['#f6ecdf','#e3cfb0'],ink:'#2c1a10',acc:'#7b5139',ink2:'#7b5139',pill:'#2c1a10',pc:'#f5efe6',paper:'#7b5139',dk:'#2c1a10',band:'#7b5139',card:'#ffffff'},
+ {n:'ব্লু',bg:['#9cc4e4','#4f7fa8'],ink:'#0f2a44',acc:'#0f2a44',ink2:'#ffffff',pill:'#ffffff',pc:'#0f2a44',paper:'#ffffff',dk:'#0f2a44',band:'#0f2a44',card:'#ffffff'},
+ {n:'সবুজ',bg:['#d4e4c4','#6d8f5a'],ink:'#1b2e1b',acc:'#1b2e1b',ink2:'#f5efe6',pill:'#f5efe6',pc:'#1b2e1b',paper:'#f5efe6',dk:'#1b2e1b',band:'#1b2e1b',card:'#f5efe6'},
+ {n:'সাদা',bg:['#ffffff','#e6e6ea'],ink:'#111111',acc:'#111111',ink2:'#111111',pill:'#111111',pc:'#ffffff',paper:'#111111',dk:'#111111',band:'#111111',card:'#f2f2f4'},
+ {n:'কোরাল',bg:['#ffc2ab','#ff6f61'],ink:'#ffffff',acc:'#8c2f39',ink2:'#ffffff',pill:'#8c2f39',pc:'#ffffff',paper:'#fde68a',dk:'#8c2f39',band:'#8c2f39',card:'#ffffff'},
+ {n:'গোলাপি',bg:['#fbe3e7','#efb3be'],ink:'#5c2a2a',acc:'#c97b87',ink2:'#ffffff',pill:'#c97b87',pc:'#ffffff',paper:'#ffffff',dk:'#5c2a2a',band:'#c97b87',card:'#ffffff'},
+ {n:'নেভি',bg:['#22355e','#05080f'],radial:true,ink:'#ffffff',acc:'#38bdf8',ink2:'#38bdf8',pill:'#38bdf8',pc:'#05080f',paper:'#38bdf8',dk:'#05080f',band:'#38bdf8',card:'#ffffff'},
+ {n:'গ্রে',bg:['#e7e8eb','#9aa0aa'],ink:'#1e2833',acc:'#1e2833',ink2:'#1e2833',pill:'#1e2833',pc:'#ffffff',paper:'#1e2833',dk:'#1e2833',band:'#1e2833',card:'#ffffff'}
+];
+const A_edit=p=>({prod:{x:.5,y:.6,h:.5},shapes:[],items:[
+ {src:'tn',fb:'Comfort Looks Good',x:.5,y:.12,s:.092,f:'cormorant',w:600,c:p.ink,a:'center',mw:.8,lh:1},
+ {src:'ts',fb:'SOFTER / WARMER / EVERYDAY',x:.5,y:.34,s:.026,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.012},
+ {src:'tc',fb:'SHOP NOW →',x:.5,y:.855,s:.024,f:'poppins',w:600,c:p.pc,a:'center',caps:true,ls:.01,pill:p.pill},
+ {txt:'AABHA.STORE',x:.5,y:.94,s:.016,f:'poppins',w:500,c:p.ink,a:'center',ls:.01},
+ {src:'tt',fb:'',x:.08,y:.06,s:.024,f:'poppins',w:600,c:p.pc,a:'left',caps:true,pill:p.pill}
+]});
+const A_big=p=>({prod:{x:.5,y:.56,h:.62},shapes:[],items:[
+ {src:'tn',fb:'POLO',x:.06,y:.04,s:.22,f:'poppins',w:800,c:p.acc,a:'left',caps:true,lh:.86,mw:.85,z:0},
+ {txt:'MEN · WOMEN · NEW',x:.5,y:.9,s:.022,f:'poppins',w:500,c:p.ink,a:'center',ls:.03},
+ {src:'ts',fb:'Sizes S — XXL',x:.5,y:.95,s:.024,f:'poppins',w:600,c:p.ink,a:'center'}
+]});
+const A_torn=p=>({prod:{x:.5,y:.44,h:.46},shapes:[{k:'torn',x:.5,y:.44,w:.8,h:.52,c:p.paper,c2:p.dk,amp:26,z:0}],items:[
+ {src:'tn',fb:'NEW ARRIVAL',x:.5,y:.75,s:.06,f:'poppins',w:800,c:p.ink,a:'center',caps:true,mw:.85},
+ {src:'ts',fb:'Premium cotton fabric',x:.5,y:.92,s:.026,f:'poppins',w:500,c:p.ink,a:'center'}
+]});
+const A_spot=p=>({prod:{x:.5,y:.66,h:.44},shapes:[{k:'beam',x:.5,y:.42,w:.22,h:.8,c:'rgba(255,240,210,.9)',op:'screen',z:0}],items:[
+ {src:'tn',fb:'PREMIUM COLLECTION',x:.5,y:.07,s:.05,f:'cormorant',w:600,c:p.ink,a:'center',caps:true,ls:.05,mw:.85,lh:1.05},
+ {src:'ts',fb:'Limited Edition',x:.5,y:.21,s:.026,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.04},
+ {src:'tc',fb:'SHOP NOW',x:.5,y:.9,s:.026,f:'poppins',w:600,c:p.ink,a:'center',caps:true,ls:.02}
+]});
+const A_split=p=>({prod:{x:.5,y:.55,h:.46},shapes:[{k:'rect',x:.5,y:.84,w:1.02,h:.32,c:p.band,z:0}],items:[
+ {src:'tn',fb:'PUREWHITE',x:.5,y:.06,s:.085,f:'poppins',w:800,c:p.ink,a:'center',caps:true,ls:.02,mw:.9},
+ {src:'ts',fb:'ESSENTIALS',x:.5,y:.2,s:.03,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.02},
+ {src:'tc',fb:'Both the high quality and the comfort make you ready for every occasion.',x:.5,y:.8,s:.028,f:'poppins',w:500,c:p.pc,a:'center',mw:.8,lh:1.4}
+]});
+const A_frame=p=>({prod:{x:.5,y:.56,h:.5},shapes:[{k:'frame',x:.5,y:.5,w:.88,h:.94,lw:6,c:p.acc,z:0},{k:'frame',x:.5,y:.5,w:.84,h:.9,lw:1.5,c:p.acc,z:0}],items:[
+ {src:'tn',fb:'THE GOLD EDIT',x:.5,y:.09,s:.075,f:'cormorant',w:700,c:p.ink,a:'center',caps:true,ls:.04,mw:.8,lh:1},
+ {src:'ts',fb:'Timeless · Handcrafted',x:.5,y:.25,s:.026,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'tc',fb:'DISCOVER →',x:.5,y:.88,s:.026,f:'poppins',w:600,c:p.ink,a:'center',caps:true,ls:.03}
+]});
+const A_coll=p=>({prod:{x:.5,y:.6,h:.5},shapes:[],items:[
+ {src:'tn',fb:'BLACK NOVEMBER',x:.5,y:.03,s:.034,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.04},
+ {src:'tt',fb:'60% OFF',x:.5,y:.07,s:.17,f:'poppins',w:800,c:p.ink,a:'center',caps:true,lh:.9,mw:.95},
+ {src:'ts',fb:'20–60% OFF | + 15% cashback',x:.5,y:.88,s:.03,f:'poppins',w:600,c:p.ink,a:'center'},
+ {src:'tc',fb:'SHOP NOW',x:.5,y:.95,s:.02,f:'poppins',w:600,c:p.ink,a:'center',caps:true,ls:.02}
+]});
+const A_vert=p=>({prod:{x:.38,y:.55,h:.5},shapes:[{k:'rect',x:.86,y:.5,w:.28,h:1.02,c:p.acc,z:0}],items:[
+ {src:'tn',fb:'NEW DROP',x:.86,y:.5,s:.13,f:'poppins',w:800,c:p.ink2,a:'center',caps:true,rot:-90,vc:true,mw:.7,lh:.95,z:0},
+ {src:'ts',fb:'Minimal · Modern',x:.06,y:.9,s:.028,f:'poppins',w:500,c:p.ink,a:'left',caps:true,ls:.02},
+ {src:'tc',fb:'SHOP NOW',x:.86,y:.9,s:.024,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const A_hang=p=>({prod:{x:.5,y:.6,h:.56},shapes:[],items:[
+ {src:'tn',fb:'NEW COLLECTION',x:.5,y:.05,s:.075,f:'poppins',w:800,c:p.ink,a:'center',caps:true,ls:.02,mw:.9},
+ {src:'ts',fb:'KNITTED POLO · AVAILABLE NOW',x:.5,y:.17,s:.026,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.04},
+ {src:'tc',fb:'SHOP NOW →',x:.5,y:.92,s:.026,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const A_spec=p=>({prod:{x:.36,y:.58,h:.6},shapes:[{k:'rr',x:.8,y:.56,w:.34,h:.64,r:34,c:p.card,z:0}],items:[
+ {src:'tn',fb:'SWEATSHIRT',x:.07,y:.07,s:.075,f:'poppins',w:800,c:p.ink,a:'left',caps:true,ls:.01,mw:.6,lh:1},
+ {src:'ts',fb:'Cotton ribbed knit cuff',x:.07,y:.25,s:.028,f:'poppins',w:500,c:p.ink,a:'left',mw:.5},
+ {src:'tt',fb:'SIZE XS – 2XL',x:.8,y:.3,s:.03,f:'poppins',w:600,c:p.ink,a:'center',caps:true,ls:.02},
+ {txt:'75% COTTON | 25% POLYESTER',x:.8,y:.5,s:.024,f:'poppins',w:500,c:p.ink,a:'center',mw:.28,lh:1.4},
+ {src:'tc',fb:'ORDER NOW',x:.8,y:.82,s:.026,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const A_out=p=>({prod:{x:.5,y:.44,h:.5},shapes:[],items:[
+ {src:'tn',fb:'BLAZE',x:.5,y:.7,s:.17,f:'poppins',w:500,c:'transparent',oc:p.ink,outline:4,a:'center',caps:true,mw:.85,lh:.92,z:1},
+ {src:'ts',fb:'Sold out soon',x:.07,y:.06,s:.03,f:'poppins',w:500,c:p.ink,a:'left',caps:true,ls:.02},
+ {src:'tc',fb:'SHOP NOW',x:.5,y:.965,s:.026,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const A_sale=p=>({prod:{x:.5,y:.6,h:.5},shapes:[{k:'circle',x:.5,y:.56,r:.34,c:p.paper,al:.95,z:0}],items:[
+ {src:'tn',fb:'SPECIAL OFFER',x:.5,y:.05,s:.055,f:'poppins',w:800,c:p.ink,a:'center',caps:true,ls:.03,mw:.9},
+ {src:'tt',fb:'50% OFF',x:.5,y:.25,s:.1,f:'poppins',w:800,c:p.dk,a:'center',caps:true},
+ {src:'ts',fb:'Limited time only',x:.5,y:.93,s:.026,f:'poppins',w:600,c:p.ink,a:'center',caps:true,ls:.02}
+]});
+const ARCH=[
+ ['edit','এডিটোরিয়াল',[1,3,5,9,4],A_edit],['big','বিগ ওয়ার্ড',[6,7,8,2],A_big],
+ ['torn','টর্ন রিভিল',[4,1,7,10],A_torn],['spot','স্পটলাইট',[2,9,10,6],A_spot],
+ ['split','স্প্লিট ব্যান্ড',[6,5,3,8],A_split],['frame','গোল্ড ফ্রেম',[2,3,8,5],A_frame],
+ ['coll','সেল কোলাজ',[7,6,9,4],A_coll],['vert','ভার্টিকাল ব্যানার',[5,1,8,10,2],A_vert],
+ ['hang','হ্যাঙ্গার মিনিমাল',[6,3,10,4],A_hang],['spec','স্পেক কার্ড',[6,3,1,9],A_spec],
+ ['out','আউটলাইন ফ্লোর',[2,6,9,10],A_out],['sale','ডিসকাউন্ট সার্কেল',[7,1,8,2],A_sale]
+];
+const LAYLOOKS={};
+ARCH.forEach(([key,name,pl,fn])=>pl.forEach(pi=>{
+  const p=PALS[pi-1],id=key+'_'+pi,d=fn(p);
+  d.id=id;d.pal={bg:p.bg,radial:!!p.radial};LAYS[id]=d;
+  LAYLOOKS['lay_'+id]={n:name+' · '+p.n,bg:'white',lay:id,v:{},dec:[]};
+}));
+const ALLLOOKS=Object.assign({},LAYLOOKS,LOOKS);
+
 let DEC=new Set(), DEFAULT=null, HIST=[];
 const T=(g,s,x,y,c)=>{const w=Number($('olw').value)||0;if(w>0){g.strokeStyle=$('olc').value;g.lineWidth=w*(g.canvas.width/1080);g.lineJoin='round';g.strokeText(s,x,y)}g.fillStyle=c;g.fillText(s,x,y)};
 const star=(g,x,y,r)=>{g.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,rr=i%2?r*.3:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill()};
-function getState(){const s={};CTRL.forEach(k=>{const el=$(k);if(el)s[k]=el.type==='checkbox'?el.checked:el.value});s.bg=BG;s.dec=[...DEC];return s}
+function getState(){const s={};CTRL.forEach(k=>{const el=$(k);if(el)s[k]=el.type==='checkbox'?el.checked:el.value});s.bg=BG;s.dec=[...DEC];s.lay=LAYOUT?LAYOUT.id:'';return s}
 function setState(st){
   Object.keys(st).forEach(k=>{if(k==='bg'||k==='dec')return;const el=$(k);if(!el)return;if(el.type==='checkbox')el.checked=!!st[k];else el.value=st[k]});
   COLOR_IDS.forEach(k=>{const el=$(k);if(el)el.dispatchEvent(new Event('input'))});
+  if(st.lay!==undefined)LAYOUT=LAYS[st.lay]||null;
   if(st.bg!==undefined){BG=st.bg;markBg()}
   if(st.dec){DEC=new Set(st.dec);markDec()}
   render();
@@ -641,7 +801,7 @@ function drawTag(g,W,H){
 }
 
 function drawBrand(g,W,H){
-  const p=$('brp').value;if(p==='none')return;
+  const p=$('brp').value;if(p==='none'||LAYOUT)return;
   const S=W/1080, bs=Number($('brs').value)/100, col=$('brc').value, ls=8*S*bs, m=48*S, h=34*S*bs;
   g.save();
   g.font='600 '+h+'px "Playfair Display",Georgia,serif';g.fillStyle=col;g.textBaseline='top';
@@ -681,9 +841,11 @@ function render(){
     const k=Math.min(W/src.width,H/src.height),dw=src.width*k,dh=src.height*k;
     g.drawImage(src,(W-dw)/2,(H-dh)/2,dw,dh);
   }else{
-    drawBg(g,W,H);drawFx(g,W,H);
-    const k=Math.min(W/CUT.width,H/CUT.height)*scl, dw=CUT.width*k, dh=CUT.height*k;
-    const dx=(W-dw)/2+oxp, dy=H-dh+oy, fx=flip?W-dx-dw:dx;
+    if(LAYOUT)layBg(g,W,H);else drawBg(g,W,H);drawFx(g,W,H);
+    let dw,dh,dx,dy;
+    if(LAYOUT){const P=LAYOUT.prod;dh=P.h*H*scl;dw=CUT.width*dh/CUT.height;dx=P.x*W-dw/2+oxp;dy=P.y*H-dh/2+oy}
+    else{const k=Math.min(W/CUT.width,H/CUT.height)*scl;dw=CUT.width*k;dh=CUT.height*k;dx=(W-dw)/2+oxp;dy=H-dh+oy}
+    const fx=flip?W-dx-dw:dx;
     g.save();
     if(flip){g.translate(W,0);g.scale(-1,1)}
     const sh=document.createElement('canvas');sh.width=W;sh.height=H;
@@ -700,8 +862,7 @@ function render(){
 
   if(!useCut)drawFx(g,W,H);
   drawDecor(g,W,H);
-  drawTexts(g,W,H);
-  drawTag(g,W,H);
+  if(LAYOUT){layShapes(g,W,H,1);layTexts(g,W,H,1)}else{drawTexts(g,W,H);drawTag(g,W,H)}
   drawBrand(g,W,H);
   drawFrame(g,W,H);
 
@@ -792,9 +953,9 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
   mkSw('swd','dcol',PAL);
   $('dec').innerHTML=DECS.map(d=>`<button type="button" class="dec" data-d="${d[0]}">${esc(d[1])}</button>`).join('');
   $('dec').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.d;DEC.has(k)?DEC.delete(k):DEC.add(k);markDec();render()};
-  $('looks').innerHTML=Object.keys(LOOKS).map(k=>`<button type="button" data-l="${k}">${esc(LOOKS[k].n)}</button>`).join('');
-  $('looks').onclick=e=>{const b=e.target.closest('button');if(!b)return;const L=LOOKS[b.dataset.l];
-    setState({bg:L.bg,dec:L.dec,...(L.bc?{bc:L.bc}:{}),...L.v})};
+  $('looks').innerHTML=Object.keys(ALLLOOKS).map(k=>`<button type="button" data-l="${k}">${esc(ALLLOOKS[k].n)}</button>`).join('');
+  $('looks').onclick=e=>{const b=e.target.closest('button');if(!b)return;const L=ALLLOOKS[b.dataset.l];
+    setState({bg:L.bg,dec:L.dec,lay:L.lay||'',...(L.bc?{bc:L.bc}:{}),...L.v})};
   $('rst').onclick=()=>{if(DEFAULT)setState(DEFAULT)};
   DEFAULT=getState();
   let lastSnap=JSON.stringify(DEFAULT),snapT;
@@ -803,6 +964,7 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
   window.__undo=()=>{if(!HIST.length){A.toast('আর আগের অবস্থা নেই');return}const prev=HIST.pop();lastSnap=prev;setState(JSON.parse(prev));A.toast('আগের অবস্থায় ফিরেছে')};
   $('und').onclick=window.__undo;
   document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();window.__undo()}});
+  Promise.all(Object.keys(FONTS).flatMap(k=>[500,600,700,800].map(w=>document.fonts.load(w+' 40px '+FONTS[k].fam,'AABHA')))).then(()=>{if(ORIG)render()}).catch(()=>{});
   presetList();
   $('psv').onclick=()=>{const n=$('pn').value.trim()||('প্রিসেট '+(Object.keys(presetsGet()).length+1));
     const p=presetsGet();p[n]=getState();
