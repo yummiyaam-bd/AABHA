@@ -32,8 +32,6 @@ a.txtbtn{text-decoration:none;display:inline-block}
 </head>
 <body>
 <div id="page">
-  <div class="sec2" id="sec2" hidden><span>🔐 আপনার অ্যাকাউন্টে <b>টু-ফ্যাক্টর (2FA)</b> চালু নেই। <a href="settings.html#security">এখনই চালু করুন →</a></span><button type="button" id="sec2x" aria-label="বন্ধ">×</button></div>
-  <nav class="qa" id="qa"></nav>
   <section class="cards">
     <div class="stat"><div class="top"><label>Total Sales</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="total-sales">৳0</b><div class="sx" id="sx-sales"></div></div>
     <div class="stat"><div class="top"><label>Total Orders</label><div class="ic"><svg class="i"><use href="#i-bag"/></svg></div></div><b id="total-orders">0</b><div class="sx" id="sx-orders"></div></div>
@@ -256,14 +254,10 @@ function drawCharts(list,counts){
 
 Admin.boot({key:'index',title:'Dashboard',ready:async()=>{
   A.onRefresh=loadDashboardData;
-  const P=A.perm||{},Q=[['products.html','tag','নতুন প্রোডাক্ট',P.products],['stock.html','box','স্টক',P.products],['bstudio.html','edit','Banner Studio',P.products],['marketing.html','trend','Marketing',true],['finance.html','wallet','হিসাব',P.expenses],['crm.html','users','CRM',P.orders],['settings.html','gear','Settings',true]];
-  $('qa').innerHTML=Q.filter(q=>q[3]).map(q=>'<a class="qb" href="'+q[0]+'">'+ic(q[1])+q[2]+'</a>').join('');
   $('rg').onclick=e=>{const b=e.target.closest('button');if(!b)return;RANGE=b.dataset.r;
     document.querySelectorAll('#rg button').forEach(x=>x.classList.toggle('on',x===b));
     setText('rg-s',RANGE==='12'?'গত ১২ মাসের অর্ডার (৳)':RANGE==='30'?'গত ৩০ দিনের অর্ডার (৳)':'গত ৭ দিনের অর্ডার (৳)');
     drawCharts(ALL,COUNTS)};
-  try{if(!sessionStorage.getItem('aabha_2fa_x')){const f=await sb.auth.mfa.listFactors();
-    if(!f.error&&!((f.data&&f.data.totp)||[]).length){$('sec2').hidden=false;$('sec2x').onclick=()=>{$('sec2').hidden=true;try{sessionStorage.setItem('aabha_2fa_x','1')}catch(e){}}}}}catch(e){}
   await loadDashboardData();
   setInterval(loadDashboardData,30000);
 }});
