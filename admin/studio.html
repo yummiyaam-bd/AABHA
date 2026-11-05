@@ -76,6 +76,20 @@
 .gal-s{position:absolute;top:6px;right:6px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(255,255,255,.88);font-size:17px;cursor:pointer;padding:0;color:#444}
 .gal-c.fav .gal-s{color:#f59e0b}
 .gal-old{margin-top:12px}.gal-old summary{cursor:pointer;font-size:13px;color:#555}
+.ed-wrap{margin:14px 0;padding:12px;border:1px solid #e3e3e3;border-radius:16px;background:#fff}
+.ed-bar{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.ed-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:700px){.ed-grid{grid-template-columns:1fr 1fr}}
+.ed-row{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:10px;background:#f6f6f7;margin-bottom:5px;cursor:pointer}
+.ed-row.on{background:#e7f8f1;outline:1px solid #34d399}
+.ed-lbl{flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ed-ic{border:0;background:transparent;cursor:pointer;font-size:15px;padding:2px 4px}
+.ed-props label{display:block;font-size:12px;color:#555;margin:8px 0 3px}
+.ed-props input[type=text],.ed-props select{width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:14px}
+.ed-props input[type=range]{width:100%}
+.ed-props input[type=color]{width:56px;height:34px;border:0;background:none;padding:0}
+.ed-act{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
+#cv{touch-action:none}
 </style>
 </head>
 <body>
@@ -89,6 +103,11 @@
     <div class="row" id="act" style="display:none">
       <button class="dgb g" id="tg" type="button">আসল ছবি দেখুন</button>
       <button class="dgb" id="dl" type="button">Download</button>
+    </div>
+    <div id="ed-wrap" class="ed-wrap">
+      <div class="gal-h"><b>✏️ এডিট মোড</b><span class="gal-cnt">ছবির উপর লেখা/পণ্য চেপে টেনে সরান</span></div>
+      <div class="ed-bar"><button type="button" id="ed-add" class="gal-btn">+ লেখা যোগ</button><button type="button" id="ed-box" class="gal-btn">+ বক্স যোগ</button><button type="button" id="ed-reset" class="gal-btn">↺ টেমপ্লেট ফিরুন</button></div>
+      <div class="ed-grid"><div id="ed-layers" class="ed-layers"></div><div id="ed-props" class="ed-props"></div></div>
     </div>
     <div id="gal-wrap">
       <div class="gal-h"><b>✨ টেমপ্লেট গ্যালারি</b><span id="gal-n" class="gal-cnt"></span></div>
@@ -404,8 +423,10 @@ const wrapLay=(g,txt,maxW)=>{if(!maxW)return[txt];const out=[];let cur='';txt.sp
 function layShapes(g,W,H,z){
   if(!LAYOUT)return;const S=W/1080;
   LAYOUT.shapes.forEach((s,i)=>{
+    if(s.hide)return;
     if((s.z||0)!==z)return;
     const x=s.x*W,y=s.y*H,w=(s.w||0)*W,h=(s.h||0)*H;
+    if(s.w||s.r)HIT.push({t:'shape',i,b:s.w?[x-w/2,y-h/2,x+w/2,y+h/2]:[x-s.r*W,y-s.r*W,x+s.r*W,y+s.r*W]});
     g.save();g.globalAlpha=s.al==null?1:s.al;if(s.op)g.globalCompositeOperation=s.op;
     g.translate(x,y);if(s.rot)g.rotate(s.rot*Math.PI/180);
     if(s.k==='rect'){g.fillStyle=s.c;g.fillRect(-w/2,-h/2,w,h)}
@@ -438,7 +459,8 @@ function layShapes(g,W,H,z){
 }
 function layTexts(g,W,H,z){
   if(!LAYOUT)return;const S=W/1080;
-  LAYOUT.items.forEach(it=>{
+  LAYOUT.items.forEach((it,ii)=>{
+    if(it.hide)return;
     if((it.z==null?1:it.z)!==z)return;
     let t=it.src?($(it.src)?$(it.src).value.trim():''):(it.txt||'');
     if(it.src&&!t)t=it.fb||'';
@@ -456,6 +478,7 @@ function layTexts(g,W,H,z){
     const x0=it.x*W, y0=it.y*H;
     g.translate(x0,y0);if(it.rot)g.rotate(it.rot*Math.PI/180);
     const top=it.vc?-bh/2:0;
+    {const bx0=it.a==='center'?-bw/2:it.a==='right'?-bw:0;HIT.push({t:'item',i:ii,b:[x0+bx0,y0+top,x0+bx0+bw,y0+top+bh]})}
     if(it.pill){const pad=px*.5,ph=px*.26;const bx=it.a==='center'?-bw/2:it.a==='right'?-bw:0;
       g.fillStyle=it.pill;rr(g,bx-pad,top-ph,bw+pad*2,bh+ph*2,(bh+ph*2)/2);g.fill()}
     if(it.a==='center')g.textAlign='center';else g.textAlign=it.a==='right'?'right':'left';
@@ -619,6 +642,115 @@ const CAT={edit:'classy',frame:'classy',spot:'classy',hang:'classy',split:'class
 const LAYLOOKS={};
 function lumHex(h){const n=parseInt(h.slice(1),16);return(0.299*((n>>16)&255)+0.587*((n>>8)&255)+0.114*(n&255))/255}
 let THUMB=false;
+const HIT=[];
+const SHAPE_NAME={rect:'বক্স',rr:'রাউন্ড বক্স',circle:'বৃত্ত',frame:'ফ্রেম',beam:'আলো',torn:'টর্ন',glass:'কাঁচ',orb:'আলোর বল',ring:'নিয়ন রিং'};
+let SELX=null,ED=null,ED_ROWS=[];
+const cvEl=()=>$('cv');
+function ensureCustom(){if(LAYOUT&&!LAYOUT.custom){LAYOUT=JSON.parse(JSON.stringify(LAYOUT));LAYOUT.custom=true}}
+function edEl(sel){if(!LAYOUT||!sel)return null;return sel.t==='item'?LAYOUT.items[sel.i]:sel.t==='shape'?LAYOUT.shapes[sel.i]:LAYOUT.prod}
+function edPt(e){const c=cvEl(),r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height}}
+function sameSel(a,b){return !!a&&!!b&&a.t===b.t&&a.i===b.i}
+function hexOf(c){return/^#[0-9a-f]{6}/i.test(c||'')?c.slice(0,7):'#000000'}
+function edRefresh(){
+  const L=$('ed-layers'),P=$('ed-props');if(!L||!P)return;
+  if(!LAYOUT){L.innerHTML='<p class="gal-cnt">আগে উপরের গ্যালারি থেকে একটি টেমপ্লেট বাছাই করুন</p>';P.innerHTML='';ED_ROWS=[];return}
+  ED_ROWS=[{t:'prod',label:'📦 পণ্যের ছবি',hide:!!LAYOUT.noProd}];
+  LAYOUT.items.forEach((it,i)=>ED_ROWS.push({t:'item',i,label:'🔤 '+(it.src?($(it.src).value||it.fb||it.src):(it.txt||'লেখা')),hide:!!it.hide}));
+  LAYOUT.shapes.forEach((s,i)=>ED_ROWS.push({t:'shape',i,label:'▭ '+(SHAPE_NAME[s.k]||s.k),hide:!!s.hide}));
+  edList();edProps();
+}
+function edList(){
+  $('ed-layers').innerHTML=ED_ROWS.map((r,k)=>`<div class="ed-row${sameSel(r,SELX)?' on':''}" data-k="${k}"><span class="ed-lbl">${esc(r.label)}</span><button type="button" class="ed-ic" data-act="eye" title="দেখান/লুকান">${r.hide?'🚫':'👁'}</button><button type="button" class="ed-ic" data-act="del" title="মুছুন">🗑</button></div>`).join('');
+}
+function edProps(){
+  const P=$('ed-props');if(!LAYOUT){P.innerHTML='';return}
+  const el=SELX&&edEl(SELX);
+  if(!el){P.innerHTML='<p class="gal-cnt">কোনো উপাদান বাছাই নেই। ছবির উপর লেখা বা পণ্য চেপে টেনে সরান।</p>';return}
+  let h='';
+  if(SELX.t==='item'){
+    const v=el.src?$(el.src).value:(el.txt||'');
+    h+=`<label>লেখা${el.src?' (উপরের "'+el.src+'" ঘর থেকে আসছে)':''}</label><input type="text" data-f="txt" value="${esc(v)}">`;
+    h+=`<label>লেখার আকার</label><input type="range" min="2" max="60" data-f="size" value="${Math.round(el.s*200)}">`;
+    h+=`<label>রং</label><input type="color" data-f="col" value="${hexOf(el.c)}">`;
+    h+=`<label>ঘোরানো (ডিগ্রি)</label><input type="range" min="-45" max="45" data-f="rot" value="${Math.round(el.rot||0)}">`;
+    h+=`<label>সারিবদ্ধ</label><select data-f="align"><option value="left"${el.a==='left'?' selected':''}>বামে</option><option value="center"${el.a==='center'?' selected':''}>মাঝে</option><option value="right"${el.a==='right'?' selected':''}>ডানে</option></select>`;
+  }else if(SELX.t==='shape'){
+    if(el.w!=null)h+=`<label>প্রস্থ</label><input type="range" min="2" max="100" data-f="sw" value="${Math.round(el.w*100)}">`;
+    if(el.h!=null)h+=`<label>উচ্চতা</label><input type="range" min="2" max="100" data-f="sh" value="${Math.round(el.h*100)}">`;
+    if(el.c)h+=`<label>রং</label><input type="color" data-f="col" value="${hexOf(el.c)}">`;
+  }else{
+    h+=`<label>পণ্যের আকার</label><input type="range" min="10" max="100" data-f="ph" value="${Math.round(el.h*100)}">`;
+  }
+  const hidden=SELX.t==='prod'?!!LAYOUT.noProd:!!el.hide;
+  h+=`<div class="ed-act"><button type="button" class="gal-btn" data-f="hide">${hidden?'👁 দেখান':'🚫 লুকান'}</button> <button type="button" class="gal-btn" data-f="del">🗑 মুছুন</button></div>`;
+  P.innerHTML=h;
+}
+function edInput(e){
+  const f=e.target.dataset.f;if(!f||!SELX||!LAYOUT)return;
+  ensureCustom();const el=edEl(SELX),v=e.target.value;
+  if(f==='txt'){if(el.src)$(el.src).value=v;else el.txt=v}
+  else if(f==='size')el.s=+v/200;
+  else if(f==='col')el.c=v;
+  else if(f==='rot')el.rot=+v;
+  else if(f==='align')el.a=v;
+  else if(f==='sw')el.w=+v/100;
+  else if(f==='sh')el.h=+v/100;
+  else if(f==='ph')el.h=+v/100;
+  render();
+  if(f==='txt')edList();
+}
+function edClick(e){
+  const b=e.target.closest('button[data-f]');if(!b||!SELX||!LAYOUT)return;
+  ensureCustom();const f=b.dataset.f;
+  if(f==='hide'){if(SELX.t==='prod')LAYOUT.noProd=!LAYOUT.noProd;else{const el=edEl(SELX);el.hide=!el.hide}}
+  if(f==='del'){if(SELX.t==='prod')LAYOUT.noProd=true;else if(SELX.t==='item')LAYOUT.items.splice(SELX.i,1);else LAYOUT.shapes.splice(SELX.i,1);SELX=null}
+  edRefresh();render();
+}
+function edListClick(e){
+  const row=e.target.closest('.ed-row');if(!row||!LAYOUT)return;
+  const r=ED_ROWS[+row.dataset.k];if(!r)return;
+  const act=e.target.closest('[data-act]');
+  if(act){ensureCustom();
+    if(act.dataset.act==='eye'){if(r.t==='prod')LAYOUT.noProd=!LAYOUT.noProd;else{const el=edEl(r);el.hide=!el.hide}}
+    if(act.dataset.act==='del'){if(r.t==='prod')LAYOUT.noProd=true;else if(r.t==='item')LAYOUT.items.splice(r.i,1);else LAYOUT.shapes.splice(r.i,1);if(sameSel(r,SELX))SELX=null}
+    edRefresh();render();return}
+  SELX={t:r.t,i:r.i};edRefresh();
+}
+function edAdd(kind){
+  if(!LAYOUT){A.toast('আগে একটি টেমপ্লেট বাছাই করুন');return}
+  ensureCustom();const light=!!LAYOUT.lt;
+  if(kind==='text'){LAYOUT.items.push({txt:'নতুন লেখা',x:.5,y:.5,s:.05,f:'poppins',w:700,c:light?'#111111':'#ffffff',a:'center',z:1});SELX={t:'item',i:LAYOUT.items.length-1}}
+  else{LAYOUT.shapes.push({k:'rect',x:.5,y:.5,w:.4,h:.16,c:light?'#111111':'#ffffff',al:.85,z:1});SELX={t:'shape',i:LAYOUT.shapes.length-1}}
+  edRefresh();render();
+}
+function edDown(e){
+  if(!LAYOUT||e.button>0)return;
+  const p=edPt(e);let hit=null;
+  for(let k=HIT.length-1;k>=0;k--){const b=HIT[k].b;if(p.x>=b[0]&&p.x<=b[2]&&p.y>=b[1]&&p.y<=b[3]){hit=HIT[k];break}}
+  if(!hit){SELX=null;ED=null;edRefresh();return}
+  ensureCustom();
+  SELX=hit.t==='prod'?{t:'prod'}:{t:hit.t,i:hit.i};
+  const el=edEl(SELX);ED={sx:p.x,sy:p.y,ex:el.x,ey:el.y,moved:false};
+  try{cvEl().setPointerCapture(e.pointerId)}catch(_){}
+  edRefresh();
+}
+function edMove(e){
+  if(!ED||!SELX||!LAYOUT)return;
+  const p=edPt(e),c=cvEl(),el=edEl(SELX);
+  el.x=ED.ex+(p.x-ED.sx)/c.width;el.y=ED.ey+(p.y-ED.sy)/c.height;ED.moved=true;
+  requestAnimationFrame(()=>render());
+}
+function edUp(){if(ED&&ED.moved)edRefresh();ED=null}
+function edInit(){
+  const c=cvEl();if(c){c.style.touchAction='none';c.addEventListener('pointerdown',edDown)}
+  window.addEventListener('pointermove',edMove);window.addEventListener('pointerup',edUp);
+  $('ed-layers').onclick=edListClick;
+  $('ed-props').oninput=edInput;$('ed-props').onclick=edClick;
+  $('ed-add').onclick=()=>edAdd('text');$('ed-box').onclick=()=>edAdd('box');
+  $('ed-reset').onclick=()=>{if(LAYOUT){SELX=null;setState({lay:LAYOUT.id})}};
+  edRefresh();
+}
+
 const FAVK='aa_studio_favs';
 function favGet(){try{const a=JSON.parse(localStorage.getItem(FAVK)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function favSet(a){try{localStorage.setItem(FAVK,JSON.stringify(a));return true}catch(e){return false}}
@@ -678,14 +810,16 @@ const ALLLOOKS=Object.assign({},LOOKS);
 let DEC=new Set(), DEFAULT=null, HIST=[];
 const T=(g,s,x,y,c)=>{const w=Number($('olw').value)||0;if(w>0){g.strokeStyle=$('olc').value;g.lineWidth=w*(g.canvas.width/1080);g.lineJoin='round';g.strokeText(s,x,y)}g.fillStyle=c;g.fillText(s,x,y)};
 const star=(g,x,y,r)=>{g.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,rr=i%2?r*.3:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill()};
-function getState(){const s={};CTRL.forEach(k=>{const el=$(k);if(el)s[k]=el.type==='checkbox'?el.checked:el.value});s.bg=BG;s.dec=[...DEC];s.lay=LAYOUT?LAYOUT.id:'';return s}
+function getState(){const s={};CTRL.forEach(k=>{const el=$(k);if(el)s[k]=el.type==='checkbox'?el.checked:el.value});s.bg=BG;s.dec=[...DEC];s.lay=LAYOUT?LAYOUT.id:'';s.layJ=LAYOUT&&LAYOUT.custom?JSON.stringify(LAYOUT):'';return s}
 function setState(st){
   Object.keys(st).forEach(k=>{if(k==='bg'||k==='dec')return;const el=$(k);if(!el)return;if(el.type==='checkbox')el.checked=!!st[k];else el.value=st[k]});
   COLOR_IDS.forEach(k=>{const el=$(k);if(el)el.dispatchEvent(new Event('input'))});
   if(st.lay!==undefined)LAYOUT=LAYS[st.lay]||null;
+  if(st.layJ){try{LAYOUT=JSON.parse(st.layJ)}catch(e){}}
   if(st.bg!==undefined){BG=st.bg;markBg()}
   if(st.dec){DEC=new Set(st.dec);markDec()}
   render();
+  edRefresh();
 }
 function markBg(){[...$('pre').children].forEach(x=>x.classList.toggle('on',x.dataset.k===BG));$('bc').style.display=BG==='color'?'block':'none';$('sw').style.display=BG==='color'?'flex':'none';$('bi').style.display=BG==='image'?'block':'none'}
 function markDec(){[...$('dec').children].forEach(x=>x.classList.toggle('on',DEC.has(x.dataset.d)))}
@@ -969,6 +1103,7 @@ function drawFrame(g,W,H){
 /* ---------- পুরো ছবি তৈরি ---------- */
 function render(){
   if(!ORIG)return;
+  HIT.length=0;
   const W=1080*(Number($('hr').value)||1), src=ORIG.img, r=$('rt').value;
   let H;
   if(r==='orig')H=Math.round(W*src.height/src.width);
@@ -988,16 +1123,17 @@ function render(){
     if(LAYOUT){const P=LAYOUT.prod;dh=P.h*H*scl;dw=CUT.width*dh/CUT.height;dx=P.x*W-dw/2+oxp;dy=P.y*H-dh/2+oy}
     else{const k=Math.min(W/CUT.width,H/CUT.height)*scl;dw=CUT.width*k;dh=CUT.height*k;dx=(W-dw)/2+oxp;dy=H-dh+oy}
     const fx=flip?W-dx-dw:dx;
+    if(LAYOUT)HIT.push({t:'prod',b:[Math.min(fx,fx+dw),dy,Math.max(fx,fx+dw),dy+dh]});
     g.save();
     if(flip){g.translate(W,0);g.scale(-1,1)}
     const sh=document.createElement('canvas');sh.width=W;sh.height=H;
     const sg=sh.getContext('2d');
     sg.drawImage(CUT,fx,dy,dw,dh);
     sg.globalCompositeOperation='source-in';sg.fillStyle='rgba(40,25,20,1)';sg.fillRect(0,0,W,H);
-    if($('gsh').checked){g.save();if(hasF(g))g.filter='blur('+(W*.018)+'px)';g.globalAlpha=.4;g.drawImage(sh,(flip?-1:1)*W*.045,H*.008);g.restore()}
+    if($('gsh').checked){g.save();if(hasF(g))g.filter='blur('+(W*.018)+'px)';g.globalAlpha=.4;if(!(LAYOUT&&LAYOUT.noProd))g.drawImage(sh,(flip?-1:1)*W*.045,H*.008);g.restore()}
     const flt='brightness('+Number($('fb').value)/100+') contrast('+Number($('fc').value)/100+') saturate('+Number($('fs').value)/100+') sepia('+Number($('fw').value)/100+') '+(FPR[$('fpr').value]||'');
     if(hasF(g))g.filter=flt;
-    g.drawImage(CUT,fx,dy,dw,dh);
+    if(!(LAYOUT&&LAYOUT.noProd))g.drawImage(CUT,fx,dy,dw,dh);
     if(hasF(g))g.filter='none';
     g.restore();
   }
@@ -1106,7 +1242,7 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
   window.__undo=()=>{if(!HIST.length){A.toast('আর আগের অবস্থা নেই');return}const prev=HIST.pop();lastSnap=prev;setState(JSON.parse(prev));A.toast('আগের অবস্থায় ফিরেছে')};
   $('und').onclick=window.__undo;
   document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();window.__undo()}});
-  galInit();
+  galInit();edInit();
   Promise.all(Object.keys(FONTS).flatMap(k=>[500,600,700,800].map(w=>document.fonts.load(w+' 40px '+FONTS[k].fam,'AABHA')))).then(()=>{if(ORIG)render()}).catch(()=>{});
   presetList();
   $('psv').onclick=()=>{const n=$('pn').value.trim()||('প্রিসেট '+(Object.keys(presetsGet()).length+1));
