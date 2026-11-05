@@ -87,7 +87,7 @@ A.boot=async function(o){
   const vis=NAV.filter(n=>!n[4]||P[n[4]]);
   const ok=vis.map(()=>true);
   const items=vis.map((n,i)=>ok[i]
-    ?'<a href="'+n[3]+'" class="'+(n[0]===o.key?'active':'')+'">'+A.ic(n[2])+n[1]+'</a>'
+    ?'<a href="'+n[3]+'" class="'+(n[0]===o.key?'active':'')+'">'+A.ic(n[2])+n[1]+(n[0]==='settings'?'<span class="nx" title="Secure">'+'<svg viewBox="0 0 24 24"><path d="M12 2.5 13.9 9l6.6 1.1-5.2 4.2 1.7 6.6L12 16.7 6 20.9l1.7-6.6-5.2-4.2L10.1 9 12 2.5Z"/></svg></span>':'')+'</a>'
     :'<span class="soon">'+A.ic(n[2])+n[1]+'<em>Soon</em></span>').join('');
 
   document.body.insertAdjacentHTML('afterbegin',SPRITE
