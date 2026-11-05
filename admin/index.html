@@ -28,13 +28,33 @@
 .tp span.t{flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tp span.v{color:var(--mut);font-size:12px;font-weight:600}
 a.txtbtn{text-decoration:none;display:inline-block}
+
+/* ---------- premium look ---------- */
+.stat{position:relative;overflow:hidden;isolation:isolate}
+.stat::after{content:"";position:absolute;right:-40px;top:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,var(--gc,rgba(123,77,240,.22)),transparent 70%);z-index:-1;pointer-events:none}
+.cards .stat:nth-child(1){--gc:rgba(240,138,36,.28)}
+.cards .stat:nth-child(2){--gc:rgba(123,77,240,.26)}
+.cards .stat:nth-child(3){--gc:rgba(59,130,246,.24)}
+.cards .stat:nth-child(4){--gc:rgba(224,69,90,.22)}
+.cards .stat:nth-child(5){--gc:rgba(20,184,166,.26)}
+.cards .stat:nth-child(6){--gc:rgba(226,77,143,.26)}
+.stat b{padding-right:8px;background:linear-gradient(115deg,#16191c 20%,#7b4df0 120%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat.flash{animation:fl 1.2s ease-out}
+@keyframes fl{0%{box-shadow:0 0 0 0 rgba(47,158,109,.45)}100%{box-shadow:0 0 0 22px rgba(47,158,109,0)}}
+.pop{position:absolute;right:58px;top:14px;transform-origin:right center;font-weight:800;font-size:15px;color:#1f9d63;background:rgba(47,158,109,.12);border:1px solid rgba(47,158,109,.3);padding:4px 10px;border-radius:12px;animation:rise 1.8s ease-out forwards;pointer-events:none;z-index:3}
+@keyframes rise{0%{opacity:0;transform:scale(.7)}18%{opacity:1;transform:scale(1.06)}30%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(6px)}}
+.spark{display:flex;align-items:flex-end;gap:4px;height:38px;margin-top:12px}
+.spark i{flex:1;min-width:4px;border-radius:5px 5px 2px 2px;height:0;background:linear-gradient(to top,var(--s1,#f08a24),var(--s2,#e24d8f));transition:height 1s cubic-bezier(.2,.9,.3,1.25);opacity:.9}
+.spark i:last-child{box-shadow:0 0 12px var(--s2,#e24d8f)}
+.live{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2f9e6d;margin-left:10px;vertical-align:middle;animation:lv 1.8s infinite}
+@keyframes lv{0%{box-shadow:0 0 0 0 rgba(47,158,109,.55)}70%{box-shadow:0 0 0 9px rgba(47,158,109,0)}100%{box-shadow:0 0 0 0 rgba(47,158,109,0)}}
 </style>
 </head>
 <body>
 <div id="page">
   <section class="cards">
-    <div class="stat"><div class="top"><label>Total Sales</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="total-sales">৳0</b><div class="sx" id="sx-sales"></div></div>
-    <div class="stat"><div class="top"><label>Total Orders</label><div class="ic"><svg class="i"><use href="#i-bag"/></svg></div></div><b id="total-orders">0</b><div class="sx" id="sx-orders"></div></div>
+    <div class="stat"><div class="top"><label>Total Sales</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="total-sales">৳0</b><div class="sx" id="sx-sales"></div><div class="spark" id="sp-s" style="--s1:#f08a24;--s2:#e24d8f"></div></div>
+    <div class="stat"><div class="top"><label>Total Orders</label><div class="ic"><svg class="i"><use href="#i-bag"/></svg></div></div><b id="total-orders">0</b><div class="sx" id="sx-orders"></div><div class="spark" id="sp-o" style="--s1:#7b4df0;--s2:#3b82f6"></div></div>
     <div class="stat"><div class="top"><label>Pending</label><div class="ic"><svg class="i"><use href="#i-clock"/></svg></div></div><b id="pending-orders">0</b></div>
     <div class="stat"><div class="top"><label>Low Stock</label><div class="ic"><svg class="i"><use href="#i-alert"/></svg></div></div><b id="low-stock-count">0</b></div>
     <div class="stat"><div class="top"><label>এই মাসের বিক্রি</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="month-sales">৳0</b><div class="sx" id="sx-month"></div></div>
@@ -47,7 +67,7 @@ a.txtbtn{text-decoration:none;display:inline-block}
   </section>
 
   <section class="panel" id="orders-section">
-    <div class="ph"><div><h2>অর্ডার ট্র্যাকিং</h2><small>প্রতি ৩০ সেকেন্ডে নিজে থেকে আপডেট হয়</small></div></div>
+    <div class="ph"><div><h2>অর্ডার ট্র্যাকিং<span class="live" title="লাইভ"></span></h2><small>প্রতি ৩০ সেকেন্ডে নিজে থেকে আপডেট হয়</small></div></div>
     <div class="tw"><table style="min-width:900px">
       <thead><tr><th>অর্ডার</th><th>ক্রেতা</th><th>মোট বিল</th><th>পেমেন্ট</th><th>সতর্কতা</th><th>ডেলিভারি</th><th>স্ট্যাটাস</th></tr></thead>
       <tbody id="order-table-body"><tr><td colspan="7" class="empty">ডেটা লোড হচ্ছে...</td></tr></tbody>
@@ -114,10 +134,13 @@ async function loadOrders(){
     if(o.status==='pending') pending++;
     if(counts[o.status]!==undefined) counts[o.status]++;
   });
-  setText('total-sales',A.money(totalSales));
-  setText('total-orders',list.length);
-  setText('pending-orders',pending);
+  anim('total-sales',totalSales,v=>A.money(Math.round(v)));
+  anim('total-orders',list.length,v=>String(Math.round(v)));
+  anim('pending-orders',pending,v=>String(Math.round(v)));
   ALL=list;COUNTS=counts;
+  FX(totalSales,list.length);
+  spark('sp-s',last7(list,o=>Number(o.total||0)),'#f08a24','#e24d8f');
+  spark('sp-o',last7(list,()=>1),'#7b4df0','#3b82f6');
   const now=new Date(),tk=now.toDateString(),m0=new Date(now.getFullYear(),now.getMonth(),1),p0=new Date(now.getFullYear(),now.getMonth()-1,1);
   let tS=0,tN=0,mS=0,pS=0;
   list.forEach(o=>{if(!o.created_at||o.status==='cancelled')return;const d=new Date(o.created_at);
@@ -225,6 +248,43 @@ function series(list){
   }
   return {labels,sums};
 }
+/* ---------- প্রিমিয়াম অ্যানিমেশন ---------- */
+function anim(id,to,f){
+  const el=$(id);if(!el)return;
+  const from=+(el.dataset.v||0);el.dataset.v=to;
+  const t0=performance.now(),d=900;
+  (function st(t){const k=Math.min(1,(t-t0)/d),e=1-Math.pow(1-k,3);el.innerText=f(from+(to-from)*e);if(k<1)requestAnimationFrame(st)})(t0);
+}
+function last7(list,fn){
+  const out=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const key=d.toDateString();
+    out.push(list.filter(o=>o.status!=='cancelled'&&o.created_at&&new Date(o.created_at).toDateString()===key).reduce((a,o)=>a+Number(fn(o)||0),0))}
+  return out;
+}
+function spark(id,vals,c1,c2){
+  const box=$(id);if(!box)return;const mx=Math.max(1,...vals);
+  box.innerHTML=vals.map(v=>'<i data-h="'+Math.max(8,Math.round(v/mx*100))+'"></i>').join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>box.querySelectorAll('i').forEach(i=>i.style.height=i.dataset.h+'%')));
+}
+function pop(id,txt){
+  const card=$(id)&&$(id).closest('.stat');if(!card)return;
+  card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
+  const p=document.createElement('div');p.className='pop';p.textContent=txt;card.appendChild(p);
+  setTimeout(()=>p.remove(),1900);
+}
+function FX(sales,count){
+  if(FX.ready){
+    if(sales>FX.s)pop('total-sales','+'+A.money(sales-FX.s));
+    if(count>FX.c)pop('total-orders','+'+(count-FX.c)+' নতুন');
+  }
+  FX.ready=true;FX.s=sales;FX.c=count;
+}
+const BAR_P=[['#f08a24','#e24d8f'],['#7b4df0','#3b82f6'],['#14b8a6','#22c55e'],['#f5b041','#ef4444'],['#e24d8f','#7b4df0'],['#3b82f6','#14b8a6'],['#ef4444','#f5b041']];
+function barFill(ctx){
+  const c=ctx.chart,a=c.chartArea;if(!a)return '#7b4df0';
+  const p=BAR_P[ctx.dataIndex%BAR_P.length],g=c.ctx.createLinearGradient(0,a.bottom,0,a.top);
+  g.addColorStop(0,p[0]);g.addColorStop(1,p[1]);return g;
+}
 function drawCharts(list,counts){
   if(typeof Chart==='undefined') return;
   Chart.defaults.color=css('--mut');
@@ -238,11 +298,11 @@ function drawCharts(list,counts){
   const g=ctx.createLinearGradient(0,0,0,260);
   g.addColorStop(0,`rgba(${rgb},.95)`); g.addColorStop(1,`rgba(${rgb},.12)`);
   salesChart=new Chart(ctx,{type:'bar',
-    data:{labels,datasets:[{data:sums,backgroundColor:g,borderRadius:8,maxBarThickness:34}]},
+    data:{labels,datasets:[{data:sums,backgroundColor:barFill,borderRadius:10,maxBarThickness:36,hoverBackgroundColor:'#16191c'}]},
     options:{maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{...tip,displayColors:false,callbacks:{label:c=>'৳'+c.parsed.y.toLocaleString('en-US')}}},
       scales:{x:{grid:{display:false},border:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(22,40,40,.07)'},border:{display:false},ticks:{maxTicksLimit:5}}}}});
-  const palette=['#d9a85f','#8aa4d9','#a78bd9','#6fb6c4','#7fb89a','#d9778a'];
+  const palette=['#f08a24','#7b4df0','#e24d8f','#14b8a6','#3b82f6','#f5b041','#ef4444'];
   const total=STATUSES.reduce((a,s)=>a+counts[s],0);
   statusChart=new Chart($('statusChart'),{type:'doughnut',
     data: total
