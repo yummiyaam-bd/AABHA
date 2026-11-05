@@ -59,6 +59,23 @@
 .pvs{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
 .pvs button.on{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
 .dg .glass{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#gal-wrap{margin:14px 0}
+.gal-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.gal-h b{font-size:15px}.gal-cnt{font-size:12px;color:#777}
+#gal-q{flex:1;min-width:140px;padding:8px 10px;border:1px solid #d6d6d6;border-radius:10px;font-size:14px}
+.gal-btn{padding:8px 12px;border-radius:10px;border:1px solid #d6d6d6;background:#fff;cursor:pointer;font-size:13px}
+.gal-f{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.gal-f button{padding:6px 12px;border-radius:999px;border:1px solid #ccc;background:#fff;cursor:pointer;font-size:13px}
+.gal-f button.on{background:#111;color:#fff;border-color:#111}
+.gal-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;max-height:72vh;overflow:auto;padding:4px;scroll-snap-type:y proximity;overscroll-behavior:contain}
+.gal-c{position:relative;border-radius:16px;overflow:hidden;background:#0b0b0f;cursor:pointer;aspect-ratio:4/5;box-shadow:0 6px 18px rgba(0,0,0,.18);scroll-snap-align:start;transition:transform .15s}
+.gal-c:hover{transform:translateY(-2px)}
+.gal-c canvas{width:100%;height:100%;display:block}
+.gal-c.on{outline:3px solid #34d399;outline-offset:2px}
+.gal-n{position:absolute;left:0;right:0;bottom:0;padding:22px 8px 6px;font-size:11px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.7));pointer-events:none}
+.gal-s{position:absolute;top:6px;right:6px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(255,255,255,.88);font-size:17px;cursor:pointer;padding:0;color:#444}
+.gal-c.fav .gal-s{color:#f59e0b}
+.gal-old{margin-top:12px}.gal-old summary{cursor:pointer;font-size:13px;color:#555}
 </style>
 </head>
 <body>
@@ -73,7 +90,13 @@
       <button class="dgb g" id="tg" type="button">আসল ছবি দেখুন</button>
       <button class="dgb" id="dl" type="button">Download</button>
     </div>
-    <div class="lk" id="looks"></div>
+    <div id="gal-wrap">
+      <div class="gal-h"><b>✨ টেমপ্লেট গ্যালারি</b><span id="gal-n" class="gal-cnt"></span></div>
+      <div class="gal-h"><input id="gal-q" type="search" placeholder="খুঁজুন: নাম বা রং"><button type="button" id="gal-rf" class="gal-btn">🔄 থাম্বনেইল রিফ্রেশ</button></div>
+      <div class="gal-f" id="gal-f"></div>
+      <div class="gal-g" id="gal"></div>
+    </div>
+    <details class="gal-old"><summary>পুরনো টেমপ্লেট (সব লুক)</summary><div class="lk" id="looks"></div></details>
     <div class="row"><button class="dgb g" id="rst" type="button">↺ সব রিসেট</button><button class="dgb g" id="und" type="button">↶ আগের অবস্থা</button></div>
     <label>ছবির মাপ</label>
     <select id="rt"><option value="4:5">৪:৫ (Instagram/Facebook পোস্ট)</option><option value="1:1">১:১ (চৌকো)</option><option value="orig">আসল মাপ</option><option value="9:16">৯:১৬ (Story/Reels)</option><option value="16:9">১৬:৯ (ব্যানার)</option></select>
@@ -389,6 +412,15 @@ function layShapes(g,W,H,z){
     else if(s.k==='rr'){g.fillStyle=s.c;rr(g,-w/2,-h/2,w,h,s.r*S);g.fill()}
     else if(s.k==='circle'){g.fillStyle=s.c;g.beginPath();g.arc(0,0,s.r*W,0,Math.PI*2);g.fill()}
     else if(s.k==='frame'){g.strokeStyle=s.c;g.lineWidth=s.lw*S;g.strokeRect(-w/2,-h/2,w,h)}
+    else if(s.k==='glass'){const tn=LAYOUT.lt?'0,0,0':'255,255,255';
+      g.save();g.shadowColor='rgba(0,0,0,.2)';g.shadowBlur=28*S;g.shadowOffsetY=10*S;
+      const gr=g.createLinearGradient(0,-h/2,0,h/2);gr.addColorStop(0,'rgba('+tn+',.30)');gr.addColorStop(1,'rgba('+tn+',.10)');
+      g.fillStyle=gr;rr(g,-w/2,-h/2,w,h,s.r*S);g.fill();g.restore();
+      g.strokeStyle='rgba('+tn+',.42)';g.lineWidth=2*S;rr(g,-w/2,-h/2,w,h,s.r*S);g.stroke();
+      const hl=g.createLinearGradient(0,-h/2,0,-h/2+h*.4);hl.addColorStop(0,'rgba(255,255,255,.35)');hl.addColorStop(1,'rgba(255,255,255,0)');
+      g.fillStyle=hl;rr(g,-w/2+3*S,-h/2+3*S,w-6*S,h*.4,s.r*S);g.fill();}
+    else if(s.k==='orb'){const R=s.r*W;const rg=g.createRadialGradient(0,0,0,0,0,R);rg.addColorStop(0,s.c);rg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=rg;g.beginPath();g.arc(0,0,R,0,Math.PI*2);g.fill()}
+    else if(s.k==='ring'){g.strokeStyle=s.c;g.lineWidth=s.lw*S;g.shadowColor=s.c;g.shadowBlur=24*S;rr(g,-w/2,-h/2,w,h,s.r*S);g.stroke()}
     else if(s.k==='beam'){const l=g.createLinearGradient(-w/2,0,w/2,0);l.addColorStop(0,'rgba(0,0,0,0)');l.addColorStop(.5,s.c);l.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=l;g.fillRect(-w/2,-h/2,w,h)}
     else if(s.k==='torn'){
       const rnd=n=>{const v=Math.sin((i*97+n)*12.9898)*43758.5453;return v-Math.floor(v)};
@@ -525,13 +557,123 @@ const ARCH=[
  ['hang','হ্যাঙ্গার মিনিমাল',[6,3,10,4],A_hang],['spec','স্পেক কার্ড',[6,3,1,9],A_spec],
  ['out','আউটলাইন ফ্লোর',[2,6,9,10],A_out],['sale','ডিসকাউন্ট সার্কেল',[7,1,8,2],A_sale]
 ];
+const G1=p=>({prod:{x:.5,y:.64,h:.5},shapes:[{k:'glass',x:.5,y:.36,w:.8,h:.46,r:60,z:0}],items:[
+ {src:'tn',fb:'Glass Edition',x:.5,y:.2,s:.07,f:'poppins',w:800,c:p.ink,a:'center',caps:true,mw:.7,lh:1.05},
+ {src:'ts',fb:'Frosted · Premium',x:.5,y:.31,s:.026,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'tc',fb:'SHOP NOW →',x:.5,y:.915,s:.026,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const G2=p=>({prod:{x:.5,y:.4,h:.5},shapes:[{k:'glass',x:.5,y:.8,w:.9,h:.36,r:70,z:0}],items:[
+ {src:'tn',fb:'Summer Glow',x:.5,y:.655,s:.06,f:'cormorant',w:700,c:p.ink,a:'center',mw:.8,lh:1},
+ {src:'ts',fb:'Light · Airy · Fresh',x:.5,y:.74,s:.026,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'tc',fb:'SHOP NOW →',x:.5,y:.86,s:.026,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const G3=p=>({prod:{x:.5,y:.6,h:.6},shapes:[{k:'glass',x:.5,y:.075,w:.78,h:.1,r:60,z:0}],items:[
+ {src:'tn',fb:'NEW SEASON',x:.5,y:.06,s:.04,f:'poppins',w:800,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'ts',fb:'Limited Edition',x:.5,y:.9,s:.028,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'tc',fb:'ORDER NOW',x:.5,y:.955,s:.022,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const G4=p=>({prod:{x:.5,y:.58,h:.56},shapes:[{k:'orb',x:.22,y:.25,r:.38,c:p.acc+'B3',z:0},{k:'orb',x:.82,y:.72,r:.42,c:p.pill+'99',z:0},{k:'glass',x:.5,y:.88,w:.84,h:.14,r:50,z:1}],items:[
+ {src:'tn',fb:'Aurora Drop',x:.5,y:.06,s:.078,f:'poppins',w:800,c:p.ink,a:'center',caps:true,mw:.9,lh:1},
+ {src:'ts',fb:'Glow Collection',x:.5,y:.22,s:.028,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'tc',fb:'SHOP NOW',x:.5,y:.88,s:.026,f:'poppins',w:600,c:p.pc,a:'center',caps:true,ls:.02}
+]});
+const G5=p=>({prod:{x:.38,y:.56,h:.6},shapes:[{k:'glass',x:.8,y:.5,w:.34,h:.84,r:50,z:0}],items:[
+ {src:'tn',fb:'NEW ARRIVAL',x:.8,y:.2,s:.045,f:'poppins',w:800,c:p.ink,a:'center',caps:true,mw:.28,lh:1.1,z:1},
+ {src:'tt',fb:'-30%',x:.8,y:.5,s:.07,f:'poppins',w:800,c:p.ink,a:'center',z:1},
+ {src:'ts',fb:'Premium cotton',x:.8,y:.66,s:.024,f:'poppins',w:500,c:p.ink,a:'center',mw:.28,lh:1.3,z:1},
+ {src:'tc',fb:'ORDER',x:.8,y:.86,s:.024,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill,z:1}
+]});
+const G6=p=>({prod:{x:.5,y:.58,h:.56},shapes:[{k:'glass',x:.8,y:.2,w:.26,h:.208,r:150,z:1}],items:[
+ {src:'tt',fb:'NEW',x:.8,y:.178,s:.05,f:'poppins',w:800,c:p.ink,a:'center',caps:true,z:1},
+ {src:'tn',fb:'Glass Badge',x:.06,y:.06,s:.07,f:'poppins',w:800,c:p.ink,a:'left',caps:true,mw:.6,lh:1},
+ {src:'ts',fb:'Crystal finish',x:.06,y:.2,s:.026,f:'poppins',w:500,c:p.ink,a:'left',caps:true,ls:.03},
+ {src:'tc',fb:'SHOP NOW →',x:.5,y:.92,s:.026,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const G7=p=>({prod:{x:.5,y:.56,h:.6},shapes:[{k:'ring',x:.5,y:.5,w:.9,h:.92,r:60,lw:4,c:p.acc,z:0}],items:[
+ {src:'tn',fb:'NEON NIGHTS',x:.5,y:.05,s:.07,f:'poppins',w:800,c:p.ink,a:'center',caps:true,mw:.8},
+ {src:'ts',fb:'Glow Edition',x:.5,y:.2,s:.028,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'tc',fb:'SHOP NOW',x:.5,y:.9,s:.026,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const G8=p=>({prod:{x:.5,y:.5,h:.6},shapes:[{k:'orb',x:.15,y:.15,r:.4,c:p.acc+'AA',z:0},{k:'orb',x:.9,y:.4,r:.35,c:p.pill+'AA',z:0},{k:'orb',x:.4,y:.95,r:.45,c:p.acc+'88',z:0},{k:'glass',x:.5,y:.12,w:.86,h:.12,r:50,z:1}],items:[
+ {src:'tn',fb:'MESH GRADIENT',x:.5,y:.095,s:.045,f:'poppins',w:800,c:p.ink,a:'center',caps:true,ls:.02},
+ {src:'tc',fb:'Shop the drop →',x:.5,y:.88,s:.03,f:'poppins',w:600,c:p.pc,a:'center',pill:p.pill}
+]});
+const G9=p=>({prod:{x:.5,y:.55,h:.56},shapes:[{k:'glass',x:.5,y:.5,w:.9,h:.9,r:80,z:0}],items:[
+ {src:'tn',fb:'CRYSTAL CUT',x:.5,y:.1,s:.05,f:'cormorant',w:700,c:p.ink,a:'center',caps:true,ls:.03,mw:.84},
+ {src:'ts',fb:'Refined · Light · Airy',x:.5,y:.19,s:.026,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'tt',fb:'NEW',x:.16,y:.86,s:.034,f:'poppins',w:800,c:p.pc,a:'center',pill:p.pill},
+ {src:'tc',fb:'DISCOVER →',x:.6,y:.86,s:.026,f:'poppins',w:600,c:p.ink,a:'center',caps:true,ls:.02}
+]});
+const G10=p=>({prod:{x:.5,y:.6,h:.56},shapes:[{k:'glass',x:.5,y:.26,w:1.3,h:.13,r:40,rot:-10,z:0}],items:[
+ {src:'tn',fb:'FRESH DROP',x:.5,y:.26,s:.06,f:'poppins',w:800,c:p.ink,a:'center',caps:true,vc:true,rot:-10,z:0},
+ {src:'ts',fb:'Crystal glass series',x:.5,y:.9,s:.026,f:'poppins',w:500,c:p.ink,a:'center',caps:true,ls:.03},
+ {src:'tc',fb:'SHOP NOW',x:.5,y:.96,s:.024,f:'poppins',w:600,c:p.pc,a:'center',caps:true,pill:p.pill}
+]});
+const ARCHG=[['g1','কাঁচের কার্ড',[1,2,3,4,5,6,7,8,9,10],G1],['g2','কাঁচের শিট',[1,2,3,4,5,6,7,8,9,10],G2],
+ ['g3','কাঁচের পিল',[1,2,3,4,5,6,7,8,9,10],G3],['g4','অরোরা অর্ব',[1,2,3,4,5,6,7,8,9,10],G4],
+ ['g5','কাঁচের সাইড',[1,2,3,4,5,6,7,8,9,10],G5],['g6','কাঁচের ব্যাজ',[1,2,3,4,5,6,7,8,9,10],G6],
+ ['g7','নিয়ন রিং',[1,2,3,4,5,6,7,8,9,10],G7],['g8','মেশ গ্রেডিয়েন্ট',[1,2,3,4,5,6,7,8,9,10],G8],
+ ['g9','ক্রিস্টাল প্লেট',[1,2,3,4,5,6,7,8,9,10],G9],['g10','কাঁচের রিবন',[1,2,3,4,5,6,7,8,9,10],G10]];
+const CAT={edit:'classy',frame:'classy',spot:'classy',hang:'classy',split:'classy',big:'bold',torn:'bold',out:'bold',spec:'bold',coll:'sale',sale:'sale',vert:'sale'};
+
 const LAYLOOKS={};
-ARCH.forEach(([key,name,pl,fn])=>pl.forEach(pi=>{
+function lumHex(h){const n=parseInt(h.slice(1),16);return(0.299*((n>>16)&255)+0.587*((n>>8)&255)+0.114*(n&255))/255}
+let THUMB=false;
+const FAVK='aa_studio_favs';
+function favGet(){try{const a=JSON.parse(localStorage.getItem(FAVK)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function favSet(a){try{localStorage.setItem(FAVK,JSON.stringify(a));return true}catch(e){return false}}
+let GCAT='all',GQ='',GOBS=null;
+const CATNAME={all:'সব',fav:'⭐ প্রিয়',glass:'🫧 গ্লাস',classy:'🎩 ক্লাসিক',sale:'🏷️ সেল',bold:'⚡ বোল্ড'};
+function galPaint(cv,id){
+  if(!ORIG||!LAYS[id])return;
+  const prev=LAYOUT;THUMB=true;LAYOUT=LAYS[id];
+  try{render();const src=$('cv'),x=cv.getContext('2d'),tw=cv.width,th=cv.height;
+    x.fillStyle='#0b0b0f';x.fillRect(0,0,tw,th);
+    const k=Math.min(tw/src.width,th/src.height),dw=src.width*k,dh=src.height*k;
+    x.drawImage(src,(tw-dw)/2,(th-dh)/2,dw,dh);cv.dataset.done='1';
+  }finally{LAYOUT=prev;THUMB=false;render()}
+}
+function galBuild(){
+  const box=$('gal');if(!box)return;
+  const favs=favGet(),q=GQ.trim().toLowerCase();
+  const ids=Object.keys(LAYS).filter(id=>{const d=LAYS[id];
+    if(GCAT==='fav'&&!favs.includes(id))return false;
+    if(GCAT!=='all'&&GCAT!=='fav'&&d.cat!==GCAT)return false;
+    if(q&&!(d.name+' '+d.palN).toLowerCase().includes(q))return false;return true});
+  box.innerHTML=ids.map(id=>{const d=LAYS[id],f=favs.includes(id);
+    return `<div class="gal-c${f?' fav':''}" data-id="${id}"><canvas width="216" height="270"></canvas><span class="gal-n">${esc(d.name)} · ${esc(d.palN)}</span><button type="button" class="gal-s" data-star="${id}" title="প্রিয়">${f?'★':'☆'}</button></div>`}).join('');
+  $('gal-n').textContent=ids.length+' টি ডিজাইন'+(ORIG?'':' (আগে ছবি দিন)');
+  if(GOBS)GOBS.disconnect();
+  GOBS=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting||!ORIG)return;GOBS.unobserve(e.target);
+    const cv=e.target.querySelector('canvas');if(!cv.dataset.done)galPaint(cv,e.target.dataset.id)}),{root:box,rootMargin:'200px'});
+  box.querySelectorAll('.gal-c').forEach(el=>GOBS.observe(el));
+}
+function galInit(){
+  const box=$('gal');
+  $('gal-f').innerHTML=Object.keys(CATNAME).map(k=>`<button type="button" data-cat="${k}"${k===GCAT?' class="on"':''}>${CATNAME[k]}</button>`).join('');
+  $('gal-f').onclick=e=>{const b=e.target.closest('button');if(!b)return;GCAT=b.dataset.cat;
+    $('gal-f').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));galBuild()};
+  $('gal-q').oninput=e=>{GQ=e.target.value;galBuild()};
+  $('gal-rf').onclick=()=>galBuild();
+  box.onclick=e=>{
+    const st=e.target.closest('[data-star]');
+    if(st){e.stopPropagation();const id=st.dataset.star;let a=favGet();a=a.includes(id)?a.filter(x=>x!==id):[...a,id];
+      if(!favSet(a))A.toast('প্রিয় সেভ করা যায়নি (ব্রাউজার স্টোরেজ বন্ধ)');galBuild();
+      A.toast(a.includes(id)?'⭐ প্রিয়তে যোগ হয়েছে':'প্রিয় থেকে সরানো হয়েছে');return}
+    const c=e.target.closest('.gal-c');if(!c)return;
+    setState({bg:'white',dec:[],lay:c.dataset.id});
+    box.querySelectorAll('.gal-c.on').forEach(x=>x.classList.remove('on'));c.classList.add('on');
+    A.toast('টেমপ্লেট বসানো হয়েছে');
+  };
+  galBuild();
+}
+
+ARCH.concat(ARCHG).forEach(([key,name,pl,fn])=>pl.forEach(pi=>{
   const p=PALS[pi-1],id=key+'_'+pi,d=fn(p);
-  d.id=id;d.pal={bg:p.bg,radial:!!p.radial};LAYS[id]=d;
+  d.id=id;d.pal={bg:p.bg,radial:!!p.radial};d.lt=lumHex(p.bg[0])>.6;d.name=name;d.palN=p.n;d.cat=CAT[key]||'glass';LAYS[id]=d;
   LAYLOOKS['lay_'+id]={n:name+' · '+p.n,bg:'white',lay:id,v:{},dec:[]};
 }));
-const ALLLOOKS=Object.assign({},LAYLOOKS,LOOKS);
+const ALLLOOKS=Object.assign({},LOOKS);
 
 let DEC=new Set(), DEFAULT=null, HIST=[];
 const T=(g,s,x,y,c)=>{const w=Number($('olw').value)||0;if(w>0){g.strokeStyle=$('olc').value;g.lineWidth=w*(g.canvas.width/1080);g.lineJoin='round';g.strokeText(s,x,y)}g.fillStyle=c;g.fillText(s,x,y)};
@@ -960,10 +1102,11 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
   DEFAULT=getState();
   let lastSnap=JSON.stringify(DEFAULT),snapT;
   const _render=render;
-  render=function(){_render();clearTimeout(snapT);snapT=setTimeout(()=>{const cur=JSON.stringify(getState());if(cur!==lastSnap){HIST.push(lastSnap);if(HIST.length>40)HIST.shift();lastSnap=cur}},350)};
+  render=function(){_render();if(THUMB)return;clearTimeout(snapT);snapT=setTimeout(()=>{const cur=JSON.stringify(getState());if(cur!==lastSnap){HIST.push(lastSnap);if(HIST.length>40)HIST.shift();lastSnap=cur}},350)};
   window.__undo=()=>{if(!HIST.length){A.toast('আর আগের অবস্থা নেই');return}const prev=HIST.pop();lastSnap=prev;setState(JSON.parse(prev));A.toast('আগের অবস্থায় ফিরেছে')};
   $('und').onclick=window.__undo;
   document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();window.__undo()}});
+  galInit();
   Promise.all(Object.keys(FONTS).flatMap(k=>[500,600,700,800].map(w=>document.fonts.load(w+' 40px '+FONTS[k].fam,'AABHA')))).then(()=>{if(ORIG)render()}).catch(()=>{});
   presetList();
   $('psv').onclick=()=>{const n=$('pn').value.trim()||('প্রিসেট '+(Object.keys(presetsGet()).length+1));
