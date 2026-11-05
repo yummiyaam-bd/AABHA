@@ -53,6 +53,11 @@
 .dg .ps{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;color:inherit;padding:11px 12px;font:inherit;font-size:14px}
 .dg .ps option{color:#111}
 .hr{height:1px;background:rgba(255,255,255,.12)}
+.panel.dg{overflow:visible!important}
+#cvw{position:sticky;top:0;z-index:30;background:#0d0b11;padding:10px 0 12px;text-align:center;box-shadow:0 14px 24px -10px #000;border-radius:0 0 18px 18px}
+#cv{max-height:40vh!important}
+#cv.big{max-height:66vh!important}
+.dg .glass{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 </style>
 </head>
 <body>
@@ -62,7 +67,7 @@
     <input id="im" type="file" accept="image/*">
     <div id="msg"></div>
 
-    <div id="cvw"><canvas id="cv"></canvas></div>
+    <div id="cvw"><canvas id="cv"></canvas><button class="dgb g" id="pvz" type="button" style="margin-top:8px;padding:8px 16px">⤢ প্রিভিউ বড়/ছোট</button></div>
     <div class="row" id="act" style="display:none">
       <button class="dgb g" id="tg" type="button">আসল ছবি দেখুন</button>
       <button class="dgb" id="dl" type="button">Download</button>
@@ -100,6 +105,9 @@
       <label>কনট্রাস্ট</label><input id="fc" type="range" min="60" max="150" value="100">
       <label>রঙের গাঢ়ত্ব (স্যাচুরেশন)</label><input id="fs" type="range" min="0" max="200" value="100">
       <label>উষ্ণতা (সোনালি আভা)</label><input id="fw" type="range" min="0" max="40" value="0">
+      <label>ভিগনেট (কোণা অন্ধকার)</label>
+      <input id="fv" type="range" min="0" max="100" value="0">
+      <label class="ck"><input id="fsh" type="checkbox"> আলোর ঝিলিক (শিন)</label>
       <label class="ck"><input id="gsh" type="checkbox" checked> মডেলের নিচে ছায়া</label>
     </div></details>
 
@@ -156,6 +164,8 @@
         <option value="bar">কালো পটি</option>
         <option value="card">কালো কার্ড (গ্লাস)</option>
         <option value="cardL">সাদা কার্ড</option>
+        <option value="frost">ফ্রস্টেড গ্লাস</option>
+        <option value="neon">নিয়ন কার্ড</option>
         <option value="none">কিছু না</option>
       </select>
       <label>পেছনের গাঢ়ত্ব</label>
@@ -187,7 +197,7 @@
       <div class="sw s" id="swb"></div>
       <input id="brc" class="m" type="color" value="#ffffff">
       <label>ফ্রেম</label>
-      <select id="frm"><option value="none">নেই</option><option value="thin">পাতলা</option><option value="double">ডাবল</option></select>
+      <select id="frm"><option value="none">নেই</option><option value="thin">পাতলা</option><option value="double">ডাবল</option><option value="glow">গ্লো (আলো-রেখা)</option><option value="glass">গ্লাস ফ্রেম</option></select>
     </div></details>
 
     <details><summary>✂️ কাটার সেটিং</summary><div class="in">
@@ -211,17 +221,28 @@ const BGS=[
  ['🌸 গোলাপি দেয়াল','pink'],['🌿 সবুজ বাগান','green'],['🌙 ডার্ক লাক্স','dark'],
  ['✨ ঈদ/উৎসব','gold'],['🎨 প্রিমিয়াম রং','color'],['🖼️ নিজের ছবি','image'],
  ['🌅 সানসেট','sunset'],['🌊 ওশান','ocean'],['🍃 মিন্ট','mint'],['💜 ল্যাভেন্ডার','lav'],
- ['🌌 মিডনাইট','navy'],['🏜️ বালি','sand'],['💎 এমারেল্ড','emerald'],['🌹 রোজ গোল্ড','rosegold']
+ ['🌌 মিডনাইট','navy'],['🏜️ বালি','sand'],['💎 এমারেল্ড','emerald'],['🌹 রোজ গোল্ড','rosegold'],
+ ['🍑 কোরাল','coral'],['🥭 পিচ','peach'],['🩵 টিল','teal'],['🔷 ইন্ডিগো','indigo'],['🍇 প্লাম','plum'],
+ ['🌲 ফরেস্ট','forest'],['🍓 বেরি','berry'],['🧊 আইস','ice'],['🍏 লাইম','lime'],['🪨 স্লেট','slate'],
+ ['🥛 ক্রিম','cream'],['🍂 রাস্ট','rust'],['🥀 ম্যাভ','mauve'],['🌊 আকুয়া','aqua'],['🫐 ইংক ব্লু','inkblue'],
+ ['🌸 ব্লাশ','blush2'],['☕ কোকো','cocoa'],['🍵 পিস্তা','pistachio'],['🔮 ভায়োলেট','violet'],['🖤 চারকোল','charcoal2']
 ];
 const GRAD={
  sunset:['#ffb27a','#e24d8f','#4a1f5c'],ocean:['#8fe0f0','#2f6fe0','#0c2350'],
  mint:['#eafff6','#8fe3c4','#2fbf8a'],lav:['#f6f2ff','#c7b4f0','#7b4df0'],
  navy:['#2a3f6e','#101a33','#05080f'],sand:['#fdf6e8','#e6cfa6','#b8925a'],
- emerald:['#2fbf8a','#1f5a45','#0b2219'],rosegold:['#f9e6dc','#e8b4a0','#9c6450']
+ emerald:['#2fbf8a','#1f5a45','#0b2219'],rosegold:['#f9e6dc','#e8b4a0','#9c6450'],
+ coral:['#ffb39a','#ff6f61','#8c2f39'],peach:['#ffe5d0','#ffb88c','#de6e56'],teal:['#9ff0e6','#1aa39a','#0a4a48'],
+ indigo:['#8ea2ff','#4f46e5','#1b1656'],plum:['#e7b9e0','#9b4d96','#3e1a3f'],forest:['#b7d9a8','#3f7d4a','#14301c'],
+ berry:['#f6a5c0','#c2185b','#4a0e2b'],ice:['#eef8ff','#b8dcf2','#5b8fb8'],lime:['#f0ffc2','#b5e655','#4c7a12'],
+ slate:['#c9d3df','#66778c','#1e2833'],cream:['#fffaf0','#f1e3c4','#c9a878'],rust:['#f5b58e','#b5532c','#4a2010'],
+ mauve:['#e8d4dc','#b08a9a','#5c3c4a'],aqua:['#d6fbff','#5ee0e6','#0e7c86'],inkblue:['#4a6fa5','#1d3557','#0b1426'],
+ blush2:['#fde2e4','#f7b8c0','#c97b87'],cocoa:['#d7b99a','#7b5139','#2c1a10'],pistachio:['#eef7d8','#c4e1a0','#7fa35a'],
+ violet:['#d6c2ff','#8e5cf6','#2e1065'],charcoal2:['#5b5f66','#2b2e35','#101114']
 };
 const PAL=['#ffffff','#f5efe6','#e8c27a','#e8b4a0','#c9a24a','#1b1418','#6d1f2f','#1f4d3f','#b8715a','#8b6b57','#7b4df0','#3b82f6','#14b8a6','#f08a24','#e24d8f','#ef4444','#22c55e','#facc15','#0ea5e9','#94a3b8'];
 const DECS=[['spark','✦ স্পার্কল'],['corner','⌜ কোণা'],['circle','◯ বৃত্ত'],['dots','⁙ ডট']];
-const CTRL=['rt','sc','oy','ox','flip','fb','fc','fs','fw','gsh','fn','tz','cn','cp','tpos','tal','bs','bo','olw','olc','tls','tsh','tt','tdisc','tcol','tps','brp','brs','brc','frm','bc','dcol','fmt','hr'];
+const CTRL=['rt','sc','oy','ox','flip','fb','fc','fs','fw','fv','fsh','gsh','fn','tz','cn','cp','tpos','tal','bs','bo','olw','olc','tls','tsh','tt','tdisc','tcol','tps','brp','brs','brc','frm','bc','dcol','fmt','hr'];
 const COLOR_IDS=['cn','cp','tcol','brc','olc','dcol','bc'];
 const LOOKS={
  classic:{n:'ক্লাসিক',bg:'window',v:{cn:'#ffffff',cp:'#e8b4a0',bs:'grad',tpos:'bottom',tal:'left',fn:'playfair',fb:100,fc:100,fs:100,fw:0,gsh:true,olw:0,tls:0,frm:'none',brp:'tr'},dec:[]},
@@ -247,6 +268,11 @@ function markDec(){[...$('dec').children].forEach(x=>x.classList.toggle('on',DEC
 function presetsGet(){try{return JSON.parse(localStorage.getItem('aa_studio_presets')||'{}')}catch(e){return{}}}
 function presetsSet(o){try{localStorage.setItem('aa_studio_presets',JSON.stringify(o));return true}catch(e){return false}}
 function presetList(sel){const p=presetsGet();$('plst').innerHTML=Object.keys(p).length?Object.keys(p).map(k=>`<option value="${esc(k)}"${k===sel?' selected':''}>${esc(k)}</option>`).join(''):'<option value="">কোনো প্রিসেট নেই</option>'}
+function drawFx(g,W,H){
+  const v=Number($('fv').value)/100;
+  if(v>0){const r=g.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75);r.addColorStop(0,'rgba(0,0,0,0)');r.addColorStop(1,'rgba(0,0,0,'+(v*.8).toFixed(2)+')');g.fillStyle=r;g.fillRect(0,0,W,H)}
+  if($('fsh').checked){const l=g.createLinearGradient(0,0,W,H);l.addColorStop(.35,'rgba(255,255,255,0)');l.addColorStop(.5,'rgba(255,255,255,.22)');l.addColorStop(.65,'rgba(255,255,255,0)');g.fillStyle=l;g.fillRect(0,0,W,H)}
+}
 function drawDecor(g,W,H){
   if(!DEC.size)return;
   const S=W/1080,c=$('dcol').value;
@@ -400,7 +426,7 @@ function drawTexts(g,W,H){
   const price=pn>0?'৳'+pn.toLocaleString('en-US'):'', old=po>0?'৳'+po.toLocaleString('en-US'):'';
   if(!(name||sub||price||old||cta))return;
   const style=$('bs').value, op=Number($('bo').value)/100, pos=$('tpos').value, al=$('tal').value;
-  const card=style==='card'||style==='cardL', M=60*S, ip=card?26*S:0;
+  const card=['card','cardL','frost','neon'].includes(style), M=60*S, ip=card?26*S:0;
   const ax=al==='left'?M+ip:al==='right'?W-M-ip:W/2;
   let cN=$('cn').value, cP=$('cp').value;
   if(style==='cardL'){if(lum(cN)>.7)cN='#1b1418';if(lum(cP)>.8)cP='#8a4a37'}
@@ -429,8 +455,19 @@ function drawTexts(g,W,H){
   }else if(card){
     const cx=M*.6, cw=W-2*cx, cy=top-pad, ch=bh+2*pad;
     g.save();rr(g,cx,cy,cw,ch,30*S);
-    g.fillStyle=style==='cardL'?'rgba(255,255,255,'+op+')':'rgba('+dark+','+(op*.9)+')';g.fill();
-    g.lineWidth=1.5*S;g.strokeStyle=style==='cardL'?'rgba(0,0,0,.08)':'rgba(255,255,255,.16)';g.stroke();g.restore();
+    if(style==='frost'){
+      const gf=g.createLinearGradient(cx,cy,cx+cw,cy+ch);gf.addColorStop(0,'rgba(255,255,255,'+(op*.36)+')');gf.addColorStop(1,'rgba(255,255,255,'+(op*.08)+')');
+      g.fillStyle=gf;g.fill();g.lineWidth=2*S;
+      const gb=g.createLinearGradient(cx,cy,cx+cw,cy+ch);gb.addColorStop(0,'rgba(255,255,255,.9)');gb.addColorStop(.5,'rgba(255,255,255,.15)');gb.addColorStop(1,'rgba(255,255,255,.6)');
+      g.strokeStyle=gb;g.stroke();
+    }else if(style==='neon'){
+      g.fillStyle='rgba('+dark+','+(op*.85)+')';g.fill();
+      g.shadowColor=$('tcol').value;g.shadowBlur=26*S;g.lineWidth=3*S;g.strokeStyle=$('tcol').value;g.stroke();g.shadowBlur=0;
+    }else{
+      g.fillStyle=style==='cardL'?'rgba(255,255,255,'+op+')':'rgba('+dark+','+(op*.9)+')';g.fill();
+      g.lineWidth=1.5*S;g.strokeStyle=style==='cardL'?'rgba(0,0,0,.08)':'rgba(255,255,255,.16)';g.stroke();
+    }
+    g.restore();
   }
 
   g.save();
@@ -497,6 +534,8 @@ function drawFrame(g,W,H){
   g.save();g.strokeStyle=$('brc').value;g.globalAlpha=.85;
   g.lineWidth=3*S;g.strokeRect(26*S,26*S,W-52*S,H-52*S);
   if(f==='double'){g.lineWidth=1.5*S;g.strokeRect(40*S,40*S,W-80*S,H-80*S)}
+  if(f==='glow'){g.shadowColor=$('brc').value;g.shadowBlur=30*S;g.lineWidth=4*S;g.strokeRect(26*S,26*S,W-52*S,H-52*S);g.shadowBlur=0}
+  if(f==='glass'){g.globalAlpha=.5;g.lineWidth=18*S;g.strokeStyle='rgba(255,255,255,.16)';g.strokeRect(20*S,20*S,W-40*S,H-40*S);g.globalAlpha=.9;g.lineWidth=2*S;g.strokeStyle='rgba(255,255,255,.7)';g.strokeRect(29*S,29*S,W-58*S,H-58*S)}
   g.restore();
 }
 
@@ -534,6 +573,7 @@ function render(){
     g.restore();
   }
 
+  drawFx(g,W,H);
   drawDecor(g,W,H);
   drawTexts(g,W,H);
   drawTag(g,W,H);
@@ -603,7 +643,7 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
   };
 
   /* সব কন্ট্রোল */
-  ['sc','oy','ox','flip','tz','cn','cp','tpos','tal','bs','bo','tsh','tcol','tps','tdisc','brp','brs','brc','frm','rt','fb','fc','fs','fw','gsh','olw','olc','tls','dcol','fmt','hr']
+  ['sc','oy','ox','flip','tz','cn','cp','tpos','tal','bs','bo','tsh','tcol','tps','tdisc','brp','brs','brc','frm','rt','fb','fc','fs','fw','fv','fsh','gsh','olw','olc','tls','dcol','fmt','hr']
     .forEach(id=>{$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
   ['tn','ts','tp','to','tc','tt'].forEach(id=>$(id).addEventListener('input',()=>{render();fontSoon()}));
   $('fn').addEventListener('change',ensureFonts);
@@ -621,6 +661,8 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
     document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
     showOrig=was;render();
   };
+  $('pvz').onclick=()=>$('cv').classList.toggle('big');
+  ['fv','fsh'].forEach(id=>{$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
   mkSw('swo','olc',PAL);
   mkSw('swd','dcol',PAL);
   $('dec').innerHTML=DECS.map(d=>`<button type="button" class="dec" data-d="${d[0]}">${esc(d[1])}</button>`).join('');
