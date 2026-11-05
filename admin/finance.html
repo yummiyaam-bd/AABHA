@@ -36,13 +36,42 @@
 .fx-st .big{font-size:16px;font-weight:800;border-bottom:0}
 .pos{color:#2f855a}.neg{color:#b83b4a}
 .fx-note{padding:0 24px 16px;font-size:12px;opacity:.7}
+
+/* ---------- premium look ---------- */
+.stat{position:relative;overflow:hidden;isolation:isolate}
+.stat::after{content:"";position:absolute;right:-40px;top:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,var(--gc,rgba(123,77,240,.22)),transparent 70%);z-index:-1;pointer-events:none}
+.cards .stat:nth-child(1){--gc:rgba(240,138,36,.28)}
+.cards .stat:nth-child(2){--gc:rgba(123,77,240,.26)}
+.cards .stat:nth-child(3){--gc:rgba(59,130,246,.24)}
+.cards .stat:nth-child(4){--gc:rgba(20,184,166,.26)}
+.cards .stat:nth-child(5){--gc:rgba(224,69,90,.22)}
+.cards .stat:nth-child(6){--gc:rgba(226,77,143,.26)}
+.stat b{padding-right:8px;background:linear-gradient(115deg,#16191c 20%,#7b4df0 120%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bk .bkb{height:8px}
+.bk:nth-child(6n+1) .bkb i{background:linear-gradient(90deg,#f08a24,#e24d8f)}
+.bk:nth-child(6n+2) .bkb i{background:linear-gradient(90deg,#7b4df0,#3b82f6)}
+.bk:nth-child(6n+3) .bkb i{background:linear-gradient(90deg,#14b8a6,#22c55e)}
+.bk:nth-child(6n+4) .bkb i{background:linear-gradient(90deg,#f5b041,#ef4444)}
+.bk:nth-child(6n+5) .bkb i{background:linear-gradient(90deg,#e24d8f,#7b4df0)}
+.bk:nth-child(6n+6) .bkb i{background:linear-gradient(90deg,#3b82f6,#14b8a6)}
+.bkb i{box-shadow:0 0 12px rgba(123,77,240,.25)}
+.mbar{height:7px;border-radius:7px;background:rgba(22,40,40,.08);overflow:hidden;margin-top:10px}
+.mbar i{display:block;height:100%;width:0;border-radius:7px;background:linear-gradient(90deg,#14b8a6,#22c55e);transition:width 1s cubic-bezier(.2,.9,.3,1.1)}
+.live{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2f9e6d;margin-left:10px;vertical-align:middle;animation:lv 1.8s infinite}
+@keyframes lv{0%{box-shadow:0 0 0 0 rgba(47,158,109,.55)}70%{box-shadow:0 0 0 9px rgba(47,158,109,0)}100%{box-shadow:0 0 0 0 rgba(47,158,109,0)}}
+.fx-ch .pr i.a{background:linear-gradient(to top,#14b8a6,#22c55e)!important}
+.fx-ch .pr i.b{background:linear-gradient(to top,#f08a24,#e24d8f)!important}
+.fx-ch .pr i{transition:filter .2s}
+.fx-ch>div:hover .pr i{filter:brightness(1.12) saturate(1.2)}
+.fx-lg i.g1{background:linear-gradient(135deg,#14b8a6,#22c55e)!important}
+.fx-lg i.g2{background:linear-gradient(135deg,#f08a24,#e24d8f)!important}
 </style>
 </head>
 <body>
 <div id="page">
 
   <section class="panel" style="margin-bottom:18px">
-    <div class="ph"><div><h2>Finance &amp; Accounting</h2><small id="plabel"></small></div></div>
+    <div class="ph"><div><h2>Finance &amp; Accounting<span class="live" title="লাইভ"></span></h2><small id="plabel"></small></div></div>
     <div class="fx-ctl">
       <select class="in" id="pm"><option value="month">মাসিক</option><option value="year">বাৎসরিক</option></select>
       <input class="in" id="mo" type="month">
@@ -59,7 +88,7 @@
     <div class="stat"><div class="top"><label>মোট আয়</label><div class="ic"><svg class="i"><use href="#i-trend"/></svg></div></div><b id="c_inc">৳0</b><span class="fx-d" id="d_inc"></span></div>
     <div class="stat"><div class="top"><label>মোট ব্যয়</label><div class="ic"><svg class="i"><use href="#i-wallet"/></svg></div></div><b id="c_exp">৳0</b><span class="fx-d" id="d_exp"></span></div>
     <div class="stat"><div class="top"><label>নিট লাভ / ক্ষতি</label><div class="ic"><svg class="i"><use href="#i-chart"/></svg></div></div><b id="c_pro">৳0</b><span class="fx-d" id="d_pro"></span></div>
-    <div class="stat"><div class="top"><label>লাভের হার</label><div class="ic"><svg class="i"><use href="#i-check"/></svg></div></div><b id="c_mar">0%</b></div>
+    <div class="stat"><div class="top"><label>লাভের হার</label><div class="ic"><svg class="i"><use href="#i-check"/></svg></div></div><b id="c_mar">0%</b><div class="mbar"><i id="c_mbar"></i></div></div>
     <div class="stat"><div class="top"><label>অর্ডার (আয়ে ধরা)</label><div class="ic"><svg class="i"><use href="#i-bag"/></svg></div></div><b id="c_n">0</b></div>
     <div class="stat"><div class="top"><label>গড় অর্ডার মূল্য</label><div class="ic"><svg class="i"><use href="#i-doc"/></svg></div></div><b id="c_avg">৳0</b></div>
   </section>
@@ -67,7 +96,7 @@
   <section class="panel" style="margin-bottom:18px">
     <div class="ph"><div><h2>আয় বনাম ব্যয়</h2><small id="chsub"></small></div></div>
     <div class="fx-ch" id="chart"></div>
-    <div class="fx-lg"><span><i style="background:#2f855a"></i>আয়</span><span><i style="background:#b8715a"></i>ব্যয়</span></div>
+    <div class="fx-lg"><span><i class="g1"></i>আয়</span><span><i class="g2"></i>ব্যয়</span></div>
   </section>
 
   <div class="gx">
@@ -193,6 +222,7 @@ function paint(){
   $('c_inc').textContent=M(c.inc);$('c_exp').textContent=M(c.exp);
   $('c_pro').textContent=M(c.profit);$('c_pro').className=cls(c.profit);
   $('c_mar').textContent=(c.inc?Math.round(c.profit/c.inc*100):0)+'%';
+  $('c_mbar').style.width=Math.max(0,Math.min(100,c.inc?Math.round(c.profit/c.inc*100):0))+'%';
   $('c_n').textContent=c.n;$('c_avg').textContent=M(c.n?c.inc/c.n:0);
   delta($('d_inc'),c.inc,p.inc,true);delta($('d_exp'),c.exp,p.exp,false);delta($('d_pro'),c.profit,p.profit,true);
 
