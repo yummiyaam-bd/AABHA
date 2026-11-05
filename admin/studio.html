@@ -55,8 +55,9 @@
 .hr{height:1px;background:rgba(255,255,255,.12)}
 .panel.dg{overflow:visible!important}
 #cvw{position:sticky;top:0;z-index:30;background:#0d0b11;padding:10px 0 12px;text-align:center;box-shadow:0 14px 24px -10px #000;border-radius:0 0 18px 18px}
-#cv{max-height:40vh!important}
-#cv.big{max-height:66vh!important}
+#cv{width:auto!important;height:auto!important;max-width:100%;max-height:var(--pvh,44vh)!important;border:1px solid rgba(255,255,255,.1)}
+.pvs{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.pvs button.on{background:linear-gradient(135deg,#e8b4a0,#b8715a);color:#fff;border-color:transparent}
 .dg .glass{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 </style>
 </head>
@@ -67,15 +68,15 @@
     <input id="im" type="file" accept="image/*">
     <div id="msg"></div>
 
-    <div id="cvw"><canvas id="cv"></canvas><button class="dgb g" id="pvz" type="button" style="margin-top:8px;padding:8px 16px">⤢ প্রিভিউ বড়/ছোট</button></div>
+    <div id="cvw"><canvas id="cv"></canvas><div class="pvs" id="pvs"><button class="dgb g" type="button" data-pv="26">ছোট</button><button class="dgb g on" type="button" data-pv="44">মাঝারি</button><button class="dgb g" type="button" data-pv="66">বড়</button></div></div>
     <div class="row" id="act" style="display:none">
       <button class="dgb g" id="tg" type="button">আসল ছবি দেখুন</button>
       <button class="dgb" id="dl" type="button">Download</button>
     </div>
     <div class="lk" id="looks"></div>
-    <div class="row"><button class="dgb g" id="rst" type="button">↺ সব রিসেট</button></div>
+    <div class="row"><button class="dgb g" id="rst" type="button">↺ সব রিসেট</button><button class="dgb g" id="und" type="button">↶ আগের অবস্থা</button></div>
     <label>ছবির মাপ</label>
-    <select id="rt"><option value="4:5">৪:৫ (Instagram/Facebook পোস্ট)</option><option value="1:1">১:১ (চৌকো)</option><option value="orig">আসল মাপ</option></select>
+    <select id="rt"><option value="4:5">৪:৫ (Instagram/Facebook পোস্ট)</option><option value="1:1">১:১ (চৌকো)</option><option value="orig">আসল মাপ</option><option value="9:16">৯:১৬ (Story/Reels)</option><option value="16:9">১৬:৯ (ব্যানার)</option></select>
     <div class="row"><select id="fmt"><option value="jpg">JPG (ছোট ফাইল)</option><option value="png">PNG (সেরা মান)</option><option value="webp">WEBP (হালকা, আধুনিক)</option></select><select id="hr"><option value="1">স্ট্যান্ডার্ড ১০৮০px</option><option value="2">হাই রেজোলিউশন ২১৬০px</option></select></div>
 
     <details open><summary>🖼️ ব্যাকগ্রাউন্ড</summary><div class="in">
@@ -108,6 +109,15 @@
       <label>ভিগনেট (কোণা অন্ধকার)</label>
       <input id="fv" type="range" min="0" max="100" value="0">
       <label class="ck"><input id="fsh" type="checkbox"> আলোর ঝিলিক (শিন)</label>
+      <label>ফিল্টার প্রিসেট</label>
+      <select id="fpr">
+        <option value="none">কোনোটাই না</option><option value="vintage">ভিনটেজ</option><option value="mono">মনোক্রোম (সাদা-কালো)</option>
+        <option value="noir">নোয়ার (গাঢ় কনট্রাস্ট)</option><option value="cool">কুল টোন (নীলাভ)</option><option value="golden">গোল্ডেন আওয়ার</option>
+        <option value="vivid">ভিভিড (উজ্জ্বল রং)</option><option value="film">ফিল্ম</option><option value="pastel">প্যাস্টেল (নরম)</option>
+        <option value="hdr">HDR (ধারালো)</option>
+      </select>
+      <label class="ck"><input id="grn" type="checkbox"> দানাদার টেক্সচার (গ্রেইন)</label>
+      <label class="ck"><input id="leak" type="checkbox"> লাইট লিক (উষ্ণ আলো)</label>
       <label class="ck"><input id="gsh" type="checkbox" checked> মডেলের নিচে ছায়া</label>
     </div></details>
 
@@ -240,9 +250,10 @@ const GRAD={
  blush2:['#fde2e4','#f7b8c0','#c97b87'],cocoa:['#d7b99a','#7b5139','#2c1a10'],pistachio:['#eef7d8','#c4e1a0','#7fa35a'],
  violet:['#d6c2ff','#8e5cf6','#2e1065'],charcoal2:['#5b5f66','#2b2e35','#101114']
 };
-const PAL=['#ffffff','#f5efe6','#e8c27a','#e8b4a0','#c9a24a','#1b1418','#6d1f2f','#1f4d3f','#b8715a','#8b6b57','#7b4df0','#3b82f6','#14b8a6','#f08a24','#e24d8f','#ef4444','#22c55e','#facc15','#0ea5e9','#94a3b8'];
+const PAL=['#0f172a','#fb7185','#a3e635','#38bdf8','#c084fc','#fde68a','#34d399','#f97316','#64748b','#fef3c7','#ffffff','#f5efe6','#e8c27a','#e8b4a0','#c9a24a','#1b1418','#6d1f2f','#1f4d3f','#b8715a','#8b6b57','#7b4df0','#3b82f6','#14b8a6','#f08a24','#e24d8f','#ef4444','#22c55e','#facc15','#0ea5e9','#94a3b8'];
+const FPR={vintage:'sepia(.35) saturate(.8) contrast(1.05) brightness(1.03)',mono:'grayscale(1) contrast(1.15)',noir:'grayscale(1) contrast(1.4) brightness(.95)',cool:'hue-rotate(-10deg) saturate(1.1) brightness(1.02)',golden:'sepia(.25) saturate(1.2) brightness(1.05)',vivid:'saturate(1.5) contrast(1.12)',film:'sepia(.15) contrast(1.2) saturate(.85) brightness(.95)',pastel:'saturate(.7) brightness(1.12) contrast(.9)',hdr:'contrast(1.35) saturate(1.25) brightness(1.02)'};
 const DECS=[['spark','✦ স্পার্কল'],['corner','⌜ কোণা'],['circle','◯ বৃত্ত'],['dots','⁙ ডট']];
-const CTRL=['rt','sc','oy','ox','flip','fb','fc','fs','fw','fv','fsh','gsh','fn','tz','cn','cp','tpos','tal','bs','bo','olw','olc','tls','tsh','tt','tdisc','tcol','tps','brp','brs','brc','frm','bc','dcol','fmt','hr'];
+const CTRL=['rt','sc','oy','ox','flip','fb','fc','fs','fw','fv','fsh','fpr','grn','leak','gsh','fn','tz','cn','cp','tpos','tal','bs','bo','olw','olc','tls','tsh','tt','tdisc','tcol','tps','brp','brs','brc','frm','bc','dcol','fmt','hr'];
 const COLOR_IDS=['cn','cp','tcol','brc','olc','dcol','bc'];
 const LOOKS={
  classic:{n:'ক্লাসিক',bg:'window',v:{cn:'#ffffff',cp:'#e8b4a0',bs:'grad',tpos:'bottom',tal:'left',fn:'playfair',fb:100,fc:100,fs:100,fw:0,gsh:true,olw:0,tls:0,frm:'none',brp:'tr'},dec:[]},
@@ -250,9 +261,19 @@ const LOOKS={
  minimal:{n:'মিনিমাল',bg:'white',v:{cn:'#1b1418',cp:'#1b1418',bs:'none',tpos:'bottom',tal:'left',fn:'cormorant',tls:6,fb:100,fc:95,fs:85,fw:0,gsh:true,frm:'none',brp:'tl',brc:'#1b1418',olw:0},dec:[]},
  lux:{n:'লাক্সারি',bg:'dark',v:{cn:'#e9dcc9',cp:'#c9a24a',bs:'grad',tpos:'bottom',tal:'center',fn:'cormorant',tls:5,fb:95,fc:110,fs:95,fw:8,frm:'double',brc:'#c9a24a',brp:'bc',olw:0},dec:['corner']},
  eid:{n:'ঈদ স্পেশাল',bg:'gold',v:{cn:'#f5efe6',cp:'#e8c27a',bs:'card',tpos:'bottom',tal:'center',fn:'hind',fw:12,fb:105,frm:'thin',brc:'#e8c27a',brp:'tr',tcol:'#c9a24a'},dec:['spark','circle']},
+ flash:{n:'ফ্ল্যাশ সেল',bg:'coral',v:{cn:'#ffffff',cp:'#fde68a',bs:'bar',tpos:'center',tal:'center',fn:'poppins',olw:4,olc:'#7f1d1d',tls:3,fb:110,fc:120,fs:130,frm:'glow',brc:'#fde68a',tt:'FLASH',tdisc:true,tcol:'#ef4444',tps:'tr',brp:'none'},dec:['spark','dots']},
+ bigsale:{n:'বিগ সেল',bg:'color',bc:'#0f172a',v:{cn:'#fb7185',cp:'#fde68a',bs:'neon',tpos:'center',tal:'center',fn:'poppins',tls:6,fc:115,fs:120,frm:'thin',brc:'#fb7185',tt:'SALE',tdisc:true,tcol:'#fb7185',brp:'tl',olw:0},dec:['corner']},
+ ramadan:{n:'রমজান',bg:'navy',v:{cn:'#fef3c7',cp:'#e8c27a',bs:'frost',tpos:'bottom',tal:'center',fn:'notoserif',fw:6,fb:98,frm:'glass',brc:'#e8c27a',brp:'tr',tcol:'#e8c27a',tls:2},dec:['circle','spark']},
+ winter:{n:'শীত',bg:'ice',v:{cn:'#0f2a44',cp:'#1d4ed8',bs:'frost',tpos:'bottom',tal:'left',fn:'cormorant',fs:80,fc:105,fb:105,frm:'thin',brc:'#1d4ed8',brp:'tl',tls:4,olw:0},dec:['dots']},
+ summer:{n:'গ্রীষ্ম',bg:'lime',v:{cn:'#1b1418',cp:'#f08a24',bs:'cardL',tpos:'bottom',tal:'left',fn:'poppins',fs:130,fw:10,fb:108,frm:'none',brp:'tr',tcol:'#14b8a6'},dec:['spark']},
+ premium:{n:'প্রিমিয়াম ব্ল্যাক',bg:'charcoal2',v:{cn:'#f5efe6',cp:'#c9a24a',bs:'grad',tpos:'bottom',tal:'center',fn:'cormorant',tls:8,fc:115,fs:85,fv:35,fb:95,frm:'double',brc:'#c9a24a',brp:'bc',olw:0,fpr:'noir'},dec:[]},
+ pastel:{n:'প্যাস্টেল',bg:'blush2',v:{cn:'#6d4c5c',cp:'#c97b87',bs:'cardL',tpos:'center',tal:'center',fn:'hind',fpr:'pastel',frm:'thin',brc:'#c97b87',brp:'bc'},dec:['circle']},
+ street:{n:'স্ট্রিট',bg:'slate',v:{cn:'#ffffff',cp:'#facc15',bs:'bar',tpos:'bottom',tal:'left',fn:'poppins',olw:5,olc:'#1b1418',tls:3,fc:135,fs:140,fpr:'hdr',frm:'none',brp:'tl',tt:'NEW',tdisc:false,tcol:'#facc15'},dec:['corner']},
+ wedding:{n:'ওয়েডিং',bg:'cream',v:{cn:'#8b6b57',cp:'#c9a24a',bs:'none',tpos:'center',tal:'center',fn:'cormorant',tls:10,fb:105,fs:80,fw:8,frm:'glass',brc:'#c9a24a',brp:'bc',olw:0},dec:['circle','dots']},
+ minimalgold:{n:'মিনিমাল গোল্ড',bg:'sand',v:{cn:'#2a1d14',cp:'#b8925a',bs:'none',tpos:'bottom',tal:'right',fn:'cormorant',tls:7,fs:75,fc:100,fb:102,frm:'none',brp:'tl',brc:'#2a1d14',olw:0},dec:[]},
  neon:{n:'নিয়ন',bg:'navy',v:{cn:'#ffffff',cp:'#14b8a6',bs:'none',tpos:'bottom',tal:'left',fn:'poppins',olw:3,olc:'#14b8a6',tls:2,fc:120,fs:130,fb:95,frm:'none',tcol:'#7b4df0',brp:'tr'},dec:['dots','corner']}
 };
-let DEC=new Set(), DEFAULT=null;
+let DEC=new Set(), DEFAULT=null, HIST=[];
 const T=(g,s,x,y,c)=>{const w=Number($('olw').value)||0;if(w>0){g.strokeStyle=$('olc').value;g.lineWidth=w*(g.canvas.width/1080);g.lineJoin='round';g.strokeText(s,x,y)}g.fillStyle=c;g.fillText(s,x,y)};
 const star=(g,x,y,r)=>{g.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,rr=i%2?r*.3:r;g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fill()};
 function getState(){const s={};CTRL.forEach(k=>{const el=$(k);if(el)s[k]=el.type==='checkbox'?el.checked:el.value});s.bg=BG;s.dec=[...DEC];return s}
@@ -268,8 +289,11 @@ function markDec(){[...$('dec').children].forEach(x=>x.classList.toggle('on',DEC
 function presetsGet(){try{return JSON.parse(localStorage.getItem('aa_studio_presets')||'{}')}catch(e){return{}}}
 function presetsSet(o){try{localStorage.setItem('aa_studio_presets',JSON.stringify(o));return true}catch(e){return false}}
 function presetList(sel){const p=presetsGet();$('plst').innerHTML=Object.keys(p).length?Object.keys(p).map(k=>`<option value="${esc(k)}"${k===sel?' selected':''}>${esc(k)}</option>`).join(''):'<option value="">কোনো প্রিসেট নেই</option>'}
+let NOISE=null;
 function drawFx(g,W,H){
   const v=Number($('fv').value)/100;
+  if($('leak').checked){g.save();g.globalCompositeOperation='screen';const r=g.createRadialGradient(W*.92,H*.05,0,W*.92,H*.05,W*.7);r.addColorStop(0,'rgba(255,170,90,.42)');r.addColorStop(1,'rgba(255,170,90,0)');g.fillStyle=r;g.fillRect(0,0,W,H);g.restore()}
+  if($('grn').checked){if(!NOISE){NOISE=document.createElement('canvas');NOISE.width=NOISE.height=160;const nc=NOISE.getContext('2d'),id=nc.createImageData(160,160);for(let i=0;i<id.data.length;i+=4){const q=Math.random()*255;id.data[i]=id.data[i+1]=id.data[i+2]=q;id.data[i+3]=255}nc.putImageData(id,0,0)}g.save();g.globalAlpha=.13;g.fillStyle=g.createPattern(NOISE,'repeat');g.fillRect(0,0,W,H);g.restore()}
   if(v>0){const r=g.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75);r.addColorStop(0,'rgba(0,0,0,0)');r.addColorStop(1,'rgba(0,0,0,'+(v*.8).toFixed(2)+')');g.fillStyle=r;g.fillRect(0,0,W,H)}
   if($('fsh').checked){const l=g.createLinearGradient(0,0,W,H);l.addColorStop(.35,'rgba(255,255,255,0)');l.addColorStop(.5,'rgba(255,255,255,.22)');l.addColorStop(.65,'rgba(255,255,255,0)');g.fillStyle=l;g.fillRect(0,0,W,H)}
 }
@@ -287,7 +311,7 @@ const SW=[
  ['Ivory','#f5efe6'],['Champagne','#e9dcc9'],['Sand','#d8c3a5'],['Rose Gold','#e8b4a0'],
  ['Blush','#f0d6d2'],['Dusty Rose','#d4a5a5'],['Lavender','#d9d0e8'],['Powder Blue','#c9d6e3'],
  ['Sage','#b7c4a8'],['Terracotta','#c46a4a'],['Gold','#c9a24a'],['Mocha','#8b6b57'],
- ['Olive','#6b705c'],['Emerald','#1f4d3f'],['Navy','#1c2a44'],['Burgundy','#6d1f2f'],
+ ['Olive','#6b705c'],['Midnight Ink','#0f172a'],['Coral Pop','#fb7185'],['Lime Pop','#a3e635'],['Sky Pop','#38bdf8'],['Orchid','#c084fc'],['Butter','#fde68a'],['Mint Pop','#34d399'],['Tangerine','#f97316'],['Slate','#64748b'],['Cream Light','#fef3c7'],['Emerald','#1f4d3f'],['Navy','#1c2a44'],['Burgundy','#6d1f2f'],
  ['Plum','#4a2c4a'],['Charcoal','#2b2b2f']
 ];
 let RAW=null, ORIG=null, CUT=null, BGIMG=null, BG='window', busy=false, showOrig=false;
@@ -566,7 +590,7 @@ function render(){
     sg.drawImage(CUT,fx,dy,dw,dh);
     sg.globalCompositeOperation='source-in';sg.fillStyle='rgba(40,25,20,1)';sg.fillRect(0,0,W,H);
     if($('gsh').checked){g.save();if(hasF(g))g.filter='blur('+(W*.018)+'px)';g.globalAlpha=.4;g.drawImage(sh,(flip?-1:1)*W*.045,H*.008);g.restore()}
-    const flt='brightness('+Number($('fb').value)/100+') contrast('+Number($('fc').value)/100+') saturate('+Number($('fs').value)/100+') sepia('+Number($('fw').value)/100+')';
+    const flt='brightness('+Number($('fb').value)/100+') contrast('+Number($('fc').value)/100+') saturate('+Number($('fs').value)/100+') sepia('+Number($('fw').value)/100+') '+(FPR[$('fpr').value]||'');
     if(hasF(g))g.filter=flt;
     g.drawImage(CUT,fx,dy,dw,dh);
     if(hasF(g))g.filter='none';
@@ -643,7 +667,7 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
   };
 
   /* সব কন্ট্রোল */
-  ['sc','oy','ox','flip','tz','cn','cp','tpos','tal','bs','bo','tsh','tcol','tps','tdisc','brp','brs','brc','frm','rt','fb','fc','fs','fw','fv','fsh','gsh','olw','olc','tls','dcol','fmt','hr']
+  ['sc','oy','ox','flip','tz','cn','cp','tpos','tal','bs','bo','tsh','tcol','tps','tdisc','brp','brs','brc','frm','rt','fb','fc','fs','fw','fv','fsh','fpr','grn','leak','gsh','olw','olc','tls','dcol','fmt','hr']
     .forEach(id=>{$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
   ['tn','ts','tp','to','tc','tt'].forEach(id=>$(id).addEventListener('input',()=>{render();fontSoon()}));
   $('fn').addEventListener('change',ensureFonts);
@@ -661,8 +685,8 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
     document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
     showOrig=was;render();
   };
-  $('pvz').onclick=()=>$('cv').classList.toggle('big');
-  ['fv','fsh'].forEach(id=>{$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
+  $('pvs').onclick=e=>{const b=e.target.closest('[data-pv]');if(!b)return;document.documentElement.style.setProperty('--pvh',b.dataset.pv+'vh');[...$('pvs').children].forEach(x=>x.classList.toggle('on',x===b))};
+  ['fv','fsh','fpr','grn','leak'].forEach(id=>{$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
   mkSw('swo','olc',PAL);
   mkSw('swd','dcol',PAL);
   $('dec').innerHTML=DECS.map(d=>`<button type="button" class="dec" data-d="${d[0]}">${esc(d[1])}</button>`).join('');
@@ -672,6 +696,12 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
     setState({bg:L.bg,dec:L.dec,...(L.bc?{bc:L.bc}:{}),...L.v})};
   $('rst').onclick=()=>{if(DEFAULT)setState(DEFAULT)};
   DEFAULT=getState();
+  let lastSnap=JSON.stringify(DEFAULT),snapT;
+  const _render=render;
+  render=function(){_render();clearTimeout(snapT);snapT=setTimeout(()=>{const cur=JSON.stringify(getState());if(cur!==lastSnap){HIST.push(lastSnap);if(HIST.length>40)HIST.shift();lastSnap=cur}},350)};
+  window.__undo=()=>{if(!HIST.length){A.toast('আর আগের অবস্থা নেই');return}const prev=HIST.pop();lastSnap=prev;setState(JSON.parse(prev));A.toast('আগের অবস্থায় ফিরেছে')};
+  $('und').onclick=window.__undo;
+  document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();window.__undo()}});
   presetList();
   $('psv').onclick=()=>{const n=$('pn').value.trim()||('প্রিসেট '+(Object.keys(presetsGet()).length+1));
     const p=presetsGet();p[n]=getState();
