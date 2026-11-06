@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0d0b11">
 <title>AABHA | Photo Studio</title>
-<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="../admin.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Hind+Siliguri:wght@500;700&family=Noto+Serif+Bengali:wght@600;700&family=Playfair+Display:wght@600;700&family=Poppins:wght@500;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin.js"></script>
+<script src="../admin.js"></script>
 <style>
 .dg{padding:18px;display:flex;flex-direction:column;gap:12px}
 .dg label{font-size:12px;opacity:.7;margin-bottom:-6px}
@@ -1251,4 +1251,4 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
   $('bc').oninput=()=>{[...$('sw').children].forEach(x=>x.classList.remove('on'));render()};
   $('bi').onchange=async e=>{
     const f=e.target.files[0];if(!f)return;
-    try{BGI
+    t
