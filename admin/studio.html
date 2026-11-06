@@ -642,6 +642,8 @@ const CAT={edit:'classy',frame:'classy',spot:'classy',hang:'classy',split:'class
 const LAYLOOKS={};
 function lumHex(h){const n=parseInt(h.slice(1),16);return(0.299*((n>>16)&255)+0.587*((n>>8)&255)+0.114*(n&255))/255}
 let THUMB=false;
+const THUMB_W=270;
+let RESTORE_T=null;
 const HIT=[];
 const SHAPE_NAME={rect:'বক্স',rr:'রাউন্ড বক্স',circle:'বৃত্ত',frame:'ফ্রেম',beam:'আলো',torn:'টর্ন',glass:'কাঁচ',orb:'আলোর বল',ring:'নিয়ন রিং'};
 let SELX=null,ED=null,ED_ROWS=[];
@@ -763,7 +765,7 @@ function galPaint(cv,id){
     x.fillStyle='#0b0b0f';x.fillRect(0,0,tw,th);
     const k=Math.min(tw/src.width,th/src.height),dw=src.width*k,dh=src.height*k;
     x.drawImage(src,(tw-dw)/2,(th-dh)/2,dw,dh);cv.dataset.done='1';
-  }finally{LAYOUT=prev;THUMB=false;render()}
+  }finally{LAYOUT=prev;THUMB=false;clearTimeout(RESTORE_T);RESTORE_T=setTimeout(()=>render(),400)}
 }
 function galBuild(){
   const box=$('gal');if(!box)return;
@@ -1104,7 +1106,7 @@ function drawFrame(g,W,H){
 function render(){
   if(!ORIG)return;
   HIT.length=0;
-  const W=1080*(Number($('hr').value)||1), src=ORIG.img, r=$('rt').value;
+  const W=THUMB?THUMB_W:1080*(Number($('hr').value)||1), src=ORIG.img, r=$('rt').value;
   let H;
   if(r==='orig')H=Math.round(W*src.height/src.width);
   else{const [a,b]=r.split(':').map(Number);H=Math.round(W*b/a)}
