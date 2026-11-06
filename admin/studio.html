@@ -254,7 +254,7 @@
 
     <details><summary>✂️ কাটার সেটিং</summary><div class="in">
       <label>কাটার মান</label>
-      <select id="ql"><option value="isnet_fp16">ভালো মান (ধীর, ~৮৫ MB)</option><option value="isnet_quint8">দ্রুত (কম মান)</option></select>
+      <select id="ql"><option value="isnet_quint8" selected>দ্রুত (ডিফল্ট)</option><option value="isnet_fp16">ভালো মান (ধীর, ~৮৫ MB)</option></select>
       <label>কিনারা পরিষ্কার (কম-বেশি করে দেখুন)</label>
       <input id="ed" type="range" min="0" max="100" value="60">
       <label class="ck"><input id="hf" type="checkbox" checked> জামার ভেতরের ফাঁকা অংশ ভরাট করুন</label>
@@ -802,6 +802,65 @@ function galInit(){
   galBuild();
 }
 
+const mkPal=(n,bg,ink,acc)=>({n,bg,ink,acc,ink2:acc,pill:acc,pc:lumHex(acc)>.5?'#111111':'#ffffff',paper:lumHex(bg[0])>.6?'#ffffff':acc,dk:bg[bg.length-1],band:acc,card:'#ffffff'});
+const PALS2=PALS.concat([
+ mkPal('মিডনাইট পার্পল',['#2d1b4e','#0b0716'],'#f5f3ff','#c084fc'),
+ mkPal('সানসেট অরেঞ্জ',['#ffb457','#ff5e62'],'#ffffff','#2b0a10'),
+ mkPal('আইস ব্লু',['#e0f7ff','#7fd3f7'],'#06324a','#0a6fa3'),
+ mkPal('ফরেস্ট মিন্ট',['#0f3d2e','#06140f'],'#d1fae5','#34d399'),
+ mkPal('মোচা',['#e9d8c4','#b8926a'],'#2b1d12','#5b3a22'),
+ mkPal('রুবি',['#7f1d3a','#2a0a14'],'#ffe4ec','#fb7185'),
+ mkPal('লেমন',['#fef9c3','#fde047'],'#1c1917','#1c1917'),
+ mkPal('ইন্ডিগো নাইট',['#1e1b4b','#080620'],'#e0e7ff','#818cf8'),
+ mkPal('স্মোক গ্রে',['#3f3f46','#09090b'],'#fafafa','#a1a1aa'),
+ mkPal('পিস্তা ক্রিম',['#f1f8e9','#d9e8c4'],'#2f4a1f','#6b8f3a'),
+ mkPal('ক্যান্ডি পিঙ্ক',['#ffd6e7','#ff8fb8'],'#4a0d2a','#ffffff'),
+ mkPal('গ্ল্যাসি ব্লু',['#60a5fa','#1e3a8a'],'#ffffff','#bfdbfe'),
+ mkPal('ডেজার্ট স্যান্ড',['#fde7c8','#e0a96d'],'#3b2410','#8a4b1f'),
+ mkPal('ওয়াইন',['#4a0d1f','#1a0609'],'#fbe9ee','#f43f5e'),
+ mkPal('টারকোয়েজ গ্লো',['#0e7490','#042f3a'],'#ecfeff','#67e8f9')
+]);
+const ADV_NAMES=['হিরো সেন্টার','হিরো লো','বাম কলাম','ডান কলাম','কাঁচের কার্ড','কাঁচের শিট','কাঁচের সাইড','কাঁচের রিবন','অরোরা গ্লাস','নিয়ন রিং','আউটলাইন ফ্লোর','বিগ ওয়ার্ড ব্যাক','টর্ন রিভিল','স্পটলাইট বিম','গোল্ড ফ্রেম','ভার্টিকাল স্ট্রিপ','সেল ব্যাজ','স্প্লিট ব্যান্ড নিচে','হেডার ব্যান্ড','কর্নার রিবন'];
+const ADV_CAT=['classy','classy','classy','classy','glass','glass','glass','glass','glass','glass','bold','bold','bold','bold','classy','classy','sale','sale','classy','sale'];
+const ADV_COMP=[
+ (p)=>({prod:{x:.5,y:.58,h:.52},shapes:[],items:[['H',.5,.08,.07],['S',.5,.2,.026],['C',.5,.9,.024]]}),
+ (p)=>({prod:{x:.5,y:.5,h:.62},shapes:[],items:[['H',.5,.05,.09],['C',.5,.93,.026]]}),
+ (p)=>({prod:{x:.66,y:.56,h:.6},shapes:[],items:[['H',.08,.14,.07,{a:'left',mw:.45}],['S',.08,.36,.026,{a:'left',mw:.42}],['C',.2,.9,.024,{a:'left'}]]}),
+ (p)=>({prod:{x:.34,y:.56,h:.6},shapes:[],items:[['H',.92,.14,.07,{a:'right',mw:.45}],['S',.92,.36,.026,{a:'right',mw:.42}],['C',.8,.9,.024,{a:'right'}]]}),
+ (p)=>({prod:{x:.5,y:.62,h:.5},shapes:[['glass',.5,.36,.8,.46,60]],items:[['H',.5,.2,.07],['S',.5,.31,.026],['C',.5,.915,.026]]}),
+ (p)=>({prod:{x:.5,y:.42,h:.5},shapes:[['glass',.5,.8,.9,.36,70]],items:[['H',.5,.655,.06],['S',.5,.74,.026],['C',.5,.86,.026]]}),
+ (p)=>({prod:{x:.38,y:.56,h:.6},shapes:[['glass',.8,.5,.34,.84,50]],items:[['H',.8,.2,.045,{mw:.28}],['G',.8,.5,.07],['S',.8,.66,.024,{mw:.28}],['C',.8,.86,.024]]}),
+ (p)=>({prod:{x:.5,y:.56,h:.56},shapes:[['glass',.5,.22,1.3,.12,40,{rot:-10}]],items:[['H',.5,.22,.06,{vc:true,rot:-10}],['S',.5,.9,.026],['C',.5,.96,.024]]}),
+ (p)=>({prod:{x:.5,y:.58,h:.56},shapes:[['orb',.22,.25,null,null,.38,{c:p.acc+'B3'}],['orb',.82,.72,null,null,.42,{c:p.pill+'99'}],['glass',.5,.88,.84,.14,50]],items:[['H',.5,.06,.075],['S',.5,.22,.026],['C',.5,.88,.026]]}),
+ (p)=>({prod:{x:.5,y:.5,h:.56},shapes:[['ring',.5,.5,.9,.92,60,{lw:4,c:p.acc}]],items:[['H',.5,.05,.07],['S',.5,.2,.026],['C',.5,.9,.026]]}),
+ (p)=>({prod:{x:.5,y:.45,h:.5},shapes:[],items:[['H',.5,.72,.17,{outline:4,oc:p.ink,c:'transparent',mw:.85,lh:.92}],['S',.07,.06,.028,{a:'left'}],['C',.5,.95,.026]]}),
+ (p)=>({prod:{x:.5,y:.6,h:.5},shapes:[],items:[['H',.5,.1,.2,{z:0,mw:.95,lh:.85,c:p.acc}],['S',.5,.9,.026],['C',.5,.96,.022]]}),
+ (p)=>({prod:{x:.5,y:.44,h:.46},shapes:[['torn',.5,.44,.8,.52,null,{amp:26,c2:p.dk,c:p.paper}]],items:[['H',.5,.75,.06],['S',.5,.92,.026]]}),
+ (p)=>({prod:{x:.5,y:.66,h:.44},shapes:[['beam',.5,.42,.22,.8,null,{c:'rgba(255,240,210,.9)',op:'screen'}]],items:[['H',.5,.07,.05,{mw:.85,lh:1.05}],['S',.5,.21,.026],['C',.5,.9,.026]]}),
+ (p)=>({prod:{x:.5,y:.58,h:.5},shapes:[['frame',.5,.5,.88,.94,null,{lw:6,c:p.acc}],['frame',.5,.5,.84,.9,null,{lw:1.5,c:p.acc}]],items:[['H',.5,.09,.075,{mw:.8}],['S',.5,.25,.026],['C',.5,.88,.026]]}),
+ (p)=>({prod:{x:.38,y:.55,h:.5},shapes:[['rect',.86,.5,.28,1.02,null,{c:p.acc}]],items:[['H',.86,.5,.13,{rot:-90,vc:true,mw:.7,z:0}],['S',.06,.9,.028,{a:'left'}],['C',.86,.9,.024]]}),
+ (p)=>({prod:{x:.5,y:.6,h:.5},shapes:[['circle',.5,.56,null,null,.34,{c:p.paper}]],items:[['H',.5,.05,.055],['G',.5,.25,.1,{c:p.dk}],['S',.5,.93,.026]]}),
+ (p)=>({prod:{x:.5,y:.5,h:.5},shapes:[['rect',.5,.84,1.02,.32,null,{c:p.band}]],items:[['H',.5,.06,.085,{mw:.9}],['S',.5,.2,.03],['C',.5,.84,.028,{mw:.8,lh:1.4,c:p.pc}]]}),
+ (p)=>({prod:{x:.5,y:.6,h:.5},shapes:[['rect',.5,.1,1.02,.2,null,{c:p.band}]],items:[['H',.5,.1,.06,{c:p.pc}],['S',.5,.9,.026],['C',.5,.96,.024]]}),
+ (p)=>({prod:{x:.5,y:.58,h:.5},shapes:[['rect',.14,.14,.6,.12,null,{c:p.acc,rot:-35}]],items:[['G',.14,.14,.04,{rot:-35,vc:true}],['H',.5,.9,.06],['S',.5,.96,.024]]})
+];
+const ADV_TYPE=[{hf:'poppins',hw:800,caps:true,ls:.02,sc:1,bf:'poppins'},{hf:'cormorant',hw:700,caps:true,ls:.05,sc:1.05,bf:'poppins'}];
+function advLayout(ci,pi,ti){
+  const p=PALS2[pi],t=ADV_TYPE[ti],C=ADV_COMP[ci](p);
+  const shapes=C.shapes.map(([k,x,y,w,h,r,e={}])=>{const o=Object.assign({k,x,y,z:0},e);if(w!=null)o.w=w;if(h!=null)o.h=h;if(r!=null)o.r=r;return o});
+  const items=C.items.map(([k,x,y,s,e={}])=>{
+    const it={x,y,s:s*t.sc,a:'center',f:t.bf,w:600,c:p.ink,z:1};
+    if(k==='H')Object.assign(it,{src:'tn',fb:'Headline',f:t.hf,w:t.hw,caps:t.caps,ls:t.ls,mw:.85,lh:1.05});
+    else if(k==='S')Object.assign(it,{src:'ts',fb:'Sub line',w:500,caps:true,ls:.025});
+    else if(k==='C')Object.assign(it,{src:'tc',fb:'SHOP NOW',w:600,caps:true,ls:.02,c:p.pc,pill:p.pill});
+    else if(k==='G')Object.assign(it,{src:'tt',fb:'NEW',w:800,caps:true,c:p.pc,pill:p.pill});
+    return Object.assign(it,e);
+  });
+  const id=`adv_${ci}_${pi}_${ti}`;
+  return {id,pal:{bg:p.bg,radial:!!p.radial},lt:lumHex(p.bg[0])>.6,prod:C.prod,shapes,items,name:ADV_NAMES[ci]+(ti?' · সেরিফ':' · সানস'),palN:p.n,cat:ADV_CAT[ci]};
+}
+ADV_COMP.forEach((_,ci)=>PALS2.forEach((_p,pi)=>ADV_TYPE.forEach((_t,ti)=>{const d=advLayout(ci,pi,ti);LAYS[d.id]=d})));
+
 ARCH.concat(ARCHG).forEach(([key,name,pl,fn])=>pl.forEach(pi=>{
   const p=PALS[pi-1],id=key+'_'+pi,d=fn(p);
   d.id=id;d.pal={bg:p.bg,radial:!!p.radial};d.lt=lumHex(p.bg[0])>.6;d.name=name;d.palN=p.n;d.cat=CAT[key]||'glass';LAYS[id]=d;
@@ -1192,68 +1251,4 @@ Admin.boot({key:'studio',title:'Photo Studio',perm:'products',ready:async()=>{
   $('bc').oninput=()=>{[...$('sw').children].forEach(x=>x.classList.remove('on'));render()};
   $('bi').onchange=async e=>{
     const f=e.target.files[0];if(!f)return;
-    try{BGIMG=await loadImg(URL.createObjectURL(f));render()}catch(err){A.toast(err.message)}
-  };
-
-  /* রং বাছাই */
-  mkSw('swn','cn',['#ffffff','#f5efe6','#e8c27a','#e8b4a0','#c9a24a','#1b1418','#6d1f2f','#1f4d3f']);
-  mkSw('swp','cp',['#e8b4a0','#e8c27a','#ffffff','#c9a24a','#b8715a','#1b1418','#6d1f2f','#1f4d3f']);
-  mkSw('swt','tcol',['#b8715a','#6d1f2f','#1f4d3f','#c9a24a','#1b1418','#ffffff']);
-  mkSw('swb','brc',['#ffffff','#f5efe6','#e8c27a','#1b1418']);
-
-  /* ছবি দেওয়া */
-  $('im').onchange=async e=>{
-    const f=e.target.files[0];CUT=null;RAW=null;showOrig=false;
-    if(!f)return;
-    try{ORIG=await shrink(f);render();cut()}catch(err){setMsg(esc(err.message),'er')}
-  };
-
-  /* সব কন্ট্রোল */
-  ['sc','oy','ox','flip','tz','cn','cp','tpos','tal','bs','bo','tsh','tcol','tps','tdisc','brp','brs','brc','frm','rt','fb','fc','fs','fw','fv','fsh','fpr','grn','leak','gsh','olw','olc','tls','dcol','fmt','hr']
-    .forEach(id=>{$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
-  ['tn','ts','tp','to','tc','tt'].forEach(id=>$(id).addEventListener('input',()=>{render();fontSoon()}));
-  $('fn').addEventListener('change',ensureFonts);
-  document.querySelectorAll('[data-ox]').forEach(b=>b.onclick=()=>{$('ox').value=b.dataset.ox;render()});
-  $('ed').addEventListener('input',refineSoon);
-  $('hf').onchange=refine;
-  $('rc').onclick=cut;
-  $('tg').onclick=()=>{showOrig=!showOrig;render()};
-  $('dl').onclick=async()=>{
-    const was=showOrig;showOrig=false;
-    await ensureFonts();
-    const fm=$('fmt').value,mime=fm==='png'?'image/png':fm==='webp'?'image/webp':'image/jpeg';
-    const b=await toBlob($('cv'),mime,0.92);
-    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aabha-'+Date.now()+'.'+(fm==='png'?'png':fm==='webp'?'webp':'jpg');
-    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    showOrig=was;render();
-  };
-  $('pvs').onclick=e=>{const b=e.target.closest('[data-pv]');if(!b)return;document.documentElement.style.setProperty('--pvh',b.dataset.pv+'vh');[...$('pvs').children].forEach(x=>x.classList.toggle('on',x===b))};
-  ['fv','fsh','fpr','grn','leak'].forEach(id=>{$(id).addEventListener('input',render);$(id).addEventListener('change',render)});
-  mkSw('swo','olc',PAL);
-  mkSw('swd','dcol',PAL);
-  $('dec').innerHTML=DECS.map(d=>`<button type="button" class="dec" data-d="${d[0]}">${esc(d[1])}</button>`).join('');
-  $('dec').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.d;DEC.has(k)?DEC.delete(k):DEC.add(k);markDec();render()};
-  $('looks').innerHTML=Object.keys(ALLLOOKS).map(k=>`<button type="button" data-l="${k}">${esc(ALLLOOKS[k].n)}</button>`).join('');
-  $('looks').onclick=e=>{const b=e.target.closest('button');if(!b)return;const L=ALLLOOKS[b.dataset.l];
-    setState({bg:L.bg,dec:L.dec,lay:L.lay||'',...(L.bc?{bc:L.bc}:{}),...L.v})};
-  $('rst').onclick=()=>{if(DEFAULT)setState(DEFAULT)};
-  DEFAULT=getState();
-  let lastSnap=JSON.stringify(DEFAULT),snapT;
-  const _render=render;
-  render=function(){_render();if(THUMB)return;clearTimeout(snapT);snapT=setTimeout(()=>{const cur=JSON.stringify(getState());if(cur!==lastSnap){HIST.push(lastSnap);if(HIST.length>40)HIST.shift();lastSnap=cur}},350)};
-  window.__undo=()=>{if(!HIST.length){A.toast('আর আগের অবস্থা নেই');return}const prev=HIST.pop();lastSnap=prev;setState(JSON.parse(prev));A.toast('আগের অবস্থায় ফিরেছে')};
-  $('und').onclick=window.__undo;
-  document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();window.__undo()}});
-  galInit();edInit();
-  Promise.all(Object.keys(FONTS).flatMap(k=>[500,600,700,800].map(w=>document.fonts.load(w+' 40px '+FONTS[k].fam,'AABHA')))).then(()=>{if(ORIG)render()}).catch(()=>{});
-  presetList();
-  $('psv').onclick=()=>{const n=$('pn').value.trim()||('প্রিসেট '+(Object.keys(presetsGet()).length+1));
-    const p=presetsGet();p[n]=getState();
-    if(presetsSet(p)){presetList(n);$('pn').value='';A.toast('প্রিসেট সেভ হয়েছে: '+n)}else A.toast('সেভ করা যায়নি (ব্রাউজার স্টোরেজ বন্ধ)')};
-  $('pld').onclick=()=>{const p=presetsGet(),n=$('plst').value;if(!p[n]){A.toast('প্রিসেট বেছে নিন');return}setState(p[n]);A.toast('লোড হয়েছে: '+n)};
-  $('pdl').onclick=()=>{const p=presetsGet(),n=$('plst').value;if(!p[n])return;if(!confirm('"'+n+'" মুছবেন?'))return;delete p[n];presetsSet(p);presetList();A.toast('মুছে ফেলা হয়েছে')};
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(ORIG)render()});
-}});
-</script>
-</body>
-</html>
+    try{BGI
